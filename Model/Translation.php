@@ -90,12 +90,16 @@ class Translation extends TranslationsAppModel {
 		return $data;
 	}
 
-	static public function translate($key, $locale = null, $options = array()) {
+	static public function translate($key, $pluralKey = null, $options = array()) {
 		$options += array(
+			'domain' => 'default',
+			'category' => 'LC_MESSAGES',
+			'count' => null,
+			'locale' => null,
 			'autoPopulate' => Nodes\Environment::isDevelopment()
 		);
 
-		if ($locale) {
+		if ($options['locale']) {
 			self::$_locale = $locale;
 		}
 		$locale = self::$_locale;
