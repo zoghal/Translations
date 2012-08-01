@@ -104,7 +104,7 @@ class Translation extends TranslationsAppModel {
 			self::$_model = ClassRegistry::init('Translations.Translation');
 		}
 		if (!array_key_exists($locale, self::$_translations)) {
-			self::$_translations[$locale] = self::$_model->forLocale($locale, array('nsted' => false));
+			self::$_translations[$locale] = self::$_model->forLocale($locale, array('nested' => false));
 		}
 
 		if (array_key_exists($key, self::$_translations[$locale])) {
