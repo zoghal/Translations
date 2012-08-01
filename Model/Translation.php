@@ -25,11 +25,11 @@ class Translation extends TranslationsAppModel {
 		)
 	);
 
-	protected static $_locale;
+	protected static $_locale = 'en';
 
 	protected static $_model;
 
-	protected static $_translations;
+	protected static $_translations = array();
 
 /**
  * forLocale
@@ -90,7 +90,11 @@ class Translation extends TranslationsAppModel {
 		return $data;
 	}
 
-	static public function translate($key, $locale = null) {
+	static public function translate($key, $locale = null, $options = array()) {
+		$options += array(
+			'autoPopulate' => Nodes\Environment::isDevelopment()
+		);
+
 		if ($locale) {
 			self::$_locale = $locale;
 		}
@@ -99,12 +103,21 @@ class Translation extends TranslationsAppModel {
 		if (!self::$_model) {
 			self::$_model = ClassRegistry::init('Translations.Translation');
 		}
-		if (!array_key_exists($local, self::$_translations)) {
+		if (!array_key_exists($locale, self::$_translations)) {
 			self::$_translations[$locale] = self::$_model->forLocale($locale, array('nsted' => false));
 		}
 
 		if (array_key_exists($key, self::$_translations[$locale])) {
 			return self::$_translations[$locale][$key];
+		}
+
+		if ($options['autoPopulate']) {
+			self::$_model->create();
+			self::$_model->save(array(
+				'locale' => $locale,
+				'key' => $key,
+				'value' => $key
+			));
 		}
 		return $key;
 	}
