@@ -25,6 +25,12 @@ class Translation extends TranslationsAppModel {
 		)
 	);
 
+	protected static $_locale;
+
+	protected static $_model;
+
+	protected static $_translations;
+
 /**
  * forLocale
  *
@@ -82,6 +88,25 @@ class Translation extends TranslationsAppModel {
 			}
 		}
 		return $data;
+	}
+
+	static public function translate($key, $locale = null) {
+		if ($locale) {
+			self::$_locale = $locale;
+		}
+		$locale = self::$_locale;
+
+		if (!self::$_model) {
+			self::$_model = ClassRegistry::init('Translations.Translation');
+		}
+		if (!array_key_exists($local, self::$_translations)) {
+			self::$_translations[$locale] = self::$_model->forLocale($locale, array('nsted' => false));
+		}
+
+		if (array_key_exists($key, self::$_translations[$locale])) {
+			return self::$_translations[$locale][$key];
+		}
+		return $key;
 	}
 
 	public function loadPlist($file, $locale, $options = array()) {
