@@ -91,6 +91,10 @@ class Translation extends TranslationsAppModel {
 	}
 
 	static public function translate($key, $pluralKey = null, $options = array()) {
+		if (is_array($pluralKey)) {
+			$options = $pluralKey;
+			$pluralKey = null;
+		}
 		$options += array(
 			'domain' => 'default',
 			'category' => 'LC_MESSAGES',
