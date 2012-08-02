@@ -95,7 +95,7 @@ class Translation extends TranslationsAppModel {
 		return $data;
 	}
 
-	static public function translate($key, $pluralKey = null, $options = array()) {
+	public static function translate($key, $pluralKey = null, $options = array()) {
 		if (is_array($pluralKey)) {
 			$options = $pluralKey;
 			$pluralKey = null;
@@ -131,6 +131,12 @@ class Translation extends TranslationsAppModel {
 			));
 		}
 		return $key;
+	}
+
+	public static function clear() {
+		self::$_locale = null;
+		self::$_model = null;
+		self::$_translations = null;
 	}
 
 	public function loadPlist($file, $locale, $options = array()) {
