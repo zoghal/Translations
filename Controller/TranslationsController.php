@@ -10,11 +10,16 @@ class TranslationsController extends TranslationsAppController {
 	);
 
 	public function beforeFilter() {
+		$defaultLanguage = Configure::read('Config.language');
+		if (!$defaultLanguage) {
+			$defaultLanguage = 'en';
+			Configure::write('Config.language', $defaultLanguage);
+		}
 		if ($this->isAdminRequest()) {
 			$locales = $this->Translation->find('list', array(
 				'fields' => array('locale', 'locale')
 			));
-			$locales['en'] = 'en';
+			$locales[$defaultLanguage] = $defaultLanguage;
 			$this->set('locales', $locales);
 		}
 		$this->Api->allowPublic('flat');
@@ -43,7 +48,8 @@ class TranslationsController extends TranslationsAppController {
 			return $this->render('admin_choose_locale');
 		}
 
-		$english = $this->Translation->forLocale('en', array('nested' => false, 'section' => $section));
+		$defaultLanguage = Configure::read('Config.language');
+		$default = $this->Translation->forLocale($defaultLanguage, array('nested' => false, 'section' => $section));
 
 		if ($this->data) {
 			foreach ($this->data['Translation'] as $key => $value) {
@@ -53,7 +59,7 @@ class TranslationsController extends TranslationsAppController {
 
 				$key = str_replace('¿', '.', $key);
 
-				if ($locale !== 'en' && $value === $english[$key]) {
+				if ($locale !== $defaultLanguage && $value === $default[$key]) {
 					$this->Translation->deleteAll(array(
 						'locale' => $locale,
 						'key' => $key
@@ -76,11 +82,11 @@ class TranslationsController extends TranslationsAppController {
 			return $this->redirect(array('action' => 'index', $locale, $section));
 		}
 
-		if ($locale !== 'en') {
-			$english = $this->Translation->forLocale('en', array('nested' => false, 'section' => $section));
+		if ($locale !== $defaultLanguage) {
+			$default = $this->Translation->forLocale($defaultLanguage, array('nested' => false, 'section' => $section));
 		}
 		$toEdit = $this->Translation->forLocale($locale, array('nested' => false, 'addDefaults' => false, 'section' => $section));
-		$this->set(compact('english', 'toEdit'));
+		$this->set(compact('default', 'toEdit'));
 		$this->render('admin_edit_locale');
 	}
 
@@ -126,7 +132,10 @@ class TranslationsController extends TranslationsAppController {
  * @param string $locale
  * @param string $section
  */
-	public function flat($locale = 'en', $section = null) {
+	public function flat($locale = null, $section = null) {
+		if (!$locale) {
+			$locale = Configure::read('Config.language');
+		}
 		$return = $this->Translation->forLocale($locale, array('nested' => false, 'section' => $section));
 		$this->set('items', $return);
 		$this->render('index');
@@ -138,7 +147,10 @@ class TranslationsController extends TranslationsAppController {
  * @param string $locale
  * @param string $section
  */
-	public function nested($locale = 'en', $section = null) {
+	public function nested($locale = null, $section = null) {
+		if (!$locale) {
+			$locale = Configure::read('Config.language');
+		}
 		$return = $this->Translation->forLocale($locale, array('section' => $section));
 		$this->set('items', $return);
 		$this->render('index');

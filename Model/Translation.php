@@ -25,7 +25,7 @@ class Translation extends TranslationsAppModel {
 		)
 	);
 
-	protected static $_locale = 'en';
+	protected static $_locale;
 
 	protected static $_model;
 
@@ -38,14 +38,19 @@ class Translation extends TranslationsAppModel {
  * @param mixed $addDefaults
  * @return
  */
-	public function forLocale($locale = "en", $settings = array()) {
+	public function forLocale($locale = null, $settings = array()) {
 		$settings = $settings + array('nested' => true, 'addDefaults' => true, 'section' => null);
+
+		$defaultLanguage = Configure::read('Config.language');
+		if (!$locale) {
+			$locale = $defaultLanguage;
+		}
 
 		if ($settings['addDefaults']) {
 			$locales = array_unique(array(
 				$locale,
 				substr($locale, 0, 2),
-				'en',
+				$defaultLanguage
 			));
 
 			$settings['addDefaults'] = false;
@@ -99,14 +104,12 @@ class Translation extends TranslationsAppModel {
 			'domain' => 'default',
 			'category' => 'LC_MESSAGES',
 			'count' => null,
-			'locale' => null,
+			'locale' => self::$_locale ? self::$_locale : Configure::read('Config.language'),
 			'autoPopulate' => Nodes\Environment::isDevelopment()
 		);
 
-		if ($options['locale']) {
-			self::$_locale = $locale;
-		}
-		$locale = self::$_locale;
+		$locale = $options['locale'];
+		self::$_locale = $locale;
 
 		if (!self::$_model) {
 			self::$_model = ClassRegistry::init('Translations.Translation');

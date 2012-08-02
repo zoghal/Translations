@@ -7,7 +7,7 @@ if (count($this->request['pass']) == 1) {
  	$sections['all']['title'] = $this->Html->link("Back to all {$this->request['pass'][0]} translations", array($this->request['pass'][0]));
 }
 
-foreach ($english as $key => $string) {
+foreach ($default as $key => $string) {
 	$input = array(
 		'label' => "dummy." . str_replace('.', ' ', strtolower($key)),
 		'placeholder' => $string,
