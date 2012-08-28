@@ -7,3 +7,4 @@
 if (!Configure::write('Config.language')) {
 	Configure::write('Config.language', 'en');
 }
+App::uses('Translation', 'Translations.Model');
