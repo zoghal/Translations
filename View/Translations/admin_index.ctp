@@ -16,6 +16,11 @@ echo $this->element('Shared.Crud/index', array(
 	'columns' => array(
 		'locale',
 		'key',
-		'value'
+		'value' => array(
+			'name' => 'value',
+			'callback' => function($view, $item, $model, $baseUrl) {
+				return $view->Text->truncate($item['Translation']['value'], 100);
+			}
+		)
 	)
 ));
