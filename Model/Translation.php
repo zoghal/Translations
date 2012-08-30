@@ -39,6 +39,13 @@ class Translation extends TranslationsAppModel {
  * @return
  */
 	public function forLocale($locale = null, $settings = array()) {
+		if (!self::$_model) {
+			self::$_model = ClassRegistry::init('Translations.Translation');
+		}
+		if (self::$_model !== $this) {
+			return self::$_model->forLocale($locale, $settings);
+		}
+
 		$settings = $settings + array('nested' => true, 'addDefaults' => true, 'section' => null);
 
 		$defaultLanguage = Configure::read('Config.language');
