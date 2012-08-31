@@ -13,7 +13,7 @@ class TranslationTest extends CakeTestCase {
  * @var array
  */
 	public $fixtures = array(
-		'plugin.tuborg_coins.translation',
+		'plugin.translations.translation',
 	);
 
 /**
