@@ -4,7 +4,7 @@
  *
  * If it's not defined, it is assumed to be 'en'
  */
-if (!Configure::write('Config.language')) {
+if (!Configure::read('Config.language')) {
 	Configure::write('Config.language', 'en');
 }
 App::uses('Translation', 'Translations.Model');
