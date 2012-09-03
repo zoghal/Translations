@@ -78,7 +78,7 @@ class TranslationsController extends TranslationsAppController {
 					'value' => $value
 				));
 			}
-			$this->Session->setFlash("Translations for $locale updated");
+			$this->Session->setFlash("Translations for $locale updated", 'success');
 			return $this->redirect(array('action' => 'index', $locale, $section));
 		}
 
@@ -118,9 +118,9 @@ class TranslationsController extends TranslationsAppController {
 					$rows = $key . ": \n\t" . implode($rows, "\n\t") . "\n";
 				}
 				$string = "<br /><pre>" . implode($return) . "</pre>";
-				$this->Session->setFlash('Translations uploaded successfully' . $string);
+				$this->Session->setFlash('Translations uploaded successfully' . $string, 'success');
 			} else {
-				$this->Session->setFlash('Errors were generated processing the upload');
+				$this->Session->setFlash('Errors were generated processing the upload', 'error');
 			}
 			$this->redirect(array('action' => 'index', $this->data['Translation']['locale']));
 		}

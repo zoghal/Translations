@@ -25,8 +25,6 @@ class Translation extends TranslationsAppModel {
 		)
 	);
 
-	protected static $_locale;
-
 	protected static $_model;
 
 	protected static $_translations = array();
@@ -39,6 +37,13 @@ class Translation extends TranslationsAppModel {
  * @return
  */
 	public function forLocale($locale = null, $settings = array()) {
+		if (!self::$_model) {
+			self::$_model = ClassRegistry::init('Translations.Translation');
+		}
+		if (self::$_model !== $this) {
+			return self::$_model->forLocale($locale, $settings);
+		}
+
 		$settings = $settings + array('nested' => true, 'addDefaults' => true, 'section' => null);
 
 		$defaultLanguage = Configure::read('Config.language');
@@ -104,12 +109,11 @@ class Translation extends TranslationsAppModel {
 			'domain' => 'default',
 			'category' => 'LC_MESSAGES',
 			'count' => null,
-			'locale' => self::$_locale ? self::$_locale : Configure::read('Config.language'),
+			'locale' => Configure::read('Config.language'),
 			'autoPopulate' => Nodes\Environment::isDevelopment()
 		);
 
 		$locale = $options['locale'];
-		self::$_locale = $locale;
 
 		if (!self::$_model) {
 			self::$_model = ClassRegistry::init('Translations.Translation');
@@ -134,7 +138,6 @@ class Translation extends TranslationsAppModel {
 	}
 
 	public static function clear() {
-		self::$_locale = null;
 		self::$_model = null;
 		self::$_translations = null;
 	}
