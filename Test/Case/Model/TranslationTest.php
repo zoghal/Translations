@@ -217,12 +217,4 @@ class TranslationTest extends CakeTestCase {
 		$expected = 'Verdi med {param}';
 		$this->assertSame($expected, $result);
 	}
-
-	public function testForCachedLocale() {
-		Configure::write('Config.langauge', 'no');
-		Configure::delete('Config.language');
-		$result = t('key_one');
-		$expected = 'Verdi En';
-		$this->assertSame($expected, $result);
-	}
 }
