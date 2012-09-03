@@ -48,6 +48,14 @@
    <arg value="git@github.com:nodesagency/Translations.git"/>
    <arg value="app/Plugin/Translations"/>
   </exec>
+
+ <exec executable="git" dir="${basedir}/build/cakephp">
+   <arg value="submodule"/>
+   <arg value="add"/>
+   <arg value="git@github.com:nodesagency/Platform-Shared-Plugin.git"/>
+   <arg value="app/Plugin/Shared"/>
+  </exec>
+
  </target>
 
  <!-- main task in ant file -->
@@ -61,6 +69,7 @@
   <!-- Write a bootstrap.php file with our plugins loaded -->
   <echo file="${basedir}/app/Config/bootstrap.php">&lt;?php
 Cache::config('default', array('engine' => 'File'));
+CakePlugin::load('Shared', array('bootstrap' => true));
 CakePlugin::load('Translations', array('bootstrap' => true));
 </echo>
 
