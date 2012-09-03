@@ -5,7 +5,7 @@
  <dirname property="included.basedir" file="${ant.file.included}"/>
 
  <!-- Local Configuration -->
- <property name="project.name" value="plugin-Translations"/>
+ <property name="project.name" value="Translations"/>
 
  <!-- Change unit test category tests to Translations plugin -->
  <property name="phpunit.category" value="Translations"/>
