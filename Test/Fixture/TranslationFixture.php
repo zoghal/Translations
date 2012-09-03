@@ -30,19 +30,104 @@ class TranslationFixture extends CakeTestFixture {
  */
 	public $records = array(
 		array(
+			'id' => '4fc4a7ac-2468-4796-9655-31f92a72c761',
+			'application_id' => '4fc7df26-a408-4283-8bfb-6109c0a80127',
+			'locale' => 'en',
+			'key' => 'key_one',
+			'value' => 'Value One'
+		),
+		array(
 			'id' => '4fc4a7ac-2468-4796-9655-31f92a72c762',
 			'application_id' => '4fc7df26-a408-4283-8bfb-6109c0a80127',
 			'locale' => 'en',
-			'key' => 'one.two.0.google',
-			'value' => 'http://google.com'
+			'key' => 'key_two',
+			'value' => 'Value Two'
 		),
 		array(
 			'id' => '4fc4a7ac-2468-4796-9655-31f92a72c763',
 			'application_id' => '4fc7df26-a408-4283-8bfb-6109c0a80127',
 			'locale' => 'en',
-			'key' => 'one.two.1.nodes',
-			'value' => 'http://nodesagency.com'
-		)
+			'key' => 'nested.key.one',
+			'value' => 'Nested Value One'
+		),
+		array(
+			'id' => '4fc4a7ac-2468-4796-9655-31f92a72c764',
+			'application_id' => '4fc7df26-a408-4283-8bfb-6109c0a80127',
+			'locale' => 'en',
+			'key' => 'nested.key.two',
+			'value' => 'Nested Value Two'
+		),
+		array(
+			'id' => '4fc4a7ac-2468-4796-9655-31f92a72c765',
+			'application_id' => '4fc7df26-a408-4283-8bfb-6109c0a80127',
+			'locale' => 'en',
+			'key' => 'numerical.key.0',
+			'value' => 'Numerical Value One'
+		),
+		array(
+			'id' => '4fc4a7ac-2468-4796-9655-31f92a72c766',
+			'application_id' => '4fc7df26-a408-4283-8bfb-6109c0a80127',
+			'locale' => 'en',
+			'key' => 'numerical.key.1',
+			'value' => 'Numerical Value Two'
+		),
+		array(
+			'id' => '4fc4a7ac-2468-4796-9655-31f92a72c767',
+			'application_id' => '4fc7df26-a408-4283-8bfb-6109c0a80127',
+			'locale' => 'en',
+			'key' => 'key.with.param',
+			'value' => 'Value with {param}'
+		),
+
+		array(
+			'id' => '4fc4a7ac-2468-4796-9655-31f92a72c771',
+			'application_id' => '4fc7df26-a408-4283-8bfb-6109c0a80127',
+			'locale' => 'no',
+			'key' => 'key_one',
+			'value' => 'Verdi En'
+		),
+		array(
+			'id' => '4fc4a7ac-2468-4796-9655-31f92a72c772',
+			'application_id' => '4fc7df26-a408-4283-8bfb-6109c0a80127',
+			'locale' => 'no',
+			'key' => 'key_two',
+			'value' => 'Verdi To'
+		),
+		array(
+			'id' => '4fc4a7ac-2468-4796-9655-31f92a72c773',
+			'application_id' => '4fc7df26-a408-4283-8bfb-6109c0a80127',
+			'locale' => 'no',
+			'key' => 'nested.key.one',
+			'value' => 'Dyp Verdi En'
+		),
+		array(
+			'id' => '4fc4a7ac-2468-4796-9655-31f92a72c774',
+			'application_id' => '4fc7df26-a408-4283-8bfb-6109c0a80127',
+			'locale' => 'no',
+			'key' => 'nested.key.two',
+			'value' => 'Dyp Verdi To'
+		),
+		array(
+			'id' => '4fc4a7ac-2468-4796-9655-31f92a72c775',
+			'application_id' => '4fc7df26-a408-4283-8bfb-6109c0a80127',
+			'locale' => 'no',
+			'key' => 'numerical.key.0',
+			'value' => 'Tall Verdi En'
+		),
+		array(
+			'id' => '4fc4a7ac-2468-4796-9655-31f92a72c776',
+			'application_id' => '4fc7df26-a408-4283-8bfb-6109c0a80127',
+			'locale' => 'no',
+			'key' => 'numerical.key.1',
+			'value' => 'Tall Verdi To'
+		),
+		array(
+			'id' => '4fc4a7ac-2468-4796-9655-31f92a72c777',
+			'application_id' => '4fc7df26-a408-4283-8bfb-6109c0a80127',
+			'locale' => 'no',
+			'key' => 'key.with.param',
+			'value' => 'Verdi med {param}'
+		),
 	);
 
 }
