@@ -95,6 +95,18 @@ class TranslationTest extends CakeTestCase {
 		$this->assertSame($expected, $result);
 	}
 
+	public function testForLocaleSection() {
+		$result = $this->Translation->forLocale('en', array('section' => 'key'));
+
+		$expected = array(
+			'with' => array(
+				'param' => 'Value with {param}'
+			)
+		);
+
+		$this->assertSame($expected, $result);
+	}
+
 	public function testForSettingLanguageConfig() {
 		Configure::write('Config.language', 'no');
 		$result = $this->Translation->forLocale();
