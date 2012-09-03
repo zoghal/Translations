@@ -55,6 +55,8 @@ class TranslationTest extends CakeTestCase {
 		$result = $this->Translation->forLocale('en', array('nested' => false));
 
 		$expected = array(
+			'...a...b...c...' => 'Dotted key',
+			'foo bar 42' => 'Non-namespaced key',
 			'key.with.param' => 'Value with {param}',
 			'key_one' => 'Value One',
 			'key_two' => 'Value Two',
@@ -71,6 +73,8 @@ class TranslationTest extends CakeTestCase {
 		$result = $this->Translation->forLocale();
 
 		$expected = array(
+			'...a...b...c...' => 'Dotted key',
+			'foo bar 42' => 'Non-namespaced key',
 			'key' => array(
 				'with' => array(
 					'param' => 'Value with {param}'
@@ -112,6 +116,8 @@ class TranslationTest extends CakeTestCase {
 		$result = $this->Translation->forLocale();
 
 		$expected = array(
+			'...a...b...c...' => 'Prikkete nøkkel',
+			'foo bar 42' => 'Ikke-navnplass nøkkel',
 			'key' => array(
 				'with' => array(
 					'param' => 'Verdi med {param}'

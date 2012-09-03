@@ -78,6 +78,20 @@ class TranslationFixture extends CakeTestFixture {
 			'key' => 'key.with.param',
 			'value' => 'Value with {param}'
 		),
+		array(
+			'id' => '4fc4a7ac-2468-4796-9655-31f92a72c768',
+			'application_id' => '4fc7df26-a408-4283-8bfb-6109c0a80127',
+			'locale' => 'en',
+			'key' => 'foo bar 42',
+			'value' => 'Non-namespaced key'
+		),
+		array(
+			'id' => '4fc4a7ac-2468-4796-9655-31f92a72c769',
+			'application_id' => '4fc7df26-a408-4283-8bfb-6109c0a80127',
+			'locale' => 'en',
+			'key' => '...a...b...c...',
+			'value' => 'Dotted key'
+		),
 
 		array(
 			'id' => '4fc4a7ac-2468-4796-9655-31f92a72c771',
@@ -127,6 +141,20 @@ class TranslationFixture extends CakeTestFixture {
 			'locale' => 'no',
 			'key' => 'key.with.param',
 			'value' => 'Verdi med {param}'
+		),
+		array(
+			'id' => '4fc4a7ac-2468-4796-9655-31f92a72c778',
+			'application_id' => '4fc7df26-a408-4283-8bfb-6109c0a80127',
+			'locale' => 'no',
+			'key' => 'foo bar 42',
+			'value' => 'Ikke-navnplass nøkkel'
+		),
+		array(
+			'id' => '4fc4a7ac-2468-4796-9655-31f92a72c779',
+			'application_id' => '4fc7df26-a408-4283-8bfb-6109c0a80127',
+			'locale' => 'no',
+			'key' => '...a...b...c...',
+			'value' => 'Prikkete nøkkel'
 		),
 	);
 
