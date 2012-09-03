@@ -92,6 +92,13 @@ class TranslationFixture extends CakeTestFixture {
 			'key' => '...a...b...c...',
 			'value' => 'Dotted key'
 		),
+		array(
+			'id' => '4fc4a7ac-2468-4796-9655-31f92a72c76a',
+			'application_id' => '4fc7df26-a408-4283-8bfb-6109c0a80127',
+			'locale' => 'en',
+			'key' => 'super.duper.nested.key.of.doom',
+			'value' => 'Super duper nested key of doom'
+		),
 
 		array(
 			'id' => '4fc4a7ac-2468-4796-9655-31f92a72c771',
@@ -155,6 +162,13 @@ class TranslationFixture extends CakeTestFixture {
 			'locale' => 'no',
 			'key' => '...a...b...c...',
 			'value' => 'Prikkete nøkkel'
+		),
+		array(
+			'id' => '4fc4a7ac-2468-4796-9655-31f92a72c77a',
+			'application_id' => '4fc7df26-a408-4283-8bfb-6109c0a80127',
+			'locale' => 'no',
+			'key' => 'super.duper.nested.key.of.doom',
+			'value' => 'Super duper nøstet nøkkel av doom'
 		),
 	);
 

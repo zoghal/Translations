@@ -64,6 +64,7 @@ class TranslationTest extends CakeTestCase {
 			'nested.key.two' => 'Nested Value Two',
 			'numerical.key.0' => 'Numerical Value One',
 			'numerical.key.1' => 'Numerical Value Two',
+			'super.duper.nested.key.of.doom' => 'Super duper nested key of doom'
 		);
 
 		$this->assertSame($expected, $result);
@@ -93,6 +94,17 @@ class TranslationTest extends CakeTestCase {
 					   'Numerical Value One',
 					   'Numerical Value Two'
 				   )
+			),
+			'super' => array(
+				'duper' => array(
+					'nested' => array(
+						'key' => array(
+							'of' => array(
+								'doom' => 'Super duper nested key of doom'
+							)
+						)
+					)
+				)
 			)
 		);
 
@@ -136,6 +148,17 @@ class TranslationTest extends CakeTestCase {
 					   'Tall Verdi En',
 					   'Tall Verdi To'
 				   )
+			),
+			'super' => array(
+				'duper' => array(
+					'nested' => array(
+						'key' => array(
+							'of' => array(
+								'doom' => 'Super duper nøstet nøkkel av doom'
+							)
+						)
+					)
+				)
 			)
 		);
 
