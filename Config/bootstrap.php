@@ -23,3 +23,10 @@ function t($text, $params = array()) {
 	));
 	return $text;
 }
+
+// Application configuration for the Translations module
+Configure::write('ApplicationConfigurationExtras.translations', array(
+	'element'   => 'Translations.application_configuration',
+	'modules'   => array('Translations'),
+	'global'    => true
+));
