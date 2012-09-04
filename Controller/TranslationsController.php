@@ -5,6 +5,8 @@ App::uses('TranslationsAppController', 'Translations.Controller');
  */
 class TranslationsController extends TranslationsAppController {
 
+	public $helpers = array('Text');
+
 	public $uses = array(
 		'Translations.Translation',
 	);
