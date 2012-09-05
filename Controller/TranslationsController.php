@@ -96,6 +96,9 @@ class TranslationsController extends TranslationsAppController {
 			$conditions['locale'] = $locale;
 		}
 		$items = $this->paginate($conditions);
+		foreach ($items as &$item) {
+			$item['Translation']['ns'] = current(explode('.', $item['Translation']['key']));
+		}
 		$locales = $this->Translation->find('list', array(
 			'fields' => array('locale', 'locale')
 		));
