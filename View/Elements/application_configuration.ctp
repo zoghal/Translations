@@ -5,12 +5,16 @@
 	<h3><?php echo __('Translations'); ?></h3>
 	<div class="control-group">
 		<div class="descr">
-			<label class="control-label"><?php echo __('Avilable Localizations'); ?></label>
+			<label class="control-label"><?php echo __('Available Localizations'); ?></label>
 		</div>
 		<div class="controls">
-			<?php foreach (Translation::locales() as $locale) {
-				echo $locale . '<br>';
-			} ?>
+			<ul class="locales">
+				<?php
+				$application = !empty($this->request->data['Application']['id']) ? $this->request->data['Application']['id'] : null;
+				foreach (Translation::locales(false, array('application' => $application)) as $locale) {
+					echo '<li>' . $locale . '</li>';
+				} ?>
+			</ul>
 		</div>
 	</div>
 	<div class="controls">

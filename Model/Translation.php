@@ -105,10 +105,26 @@ class Translation extends TranslationsAppModel {
 /**
  * Lists the avaliable locales.
  *
- * @param boolean $all (optional) Whether to print out all locales
+ * @param boolean $all     (optional) Whether to print out all locales
+ * @param array   $options (optional) List of options
  * @return array
  */
-	public static function locales($all = false) {
+	public static function locales($all = false, $options = array()) {
+		// Setup options
+		$defaults = array(
+			'query' => array(
+				'fields' => 'Translation.locale',
+				'group'  => 'Translation.locale'
+			),
+			'application' => null
+		);
+		$options = array_merge($defaults, $options);
+
+		if (!empty($options['application'])) {
+			$options['query']['conditions']['Translation.application_id'] = $options['application'];
+			$options['query']['bounds'] = false;
+		}
+
 		// Load model
 		if (!self::$_model) {
 			self::$_model = ClassRegistry::init('Translations.Translation');
@@ -124,10 +140,7 @@ class Translation extends TranslationsAppModel {
 			return self::$_locales;
 		} else {
 			// Get current locales
-			$currentLocales = self::$_model->find('all', array(
-				'fields' => 'Translation.locale',
-				'group'  => 'Translation.locale'
-			));
+			$currentLocales = self::$_model->find('all', $options['query']);
 
 			$locales = array();
 			foreach ($currentLocales as $locale) {
