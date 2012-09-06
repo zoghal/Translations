@@ -29,6 +29,47 @@ class TranslationsController extends TranslationsAppController {
 		parent::beforeFilter();
 	}
 
+	public function admin_add_locale() {
+		$locales = Translation::locales(true);
+		$based_on = Translation::locales();
+
+		if ($this->request->is('post') && !empty($this->request->data['Localization']['locale'])) {
+			// Validate the entry
+			$error = null;
+			if (!array_key_exists($this->request->data['Localization']['locale'], $locales)) {
+				$error = __('You must select a valid locale');
+			} elseif (array_key_exists($this->request->data['Localization']['locale'], $based_on)) {
+				$error = __('That locale already exists');
+			} elseif (empty($this->request->data['Localization']['based_on'])) {
+				$error = __('You must select a locale to base the localization on');
+			}
+			if (empty($error)) {
+				// Save new translations
+				$translations = Translation::forLocale($this->request->data['Localization']['locale'], array('nested' => false));
+				$objects = array();
+				foreach ($translations as $key => $value) {
+					$translation = $this->Translation->create(array(
+						'application_id' => Configure::read('Application.id'),
+						'locale' => $this->request->data['Localization']['locale'],
+						'key' => $key,
+						'value' => $value
+					));
+					$this->Translation->save($translation);
+				}
+
+				// Go to edit
+				$this->redirect(array(
+					'action' => 'edit_locale',
+					$this->request->data['Localization']['locale']
+				));
+			} else {
+				$this->Session->setFlash($error, 'error');
+			}
+		}
+
+		$this->set(compact('locales', 'based_on'));
+	}
+
 	public function admin_edit_locale($locale = null, $section = null) {
 		if (!$locale) {
 			if ($this->data) {
