@@ -246,4 +246,13 @@ class TranslationTest extends CakeTestCase {
 		$expected = 'Verdi med {param}';
 		$this->assertSame($expected, $result);
 	}
+
+	public function testForLocales() {
+		$result = Translation::locales();
+		$expected = array(
+			'en' => 'International (English)',
+			'no' => 'Norway'
+		);
+		$this->assertSame($expected, $result);
+	}
 }

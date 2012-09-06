@@ -1,12 +1,16 @@
+<?php App::uses('Translation', 'Translations.Model'); ?>
+
 <!-- Link to translations -->
 <fieldset>
 	<h3><?php echo __('Translations'); ?></h3>
 	<div class="control-group">
 		<div class="descr">
-			<label class="control-label"><?php echo __('Language'); ?></label>
+			<label class="control-label"><?php echo __('Avilable Localizations'); ?></label>
 		</div>
 		<div class="controls">
-			<?php echo Configure::read('Config.language'); ?>
+			<?php foreach (Translation::locales() as $locale) {
+				echo $locale . '<br>';
+			} ?>
 		</div>
 	</div>
 	<div class="controls">

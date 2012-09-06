@@ -27,6 +27,8 @@ class Translation extends TranslationsAppModel {
 
 	protected static $_model;
 
+	protected static $_locales;
+
 	protected static $_translations = array();
 
 /**
@@ -98,6 +100,42 @@ class Translation extends TranslationsAppModel {
 			}
 		}
 		return $data;
+	}
+
+/**
+ * Lists the avaliable locales.
+ *
+ * @param boolean $all (optional) Whether to print out all locales
+ * @return array
+ */
+	public static function locales($all = false) {
+		// Load model
+		if (!self::$_model) {
+			self::$_model = ClassRegistry::init('Translations.Translation');
+		}
+
+		// Load languages
+		if (!self::$_locales) {
+			$json = file_get_contents(dirname(__FILE__) . '/../Config/locales.json');
+			self::$_locales = get_object_vars(json_decode($json));
+		}
+
+		if ($all) {
+			return self::$_locales;
+		} else {
+			// Get current locales
+			$currentLocales = self::$_model->find('all', array(
+				'fields' => 'Translation.locale',
+				'group'  => 'Translation.locale'
+			));
+
+			$locales = array();
+			foreach ($currentLocales as $locale) {
+				$locales[$locale['Translation']['locale']] = self::$_locales[$locale['Translation']['locale']];
+			}
+
+			return $locales;
+		}
 	}
 
 	public static function translate($key, $pluralKey = null, $options = array()) {
