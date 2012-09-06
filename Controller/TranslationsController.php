@@ -101,9 +101,7 @@ class TranslationsController extends TranslationsAppController {
 		foreach ($items as &$item) {
 			$item['Translation']['ns'] = current(explode('.', $item['Translation']['key']));
 		}
-		$locales = $this->Translation->find('list', array(
-			'fields' => array('locale', 'locale')
-		));
+		$locales = Translation::locales();
 		$this->set(compact('items', 'locales'));
 	}
 

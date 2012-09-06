@@ -14,7 +14,9 @@ echo $this->element('Shared.Crud/index', array(
 	'model' => 'Translation',
 	'title' => 'Translations List',
 	'columns' => array(
-		'locale',
+		'locale' => function($view, $item, $model, $baseUrl) {
+			return $view->viewVars['locales'][$item[$model]['locale']];
+		},
 		'key',
 		'value' => array(
 			'name' => 'value',
