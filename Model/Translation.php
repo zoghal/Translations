@@ -202,21 +202,36 @@ class Translation extends TranslationsAppModel {
 	protected function _expand($array) {
 		$return = array();
 		foreach ($array as $key => $value) {
-			$keys = explode('.', $key);
-			$count = count($keys);
-			if ($count === 1) {
-				$return[$key] = $value;
-			} elseif ($count === 2) {
-				$return[$keys[0]][$keys[1]] = $value;
-			} elseif ($count === 3) {
-				$return[$keys[0]][$keys[1]][$keys[2]] = $value;
-			} elseif ($count === 4) {
-				$return[$keys[0]][$keys[1]][$keys[2]][$keys[3]] = $value;
+			if (preg_match('/^(\w+\.?)+$/', $key)) { // for keys of format xxx.yyy.zzz
+				$keys = explode('.', $key);
 			} else {
-				throw new \Exception ("unhandled translation for $key");
+				$keys = array($key);
+			}
+
+			if (count($keys) > 1) {
+				$return = $this->_recursiveInsert($return, $keys, $value);
+			} else {
+				$return[$key] = $value;
 			}
 		}
 		return $return;
+	}
+
+	protected function _recursiveInsert($array, $keys, $value) {
+		$key = array_shift($keys);
+		if (empty($keys)) {
+			$array[$key] = $value;
+		} else {
+			if (!isset($array[$key])) {
+				$array[$key] = array();
+			}
+			$temp = $this->_recursiveInsert($array[$key], $keys, $value);
+			foreach ($temp as $k => $v) {
+				$array[$key][$k] = $v; // array_merge treats string and number keys differently so we have to do it manually
+			}
+		}
+
+		return $array;
 	}
 
 	protected function _parseValue( $valueNode ) {
