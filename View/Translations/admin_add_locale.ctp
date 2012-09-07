@@ -1,6 +1,6 @@
 <?php
 echo $this->element('Shared.Crud/form', array(
-	'model' => 'Localization',
+	'model' => 'Translation',
 	'title' => 'Add Localization',
 	'columns' => array(
 		'locale',

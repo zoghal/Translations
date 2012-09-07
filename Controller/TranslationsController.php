@@ -33,24 +33,14 @@ class TranslationsController extends TranslationsAppController {
 		$locales = Translation::locales(true);
 		$based_on = Translation::locales();
 
-		if ($this->request->is('post') && !empty($this->request->data['Localization']['locale'])) {
-			// Validate the entry
-			$error = null;
-			if (!array_key_exists($this->request->data['Localization']['locale'], $locales)) {
-				$error = __('You must select a valid locale');
-			} elseif (empty($this->request->data['Localization']['based_on'])) {
-				$error = __('You must select a locale to base the localization on');
-			}
-			if (empty($error)) {
-				$translations = $this->Translation->createLocale($this->request->data['Localization']['locale'], $this->request->data['Localization']['based_on']);
-
-				// Go to edit
+		if ($this->request->is('post') && !empty($this->request->data['Translation']['locale'])) {
+			$translations = $this->Translation->createLocale($this->request->data['Translation']['locale'], $this->request->data['Translation']['based_on']);
+			if (!empty($translations)) {
+				// Go to edit page
 				$this->redirect(array(
 					'action' => 'edit_locale',
-					$this->request->data['Localization']['locale']
+					$this->request->data['Translation']['locale']
 				));
-			} else {
-				$this->Session->setFlash($error, 'error');
 			}
 		}
 

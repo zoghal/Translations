@@ -51,8 +51,26 @@ class Translation extends TranslationsAppModel {
 		}
 		$settings = array_merge($defaults, $settings);
 
+		// Validation
+		if (empty($locale)) {
+			$this->invalidate('locale', 'No locale selected');
+			return false;
+		}
+		if (empty($settings['basedOn'])) {
+			$this->invalidate('based_on', 'No base locale selected');
+			return false;
+		}
+		if ($locale == $settings['basedOn']) {
+			$this->invalidate('based_on', 'New locale and base locale cannot be the same');
+			return false;
+		}
+
 		// Save new translations
 		$translations = Translation::forLocale($settings['basedOn'], array('nested' => false));
+		if (empty($translations)) {
+			$this->invalidate('based_on', 'Base locale has no translations');
+			return false;
+		}
 		foreach ($translations as $key => $value) {
 			$translation = $this->find('first', array(
 				'conditions' => array(
