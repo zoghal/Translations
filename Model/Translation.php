@@ -1,5 +1,7 @@
 <?php
 App::uses('TranslationsAppModel', 'Translations.Model');
+App::uses('Nodes\L10n', 'Translations.Lib');
+
 /**
  * Translation Model
  *
@@ -27,7 +29,72 @@ class Translation extends TranslationsAppModel {
 
 	protected static $_model;
 
+	protected static $_locales;
+
 	protected static $_translations = array();
+
+/**
+ * Create a localization based on another (existing) set of translations.
+ *
+ * @param string $locale   The new locale to create
+ * @param mixed  $settings (optional) Set of options or existing locale to fascilitate the creation
+ * @return array
+ */
+	public function createLocale($locale, $settings = array()) {
+		// Setup settings
+		$defaults = array(
+			'basedOn' => Configure::read('Config.language'),
+			'nested'  => true
+		);
+		if (is_string($settings)) {
+			$settings = array('basedOn' => $settings);
+		}
+		$settings = array_merge($defaults, $settings);
+
+		// Validation
+		if (empty($locale)) {
+			$this->invalidate('locale', 'No locale selected');
+			return false;
+		}
+		if (empty($settings['basedOn'])) {
+			$this->invalidate('based_on', 'No base locale selected');
+			return false;
+		}
+		if ($locale == $settings['basedOn']) {
+			$this->invalidate('based_on', 'New locale and base locale cannot be the same');
+			return false;
+		}
+
+		// Save new translations
+		$translations = Translation::forLocale($settings['basedOn'], array('nested' => false));
+		if (empty($translations)) {
+			$this->invalidate('based_on', 'Base locale has no translations');
+			return false;
+		}
+		foreach ($translations as $key => $value) {
+			$translation = $this->find('first', array(
+				'conditions' => array(
+					'application_id' => Configure::read('Application.id'),
+					'locale'         => $locale,
+					'key'            => $key
+				)
+			));
+			if (!empty($translation)) {
+				continue; // skip it
+			}
+
+			$translation = $this->create(array(
+				'application_id' => Configure::read('Application.id'),
+				'locale'         => $locale,
+				'key'            => $key,
+				'value'          => $value
+			));
+			$this->save($translation);
+		}
+
+		// Return complete list
+		return Translation::forLocale($locale, $settings);
+	}
 
 /**
  * forLocale
@@ -98,6 +165,59 @@ class Translation extends TranslationsAppModel {
 			}
 		}
 		return $data;
+	}
+
+/**
+ * Lists the avaliable locales.
+ *
+ * @param boolean $all     (optional) Whether to print out all locales
+ * @param array   $options (optional) List of options
+ * @return array
+ */
+	public static function locales($all = false, $options = array()) {
+
+		// Setup options
+		$defaults = array(
+			'query' => array(
+				'fields' => 'Translation.locale',
+				'group'  => 'Translation.locale'
+			),
+			'application' => null
+		);
+		$options = array_merge($defaults, $options);
+
+		if (!empty($options['application'])) {
+			$options['query']['conditions']['Translation.application_id'] = $options['application'];
+			$options['query']['bounds'] = false;
+		}
+
+		// Load model
+		if (!self::$_model) {
+			self::$_model = ClassRegistry::init('Translations.Translation');
+		}
+
+		// Load languages
+		if (!self::$_locales) {
+			$l10n = new \Nodes\L10n();
+			$locales = $l10n->getLocales();
+			self::$_locales = array_map(function($v) {
+				return $v['language'];
+			}, $locales);
+		}
+
+		if ($all) {
+			return self::$_locales;
+		} else {
+			// Get current locales
+			$currentLocales = self::$_model->find('all', $options['query']);
+
+			$locales = array();
+			foreach ($currentLocales as $locale) {
+				$locales[$locale['Translation']['locale']] = self::$_locales[$locale['Translation']['locale']];
+			}
+
+			return $locales;
+		}
 	}
 
 	public static function translate($key, $pluralKey = null, $options = array()) {

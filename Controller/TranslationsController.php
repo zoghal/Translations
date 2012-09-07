@@ -29,6 +29,24 @@ class TranslationsController extends TranslationsAppController {
 		parent::beforeFilter();
 	}
 
+	public function admin_add_locale() {
+		$locales = Translation::locales(true);
+		$based_on = Translation::locales();
+
+		if ($this->request->is('post') && !empty($this->request->data['Translation']['locale'])) {
+			$translations = $this->Translation->createLocale($this->request->data['Translation']['locale'], $this->request->data['Translation']['based_on']);
+			if (!empty($translations)) {
+				// Go to edit page
+				$this->redirect(array(
+					'action' => 'edit_locale',
+					$this->request->data['Translation']['locale']
+				));
+			}
+		}
+
+		$this->set(compact('locales', 'based_on'));
+	}
+
 	public function admin_edit_locale($locale = null, $section = null) {
 		if (!$locale) {
 			if ($this->data) {
@@ -101,9 +119,7 @@ class TranslationsController extends TranslationsAppController {
 		foreach ($items as &$item) {
 			$item['Translation']['ns'] = current(explode('.', $item['Translation']['key']));
 		}
-		$locales = $this->Translation->find('list', array(
-			'fields' => array('locale', 'locale')
-		));
+		$locales = Translation::locales();
 		$this->set(compact('items', 'locales'));
 	}
 

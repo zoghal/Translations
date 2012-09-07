@@ -246,4 +246,35 @@ class TranslationTest extends CakeTestCase {
 		$expected = 'Verdi med {param}';
 		$this->assertSame($expected, $result);
 	}
+
+	public function testForLocales() {
+		$result = Translation::locales();
+		$expected = array(
+			'en' => 'English',
+			'no' => 'Norwegian'
+		);
+		$this->assertSame($expected, $result);
+	}
+
+	public function testForCreateLocale() {
+		$result = $this->Translation->createLocale('dk');
+		$expected = $this->Translation->forLocale();
+		$this->assertSame($expected, $result);
+	}
+
+	public function testForCreateLocaleBasedOn() {
+		$result = $this->Translation->createLocale('dk', 'no');
+		$expected = $this->Translation->forLocale('no');
+		$this->assertSame($expected, $result);
+	}
+
+	public function testForCreateLocaleSettings() {
+		$settings = array(
+			'basedOn' => 'no',
+			'nested' => false
+		);
+		$result = $this->Translation->createLocale('dk', $settings);
+		$expected = $this->Translation->forLocale('no', $settings);
+		$this->assertSame($expected, $result);
+	}
 }
