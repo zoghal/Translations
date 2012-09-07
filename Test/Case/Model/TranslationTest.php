@@ -250,8 +250,8 @@ class TranslationTest extends CakeTestCase {
 	public function testForLocales() {
 		$result = Translation::locales();
 		$expected = array(
-			'en' => 'International (English)',
-			'no' => 'Norway'
+			'en' => 'English',
+			'no' => 'Norwegian'
 		);
 		$this->assertSame($expected, $result);
 	}

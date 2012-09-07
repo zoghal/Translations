@@ -1,5 +1,7 @@
 <?php
 App::uses('TranslationsAppModel', 'Translations.Model');
+App::uses('Nodes\L10n', 'Translations.Lib');
+
 /**
  * Translation Model
  *
@@ -155,6 +157,7 @@ class Translation extends TranslationsAppModel {
  * @return array
  */
 	public static function locales($all = false, $options = array()) {
+
 		// Setup options
 		$defaults = array(
 			'query' => array(
@@ -177,8 +180,11 @@ class Translation extends TranslationsAppModel {
 
 		// Load languages
 		if (!self::$_locales) {
-			$json = file_get_contents(dirname(__FILE__) . '/../Config/locales.json');
-			self::$_locales = get_object_vars(json_decode($json));
+			$l10n = new \Nodes\L10n();
+			$locales = $l10n->getLocales();
+			self::$_locales = array_map(function($v) {
+				return $v['language'];
+			}, $locales);
 		}
 
 		if ($all) {
