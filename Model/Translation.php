@@ -32,6 +32,51 @@ class Translation extends TranslationsAppModel {
 	protected static $_translations = array();
 
 /**
+ * Create a localization based on another (existing) set of translations.
+ *
+ * @param string $locale   The new locale to create
+ * @param mixed  $settings (optional) Set of options or existing locale to fascilitate the creation
+ * @return array
+ */
+	public function createLocale($locale, $settings = array()) {
+		// Setup settings
+		$defaults = array(
+			'basedOn' => Configure::read('Config.language'),
+			'nested'  => true
+		);
+		if (is_string($settings)) {
+			$settings = array('basedOn' => $settings);
+		}
+		$settings = array_merge($defaults, $settings);
+
+		// Save new translations
+		$translations = Translation::forLocale($settings['basedOn'], array('nested' => false));
+		foreach ($translations as $key => $value) {
+			$translation = $this->find('first', array(
+				'conditions' => array(
+					'application_id' => Configure::read('Application.id'),
+					'locale'         => $locale,
+					'key'            => $key
+				)
+			));
+			if (!empty($translation)) {
+				continue; // skip it
+			}
+
+			$translation = $this->create(array(
+				'application_id' => Configure::read('Application.id'),
+				'locale'         => $locale,
+				'key'            => $key,
+				'value'          => $value
+			));
+			$this->save($translation);
+		}
+
+		// Return complete list
+		return Translation::forLocale($locale, $settings);
+	}
+
+/**
  * forLocale
  *
  * @param string $locale

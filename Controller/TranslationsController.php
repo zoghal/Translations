@@ -42,31 +42,7 @@ class TranslationsController extends TranslationsAppController {
 				$error = __('You must select a locale to base the localization on');
 			}
 			if (empty($error)) {
-				$locale = $this->request->data['Localization']['locale'];
-
-				// Save new translations
-				$translations = Translation::forLocale($this->request->data['Localization']['locale'], array('nested' => false));
-				$objects = array();
-				foreach ($translations as $key => $value) {
-					$translation = $this->Translation->find('first', array(
-						'conditions' => array(
-							'application_id' => Configure::read('Application.id'),
-							'locale'         => $locale,
-							'key'            => $key
-						)
-					));
-					if (!empty($translation)) {
-						continue; // skip it
-					}
-
-					$translation = $this->Translation->create(array(
-						'application_id' => Configure::read('Application.id'),
-						'locale'         => $locale,
-						'key'            => $key,
-						'value'          => $value
-					));
-					$this->Translation->save($translation);
-				}
+				$translations = $this->Translation->createLocale($this->request->data['Localization']['locale'], $this->request->data['Localization']['based_on']);
 
 				// Go to edit
 				$this->redirect(array(
