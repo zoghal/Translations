@@ -279,6 +279,10 @@ class Translation extends TranslationsAppModel {
 		$locale = $options['locale'];
 		$category = $options['category'];
 
+		if (is_numeric($category)) {
+			$category = self::$_categories[$category];
+		}
+
 		if (self::hasTranslation($singular, $options)) {
 			return self::$_translations[$domain][$locale][$category][$singular];
 		}
@@ -297,7 +301,14 @@ class Translation extends TranslationsAppModel {
 		return $singular;
 	}
 
-	public static function clear() {
+/**
+ * reset
+ *
+ * Reset the static state
+ *
+ * @return void
+ */
+	public static function reset() {
 		self::$_model = null;
 		self::$_translations = null;
 	}
@@ -317,6 +328,7 @@ class Translation extends TranslationsAppModel {
 		if (!self::$_model) {
 			self::$_model = ClassRegistry::init('Translations.Translation');
 		}
+
 		if (empty(self::$_translations[$domain][$locale][$category])) {
 			$options['nested'] = false;
 			self::$_translations[$domain][$locale][$category] = self::$_model->forLocale($locale, $options);
@@ -368,8 +380,8 @@ class Translation extends TranslationsAppModel {
 			if (!isset($array[$key])) {
 				$array[$key] = array();
 			}
-			$temp = $this->_recursiveInsert($array[$key], $keys, $value);
-			foreach ($temp as $k => $v) {
+			$this->_recursiveInsert($array[$key], $keys, $value);
+			foreach ($array[$key] as $k => $v) {
 				$array[$key][$k] = $v; // array_merge treats string and number keys differently so we have to do it manually
 			}
 		}
