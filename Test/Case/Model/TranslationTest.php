@@ -26,14 +26,13 @@ class TranslationTest extends CakeTestCase {
 
 		// Load config
 		$this->config = array(
-			'Boundary.enable' => Configure::read('Boundary.enable'),
 			'Config.language' => Configure::read('Config.language')
 		);
-		Configure::write('Boundary.enable', false);
 		Configure::write('Config.language', 'en');
 
 		// Load translations
 		$this->Translation = ClassRegistry::init('Translations.Translation');
+		Translation::reset();
 	}
 
 /**
