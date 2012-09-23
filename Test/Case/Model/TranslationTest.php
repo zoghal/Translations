@@ -30,7 +30,7 @@ class TranslationTest extends CakeTestCase {
 		);
 		Configure::write('Config.language', 'en');
 
-		// Load translations
+		ClassRegistry::removeObject('Translation');
 		$this->Translation = ClassRegistry::init('Translations.Translation');
 		Translation::reset();
 	}
