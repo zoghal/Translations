@@ -30,6 +30,11 @@ class TranslationsController extends TranslationsAppController {
 		parent::beforeFilter();
 	}
 
+	public function admin_add($locale = null, $domain = 'default', $category = 'LC_MESSAGES', $section = null) {
+		$this->set(compact('locale', 'domain', 'category'));
+		$this->Crud->executeAction();
+	}
+
 	public function admin_add_locale() {
 		$locales = Translation::locales(true);
 		$based_on = Translation::locales();
@@ -118,7 +123,11 @@ class TranslationsController extends TranslationsAppController {
 		$conditions = compact('locale', 'domain', 'category');
 		$items = $this->paginate($conditions);
 		foreach ($items as &$item) {
-			$item['Translation']['ns'] = current(explode('.', $item['Translation']['key']));
+			if (preg_match('/^(\w+\.?)+$/', $item['Translation']['key'])) {
+				$item['Translation']['ns'] = current(explode('.', $item['Translation']['key']));
+			} else {
+				$item['Translation']['ns'] = null;
+			}
 		}
 		$locales = Translation::locales();
 		$this->set(compact('items', 'locales'));
