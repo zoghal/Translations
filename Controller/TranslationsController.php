@@ -11,6 +11,11 @@ class TranslationsController extends TranslationsAppController {
 		'Translations.Translation',
 	);
 
+/**
+ * beforeFilter
+ *
+ * @return void
+ */
 	public function beforeFilter() {
 		$defaultLanguage = Configure::read('Config.language');
 		if (!$defaultLanguage) {
@@ -30,7 +35,15 @@ class TranslationsController extends TranslationsAppController {
 		parent::beforeFilter();
 	}
 
-	public function admin_add($locale = null, $domain = 'default', $category = 'LC_MESSAGES', $section = null) {
+/**
+ * admin_add
+ *
+ * @param mixed $locale
+ * @param string $domain
+ * @param string $category
+ * @return void
+ */
+	public function admin_add($locale = null, $domain = 'default', $category = 'LC_MESSAGES') {
 		$this->set(compact('locale', 'domain', 'category'));
 		$this->Crud->executeAction();
 	}
@@ -53,7 +66,17 @@ class TranslationsController extends TranslationsAppController {
 		$this->set(compact('locales', 'based_on'));
 	}
 
+/**
+ * admin_edit_locale
+ *
+ * @param mixed $locale
+ * @param string $domain
+ * @param string $category
+ * @param mixed $section
+ * @return void
+ */
 	public function admin_edit_locale($locale = null, $domain = 'default', $category = 'LC_MESSAGES', $section = null) {
+		$this->set(compact('locale', 'domain', 'category', 'section'));
 		if (!$locale) {
 			if ($this->data) {
 				if (!empty($this->data['Translation']['locale'])) {
@@ -120,6 +143,7 @@ class TranslationsController extends TranslationsAppController {
  * @return void
  */
 	public function admin_index($locale = null, $domain = 'default', $category = 'LC_MESSAGES') {
+		$this->set(compact('locale', 'domain', 'category'));
 		$conditions = compact('locale', 'domain', 'category');
 		$items = $this->paginate($conditions);
 		foreach ($items as &$item) {
@@ -133,6 +157,11 @@ class TranslationsController extends TranslationsAppController {
 		$this->set(compact('items', 'locales'));
 	}
 
+/**
+ * admin_upload
+ *
+ * @return void
+ */
 	public function admin_upload() {
 		if ($this->data) {
 			if ($return = $this->Translation->loadPlist(
