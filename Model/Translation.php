@@ -43,6 +43,23 @@ class Translation extends TranslationsAppModel {
 	);
 
 /**
+ * Runtime config settings
+ */
+	protected static $_config = array(
+		'autoPopulate' => null
+	);
+
+/**
+ * Default config settings
+ */
+	protected static $_defaultConfig = array(
+		'useDbConfig' => 'default',
+		'useTable' => 'translations',
+		'cacheConfig' => 'default',
+		'autoPopulate' => null
+	);
+
+/**
  * Placeholder for the static model instance
  */
 	protected static $_model;
@@ -59,6 +76,20 @@ class Translation extends TranslationsAppModel {
  *				<translation key>
  */
 	protected static $_translations = array();
+
+/**
+ * Override runtime settings
+ *
+ * @param array $settings
+ * @return void
+ */
+	public static function config($settings = array()) {
+		if (defined('CORE_TEST_CASES')) {
+			self::$_defaultConfig['useTable'] = false;
+			self::$_defaultConfig['autoPopulate'] = false;
+		}
+		self::$_config = $settings + self::$_config + self::$_defaultConfig;
+	}
 
 /**
  * Create a localization based on another (existing) set of translations.
@@ -130,10 +161,13 @@ class Translation extends TranslationsAppModel {
  */
 	public function forLocale($locale = null, $settings = array()) {
 		if (!self::$_model) {
-			self::$_model = ClassRegistry::init('Translations.Translation');
+			self::_loadModel();
 		}
 		if (self::$_model !== $this) {
 			return self::$_model->forLocale($locale, $settings);
+		}
+		if (!self::$_config['useTable']) {
+			return array();
 		}
 
 		$settings = $settings + array(
@@ -147,6 +181,17 @@ class Translation extends TranslationsAppModel {
 		$defaultLanguage = Configure::read('Config.language');
 		if (!$locale) {
 			$locale = $defaultLanguage;
+		}
+
+		if (self::$_config['cacheConfig']) {
+			$cacheKey = "translations-$locale-{$settings['domain']}-{$settings['category']}{$settings['section']}";
+			$counter = (int)Cache::read('translations-counter', self::$_config['cacheConfig']);
+			$cacheKey .= "-$counter";
+
+			$cached = Cache::read($cacheKey, self::$_config['cacheConfig']);
+			if ($cached !== false) {
+				return $cached;
+			}
 		}
 
 		if ($settings['addDefaults']) {
@@ -193,6 +238,10 @@ class Translation extends TranslationsAppModel {
 				}
 			}
 		}
+
+		if (!empty($cacheKey)) {
+			Cache::write($cacheKey, $data, self::$_config['cacheConfig']);
+		}
 		return $data;
 	}
 
@@ -219,9 +268,8 @@ class Translation extends TranslationsAppModel {
 			$options['query']['bounds'] = false;
 		}
 
-		// Load model
 		if (!self::$_model) {
-			self::$_model = ClassRegistry::init('Translations.Translation');
+			self::_loadModel();
 		}
 
 		// Load languages
@@ -265,7 +313,7 @@ class Translation extends TranslationsAppModel {
 			'category' => 'LC_MESSAGES',
 			'count' => null,
 			'locale' => !empty($_SESSION['Config']['language']) ? $_SESSION['Config']['language'] : Configure::read('Config.language'),
-			'autoPopulate' => Nodes\Environment::isDevelopment()
+			'autoPopulate' => !is_null(self::$_config['autoPopulate']) ? self::$_config['autoPopulate'] : Nodes\Environment::isDevelopment()
 		);
 
 		$domain = $options['domain'];
@@ -328,6 +376,7 @@ class Translation extends TranslationsAppModel {
  * @return void
  */
 	public static function reset() {
+		self::$_config = self::$_defaultConfig;
 		self::$_model = null;
 		self::$_translations = null;
 	}
@@ -345,7 +394,7 @@ class Translation extends TranslationsAppModel {
 		$locale = $options['locale'];
 
 		if (!self::$_model) {
-			self::$_model = ClassRegistry::init('Translations.Translation');
+			self::_loadModel();
 		}
 
 		if (empty(self::$_translations[$domain][$locale][$category])) {
@@ -357,6 +406,11 @@ class Translation extends TranslationsAppModel {
 			return true;
 		}
 		return false;
+	}
+
+	protected function _clearCache() {
+		Cache::increment('translations-counter', self::$_config['cacheConfig']);
+		parent::_clearCache();
 	}
 
 /**
@@ -390,6 +444,22 @@ class Translation extends TranslationsAppModel {
 			}
 		}
 		return $return;
+	}
+
+/**
+ * _loadModel
+ *
+ * Load the model instance, using the configured settings
+ *
+ * @return void
+ */
+	protected static function _loadModel() {
+		self::config();
+		self::$_model = ClassRegistry::init(array(
+			'class' => 'Translations.Translation',
+			'table' => self::$_config['useTable'],
+			'ds' => self::$_config['useDbConfig'],
+		));
 	}
 
 /**
