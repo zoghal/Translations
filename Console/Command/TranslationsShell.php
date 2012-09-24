@@ -49,13 +49,14 @@ class TranslationsShell extends AppShell {
 			throw new \Exception("File doesn't exist");
 		}
 		$info = pathinfo($file);
-		$parser = '_parse' . ucfirst($info['extension']);
+		$parserClass = ucfirst($info['extension']) . 'Parser';
+		App::uses($parserClass, 'Translations.Parser');
 
 		$count = 0;
-		$return = $this->$parser($file, $count);
+		$return = $parserClass::parse($file, $this->_settings);
 
-		$this->out(sprintf('Found %d translations', $count));
-		foreach ($return as $domain => $locales) {
+		$this->out(sprintf('Found %d translations', $return['count']));
+		foreach ($return['translations'] as $domain => $locales) {
 			foreach ($locales as $locale => $categories) {
 				foreach ($categories as $category => $translations) {
 					foreach ($translations as $key => $val) {
@@ -66,34 +67,5 @@ class TranslationsShell extends AppShell {
 			}
 		}
 		$this->out('Done');
-	}
-
-/**
- * _parsePhp
- *
- * Load a php file, and assume it contains a variable named $translations with a flat list
- * may also define $domain, $locale and $category - these settings would affect
- * all translations in the file
- *
- * @param string $file
- * @param int $count
- * @return array
- */
-	protected function _parsePhp($file, &$count) {
-		extract($this->_settings);
-
-		$translations = array();
-		require $file;
-
-		$return = array();
-		foreach ($translations as $key => $val) {
-			if (!strpos($key, '.')) {
-				$key = str_replace('_', '.', Inflector::underscore($key));
-			}
-			$return[$domain][$locale][$category][$key] = $val;
-			$count++;
-		}
-
-		return $return;
 	}
 }
