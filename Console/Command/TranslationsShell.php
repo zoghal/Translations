@@ -1,47 +1,89 @@
 <?php
-/**
- * TranslationsShell
- */
+App::uses('AppShell', 'Console/Command');
+
 class TranslationsShell extends AppShell {
 
 /**
- * main method
+ * _settings
  *
- * @throws \Exception for invalid files
+ * @var array
  */
-	public function import() {
-		$file = $this->args[0];
-		if (!file_exists($file)) {
-			throw new \Exception("File doesn't exist");
-		}
-
-		$locale = basename($file, '.plist');
-		if (!preg_match('@^[a-z]{2}(_[A-Z]{2})?$@', $locale)) {
-			throw new \Exception("$locale is not a valid locale - 'en' and 'en_GB' are two examples of valid locales");
-		}
-
-		$this->Translation = ClassRegistry::init('TuborgCoins.Translation');
-		$return = $this->Translation->LoadPlist($file, $locale, array('reset' => true));
-
-		foreach ($return as $action => $keys) {
-			foreach ($keys as $key) {
-				$this->out($action . ' : ' . $key);
-			}
-		}
-	}
-
+	protected $_settings = array(
+		'domain' => 'default',
+		'locale' => 'en',
+		'category' => 'LC_MESSAGES'
+	);
 /**
- * getOptionParser method
+ * Gets the option parser instance and configures it.
+ * By overriding this method you can configure the ConsoleOptionParser before returning it.
  *
+ * @return ConsoleOptionParser
+ * @link http://book.cakephp.org/2.0/en/console-and-shells.html#Shell::getOptionParser
  */
 	public function getOptionParser() {
 		$parser = parent::getOptionParser();
-		$parser->description(
-			'Cli tools to manage db-driven translations'
-		)->addSubcommand('import', array(
-			'help' => 'Import translations from a plist file'
-		));
+		return $parser
+			->addSubcommand('load', array(
+					'help' => 'Load translations from file',
+					'parser' => array(
+						'arguments' => array(
+							'file' => array('help' => 'relative or abs path to translations file', 'required' => true)
+						)
+					)
+			));
+	}
 
-		return $parser;
+/**
+ * load
+ *
+ * @return void
+ */
+	public function load() {
+		$file = $this->args[0];
+
+		if (!file_exists($file)) {
+			return false;
+		}
+		$info = pathinfo($file);
+		$parser = '_parse' . ucfirst($info['extension']);
+
+		$count = 0;
+		$return = $this->$parser($file, $count);
+
+		$this->out(sprintf('Found %d translations', $count));
+		foreach ($return as $domain => $locales) {
+			foreach ($locales as $locale => $categories) {
+				foreach ($categories as $category => $translations) {
+					foreach ($translations as $key => $val) {
+						$this->out(sprintf('Processing %s', $key));
+						Translation::update($key, $val, compact('domain', 'locale', 'category'));
+					}
+				}
+			}
+		}
+		$this->out('Done');
+	}
+
+/**
+ * _parsePhp
+ *
+ * Load a php file, and asume it contains a variable named $translations with a flat list
+ *
+ * @param string $file
+ * @param int $count
+ * @return array
+ */
+	protected function _parsePhp($file, &$count) {
+		require $file;
+
+		extract($this->_settings);
+		$return = array();
+		foreach ($translations as $key => $val) {
+			$key = str_replace('_', '.', Inflector::underscore($key));
+			$return[$domain][$locale][$category][$key] = $val;
+			$count++;
+		}
+
+		return $return;
 	}
 }
