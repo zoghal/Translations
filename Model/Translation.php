@@ -297,6 +297,31 @@ class Translation extends TranslationsAppModel {
 	}
 
 /**
+ * update
+ *
+ * Update one translation
+ *
+ * @param mixed $key
+ * @param array $options
+ * @return void
+ */
+	public static function update($key, $value = '', $options = array()) {
+		$defaultLocale = Configure::read('Config.langauge');
+
+		$options += array(
+			'domain' => 'default',
+			'category' => 'LC_MESSAGES',
+			'locale' => $defaultLocale
+		);
+
+		$update = compact('domain', 'locale', 'category', 'key');
+		self::$_translations[$domain][$locale][$category][$key] = $value;
+		self::$_model->create();
+		self::$_model->id = self::$_model->field('id', $update);
+		return self::$_model->save($update + array('value' => $value));
+	}
+
+/**
  * reset
  *
  * Reset the static state
