@@ -44,15 +44,20 @@ class TranslationTest extends CakeTestCase {
 /**
  * tearDown method
  *
+ * Reapply original config and destroy traces of the translate model
+ *
  * @return void
  */
 	public function tearDown() {
-		// Re-apply old config
 		foreach ($this->config as $key => $value) {
 			Configure::write($key, $value);
 		}
 
+		ClassRegistry::removeObject('Translation');
+		Translation::reset();
+
 		unset($this->Translation, $this->config);
+
 		parent::tearDown();
 	}
 
