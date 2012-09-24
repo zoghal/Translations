@@ -36,13 +36,17 @@ class TranslationsShell extends AppShell {
 /**
  * load
  *
- * @return void
+ * Load translations in a recognised format.
+ * Currently supports:
+ * 	php - a file containing $translations => array( key => value)
+ *
+ * @throws \Exception if the file specified doesn't exist
  */
 	public function load() {
 		$file = $this->args[0];
 
 		if (!file_exists($file)) {
-			return false;
+			throw new \Exception("File doesn't exist");
 		}
 		$info = pathinfo($file);
 		$parser = '_parse' . ucfirst($info['extension']);
@@ -67,16 +71,20 @@ class TranslationsShell extends AppShell {
 /**
  * _parsePhp
  *
- * Load a php file, and asume it contains a variable named $translations with a flat list
+ * Load a php file, and assume it contains a variable named $translations with a flat list
+ * may also define $domain, $locale and $category - these settings would affect
+ * all translations in the file
  *
  * @param string $file
  * @param int $count
  * @return array
  */
 	protected function _parsePhp($file, &$count) {
+		extract($this->_settings);
+
+		$translations = array();
 		require $file;
 
-		extract($this->_settings);
 		$return = array();
 		foreach ($translations as $key => $val) {
 			$key = str_replace('_', '.', Inflector::underscore($key));
