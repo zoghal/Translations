@@ -101,7 +101,6 @@ class Translation extends TranslationsAppModel {
 		foreach ($translations as $key => $value) {
 			$translation = $this->find('first', array(
 				'conditions' => array(
-					'application_id' => Configure::read('Application.id'),
 					'locale'         => $locale,
 					'key'            => $key
 				)
@@ -111,7 +110,6 @@ class Translation extends TranslationsAppModel {
 			}
 
 			$translation = $this->create(array(
-				'application_id' => Configure::read('Application.id'),
 				'locale'         => $locale,
 				'key'            => $key,
 				'value'          => $value
