@@ -87,7 +87,9 @@ class TranslationsShell extends AppShell {
 
 		$return = array();
 		foreach ($translations as $key => $val) {
-			$key = str_replace('_', '.', Inflector::underscore($key));
+			if (!strpos($key, '.')) {
+				$key = str_replace('_', '.', Inflector::underscore($key));
+			}
 			$return[$domain][$locale][$category][$key] = $val;
 			$count++;
 		}
