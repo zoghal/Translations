@@ -32,7 +32,13 @@ class TranslationTest extends CakeTestCase {
 
 		ClassRegistry::removeObject('Translation');
 		$this->Translation = ClassRegistry::init('Translations.Translation');
+
 		Translation::reset();
+		Translation::config(array(
+			'useTable' => 'translations',
+			'cacheConfig' => false,
+			'autoPopulate' => false
+		));
 	}
 
 /**

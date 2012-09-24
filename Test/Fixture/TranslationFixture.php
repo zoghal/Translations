@@ -36,16 +36,12 @@ class TranslationFixture extends CakeTestFixture {
 			'locale' => 'en',
 			'domain' => 'default',
 			'category' => 'LC_MESSAGES',
-			'domain' => 'default',
-			'category' => 'LC_MESSAGES',
 			'key' => 'key_one',
 			'value' => 'Value One'
 		),
 		array(
 			'id' => '4fc4a7ac-2468-4796-9655-31f92a72c762',
 			'locale' => 'en',
-			'domain' => 'default',
-			'category' => 'LC_MESSAGES',
 			'domain' => 'default',
 			'category' => 'LC_MESSAGES',
 			'key' => 'key_two',

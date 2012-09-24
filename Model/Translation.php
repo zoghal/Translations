@@ -53,6 +53,7 @@ class Translation extends TranslationsAppModel {
  * Default config settings
  */
 	protected static $_defaultConfig = array(
+		'configured' => true,
 		'useDbConfig' => 'default',
 		'useTable' => 'translations',
 		'cacheConfig' => 'default',
@@ -81,14 +82,24 @@ class Translation extends TranslationsAppModel {
  * Override runtime settings
  *
  * @param array $settings
- * @return void
+ * @return array
  */
 	public static function config($settings = array()) {
+		if (empty($settings) && !empty(self::$_config['configured'])) {
+			return self::$_config;
+		}
+
 		if (defined('CORE_TEST_CASES')) {
 			self::$_defaultConfig['useTable'] = false;
 			self::$_defaultConfig['autoPopulate'] = false;
 		}
+
 		self::$_config = $settings + self::$_config + self::$_defaultConfig;
+
+		if (is_null(self::$_config['autoPopulate'])) {
+			self::$_config['autoPopulate'] = !empty(self::$_config['useTable']);
+		}
+		return self::$_config;
 	}
 
 /**
@@ -160,6 +171,7 @@ class Translation extends TranslationsAppModel {
  * @return
  */
 	public function forLocale($locale = null, $settings = array()) {
+		self::config();
 		if (!self::$_model) {
 			self::_loadModel();
 		}
@@ -253,6 +265,7 @@ class Translation extends TranslationsAppModel {
  * @return array
  */
 	public static function locales($all = false, $options = array()) {
+		self::config();
 		// Setup options
 		$defaults = array(
 			'query' => array(
@@ -307,13 +320,14 @@ class Translation extends TranslationsAppModel {
  * @return string translated string
  */
 	public static function translate($singular, $options = array()) {
+		self::config();
 		$options += array(
 			'plural' => null,
 			'domain' => 'default',
 			'category' => 'LC_MESSAGES',
 			'count' => null,
 			'locale' => !empty($_SESSION['Config']['language']) ? $_SESSION['Config']['language'] : Configure::read('Config.language'),
-			'autoPopulate' => !is_null(self::$_config['autoPopulate']) ? self::$_config['autoPopulate'] : Nodes\Environment::isDevelopment()
+			'autoPopulate' => is_null(self::$_config['autoPopulate']) ? Configure::read() : self::$_config['autoPopulate']
 		);
 
 		$domain = $options['domain'];
@@ -352,6 +366,7 @@ class Translation extends TranslationsAppModel {
  * @return void
  */
 	public static function update($key, $value = '', $options = array()) {
+		self::config();
 		$defaultLocale = Configure::read('Config.langauge');
 
 		$options += array(
@@ -388,7 +403,8 @@ class Translation extends TranslationsAppModel {
  * @param array $options
  * @return bool
  */
-	public function hasTranslation($key, $options = array()) {
+	public static function hasTranslation($key, $options = array()) {
+		self::config();
 		$domain = $options['domain'];
 		$category = $options['category'];
 		$locale = $options['locale'];
@@ -408,7 +424,15 @@ class Translation extends TranslationsAppModel {
 		return false;
 	}
 
-	protected function _clearCache() {
+/**
+ * _clearCache
+ *
+ * Whenever something touches the data increment the cache counter
+ *
+ * @param mixed $type
+ * @return void
+ */
+	protected function _clearCache($type = null) {
 		Cache::increment('translations-counter', self::$_config['cacheConfig']);
 		parent::_clearCache();
 	}
@@ -454,7 +478,6 @@ class Translation extends TranslationsAppModel {
  * @return void
  */
 	protected static function _loadModel() {
-		self::config();
 		self::$_model = ClassRegistry::init(array(
 			'class' => 'Translations.Translation',
 			'table' => self::$_config['useTable'],
