@@ -1,6 +1,8 @@
 <?php
 namespace Nodes;
 
+\App::uses('L10n', 'I18n');
+
 /**
  * Localization class for retrieving protected localization data.
  *
@@ -16,6 +18,6 @@ class L10n extends \L10n {
  */
 	public function getLocales() {
 		return $this->_l10nCatalog;
- 	}
+	}
 
 }
