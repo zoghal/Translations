@@ -98,11 +98,11 @@ class TranslationsController extends TranslationsAppController {
 		}
 
 		$defaultLanguage = Configure::read('Config.language');
-		$params = compact('domain', 'category', 'section') + array('nested' => false);
+		$params = compact('domain', 'category') + array('nested' => false);
 		$default = $this->Translation->forLocale($defaultLanguage, $params);
 
 		if ($this->data) {
-			$defaultConditions = compact('locale', 'domain', 'category', 'section');
+			$defaultConditions = compact('locale', 'domain', 'category');
 			foreach ($this->data['Translation'] as $key => $value) {
 				if ($key === 'id') {
 					continue;
