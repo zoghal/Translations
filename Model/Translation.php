@@ -311,6 +311,7 @@ class Translation extends TranslationsAppModel {
 			'category' => 'LC_MESSAGES',
 			'locale' => $defaultLocale
 		);
+		extract($options);
 
 		$update = compact('domain', 'locale', 'category', 'key');
 		self::$_translations[$domain][$locale][$category][$key] = $value;
