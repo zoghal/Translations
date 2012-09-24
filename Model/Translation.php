@@ -208,7 +208,7 @@ class Translation extends TranslationsAppModel {
 
 		if ($settings['addDefaults']) {
 			$settings['addDefaults'] = false;
-			$locales = $this->_fallbackLocales();
+			$locales = $this->_fallbackLocales($locale);
 			$return = array();
 			foreach ($locales as $locale) {
 				$return += $this->forLocale($locale, $settings);
