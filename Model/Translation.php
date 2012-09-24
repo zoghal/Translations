@@ -152,13 +152,8 @@ class Translation extends TranslationsAppModel {
 		}
 
 		if ($settings['addDefaults']) {
-			$locales = array_unique(array(
-				$locale,
-				substr($locale, 0, 2),
-				$defaultLanguage
-			));
-
 			$settings['addDefaults'] = false;
+			$locales = $this->_fallbackLocales();
 			$return = array();
 			foreach ($locales as $locale) {
 				$return += $this->forLocale($locale, $settings);
@@ -338,6 +333,39 @@ class Translation extends TranslationsAppModel {
 			return true;
 		}
 		return false;
+	}
+
+/**
+ * _fallbackLocales
+ *
+ * Get the list of locales to itterate through when looking for translations
+ *
+ * @param mixed $locale
+ * @return array
+ */
+	protected function _fallbackLocales($locale = null) {
+		if ($locale) {
+			$locales[] = $locale;
+		} elseif (!empty($_SESSION['Config']['language'])) {
+			$locales[] = $_SESSION['Config']['language'];
+		}
+		$locales[] = Configure::read('Config.language');
+		$locales[] = Configure::read('Config.defaultLanguage');
+		$locales = array_unique(array_filter($locales));
+
+		$return = array();
+		foreach ($locales as $locale) {
+			if (strlen($locale) === 5) {
+				$generic = substr($locale, 0, 2);
+				if (!in_array($generic, $return)) {
+					$return[] = $locale;
+					$return[] = substr($locale, 0, 2);
+				}
+			} else {
+				$return[] = $locale;
+			}
+		}
+		return $return;
 	}
 
 /**
