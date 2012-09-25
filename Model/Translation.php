@@ -238,10 +238,13 @@ class Translation extends TranslationsAppModel {
 
 		$parserClass = ucfirst($format) . 'Parser';
 		App::uses($parserClass, 'Translations.Parser');
-		$return = $parserClass::generate($file, $settings);
+		$return = $settings;
+		$return['count'] = count($settings['translations']);
+		$return['string'] = $parserClass::generate($file, $settings);
 
-		if ($file) {
-			return file_put_contents($return);
+		$return['success'] = true;
+		if ($file && !file_put_contents($file, $return['string'])) {
+			$return['success'] = false;
 		}
 		return $return;
 	}

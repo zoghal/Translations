@@ -95,7 +95,7 @@ class TranslationsShell extends AppShell {
 		if ($return['success']) {
 			$this->out(sprintf('Wrote %d translations', $return['count']));
 		} else {
-			$this->warn(sprintf('Error creating %s', $file));
+			$this->out(sprintf('Error creating %s', $file));
 		}
 		$this->out('Done');
 	}

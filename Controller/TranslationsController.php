@@ -165,9 +165,11 @@ class TranslationsController extends TranslationsAppController {
 	public function admin_export() {
 		if ($this->data) {
 			$options = $this->data['Translation'];
-			if ($return = $this->Translation->export(false, $options)) {
+			$return = $this->Translation->export(false, $options);
+
+			if ($return['success']) {
 				$filename = sprintf("%s-%s-%s.%s", $options['locale'], $options['domain'], $options['category'], $options['format']);
-				file_put_contents(TMP . $filename, $return);
+				file_put_contents(TMP . $filename, $return['string']);
 				$this->response->file(TMP . $filename, array('download' => true));
 			} else {
 				$this->Session->setFlash('Errors were generated processing the export', 'error');
