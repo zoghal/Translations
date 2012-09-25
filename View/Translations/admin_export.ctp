@@ -12,6 +12,8 @@ echo $this->element('Shared.Crud/form', array(
 		'category' => array(
 			'default' => 'LC_MESSAGES'
 		),
-		'format' => array('options' => array('json'))
+		'format' => array(
+			'options' => array('json' => 'json')
+		)
 	)
 ));

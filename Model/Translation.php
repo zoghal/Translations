@@ -198,102 +198,23 @@ class Translation extends TranslationsAppModel {
  * @param mixed $addDefaults
  * @return
  */
-	public function forLocale($locale = null, $settings = array()) {
+	public static function forLocale($locale = null, $settings = array()) {
 		self::config();
-		if (!self::$_model) {
-			self::_loadModel();
-		}
-		if (self::$_model !== $this) {
-			return self::$_model->forLocale($locale, $settings);
-		}
 		if (!self::$_config['useTable']) {
 			return array();
 		}
-
-		$settings = $settings + array(
-			'nested' => true,
-			'addDefaults' => true,
-			'domain' => 'default',
-			'category' => 'LC_MESSAGES',
-			'section' => null
-		);
-
-		$defaultLanguage = Configure::read('Config.language');
-		if (!$locale) {
-			$locale = $defaultLanguage;
+		if (!self::$_model) {
+			self::_loadModel();
 		}
-
-		if (self::$_config['cacheConfig']) {
-			$cacheKey = "translations-$locale-{$settings['domain']}-{$settings['category']}{$settings['section']}";
-			$counter = (int)Cache::read('translations-counter', self::$_config['cacheConfig']);
-			$cacheKey .= "-$counter";
-
-			$cached = Cache::read($cacheKey, self::$_config['cacheConfig']);
-			if ($cached !== false) {
-				$array = unserialize($cached);
-				if (is_array($array)) {
-					return $array;
-				}
-			}
-		}
-
-		if ($settings['addDefaults']) {
-			$settings['addDefaults'] = false;
-			$locales = $this->_fallbackLocales($locale);
-			$return = array();
-			foreach ($locales as $locale) {
-				$return += $this->forLocale($locale, $settings);
-			}
-			return $return;
-		}
-
-		$conditions = array(
-			'locale' => $locale,
-			'domain' => $settings['domain'],
-			'category' => $settings['category']
-		);
-		if (!empty($settings['section'])) {
-			$conditions['key LIKE'] = $settings['section'] . '%';
-		}
-
-		$data = $this->find('list', array(
-			'fields' => array('key', 'value'),
-			'conditions' => $conditions,
-			'order' => array('key' => 'ASC')
-		));
-
-		if (!$settings['section']) {
-			ksort($data);
-		}
-
-		if ($settings['nested'] && $data) {
-			$data = $this->_expand($data);
-			if ($settings['section']) {
-				$keys = explode('.', $settings['section']);
-
-				while ($keys) {
-					$key = array_shift($keys);
-					if (!array_key_exists($key, $data)) {
-						$data = array();
-						break;
-					}
-					$data = $data[$key];
-				}
-			}
-		}
-
-		if (!empty($cacheKey)) {
-			Cache::write($cacheKey, serialize($data), self::$_config['cacheConfig']);
-		}
-		return $data;
+		return self::$_model->_forLocale($locale, $settings);
 	}
 
 /**
  * export
  *
- * @param mixed $file
+ * @param mixed $file path to create or false to return the string instead
  * @param mixed $settings
- * @return void
+ * @return mixed boolean success writing a file - or the string representation
  */
 	public static function export($file, $settings = array()) {
 		$settings = $settings + array(
@@ -302,15 +223,27 @@ class Translation extends TranslationsAppModel {
 			'addDefaults' => true,
 			'domain' => 'default',
 			'category' => 'LC_MESSAGES',
+			'format' => null
 		);
 
-		$translations = self::forLocale($settings['locale'], $settings);
+		if ($settings['format']) {
+			$format = $settings['format'];
+		} else {
+			if ($file) {
+				$info = pathinfo($file);
+				$format = $info['extension'];
+			}
+		}
+		$settings['translations'] = self::forLocale($settings['locale'], $settings);
 
-		$info = pathinfo($file);
-		$parserClass = ucfirst($info['extension']) . 'Parser';
-
+		$parserClass = ucfirst($format) . 'Parser';
 		App::uses($parserClass, 'Translations.Parser');
-		return $parserClass::generate($file, $settings);
+		$return = $parserClass::generate($file, $settings);
+
+		if ($file) {
+			return file_put_contents($return);
+		}
+		return $return;
 	}
 
 /**
@@ -611,6 +544,93 @@ class Translation extends TranslationsAppModel {
 			'ds' => self::$_config['useDbConfig'],
 		));
 	}
+
+/**
+ * _forLocale
+ *
+ * @param mixed $locale
+ * @param mixed $settings
+ * @return array
+ */
+	protected function _forLocale($locale, $settings) {
+		$settings = $settings + array(
+			'nested' => true,
+			'addDefaults' => true,
+			'domain' => 'default',
+			'category' => 'LC_MESSAGES',
+			'section' => null
+		);
+
+		$defaultLanguage = Configure::read('Config.language');
+		if (!$locale) {
+			$locale = $defaultLanguage;
+		}
+
+		if (self::$_config['cacheConfig']) {
+			$cacheKey = "translations-$locale-{$settings['domain']}-{$settings['category']}{$settings['section']}";
+			$counter = (int)Cache::read('translations-counter', self::$_config['cacheConfig']);
+			$cacheKey .= "-$counter";
+
+			$cached = Cache::read($cacheKey, self::$_config['cacheConfig']);
+			if ($cached !== false) {
+				$array = unserialize($cached);
+				if (is_array($array)) {
+					return $array;
+				}
+			}
+		}
+
+		if ($settings['addDefaults']) {
+			$settings['addDefaults'] = false;
+			$locales = $this->_fallbackLocales($locale);
+			$return = array();
+			foreach ($locales as $locale) {
+				$return += $this->_forLocale($locale, $settings);
+			}
+			return $return;
+		}
+
+		$conditions = array(
+			'locale' => $locale,
+			'domain' => $settings['domain'],
+			'category' => $settings['category']
+		);
+		if (!empty($settings['section'])) {
+			$conditions['key LIKE'] = $settings['section'] . '%';
+		}
+
+		$data = $this->find('list', array(
+			'fields' => array('key', 'value'),
+			'conditions' => $conditions,
+			'order' => array('key' => 'ASC')
+		));
+
+		if (!$settings['section']) {
+			ksort($data);
+		}
+
+		if ($settings['nested'] && $data) {
+			$data = $this->_expand($data);
+			if ($settings['section']) {
+				$keys = explode('.', $settings['section']);
+
+				while ($keys) {
+					$key = array_shift($keys);
+					if (!array_key_exists($key, $data)) {
+						$data = array();
+						break;
+					}
+					$data = $data[$key];
+				}
+			}
+		}
+
+		if (!empty($cacheKey)) {
+			Cache::write($cacheKey, serialize($data), self::$_config['cacheConfig']);
+		}
+		return $data;
+	}
+
 
 /**
  * expand dot notation to a nested array
