@@ -79,6 +79,17 @@ class Translation extends TranslationsAppModel {
 	protected static $_translations = array();
 
 /**
+ * categories
+ *
+ * Return the list of all categories
+ *
+ * @return array
+ */
+	public static function categories() {
+		return array_combine(self::$_categories, self::$_categories);
+	}
+
+/**
  * Override runtime settings
  *
  * @param array $settings
@@ -164,6 +175,23 @@ class Translation extends TranslationsAppModel {
 	}
 
 /**
+ * domains
+ *
+ * Return the list of all domains in use
+ *
+ * @return array
+ */
+	public static function domains() {
+		if (!self::$_model) {
+			self::_loadModel();
+		}
+		$domains = Hash::extract(self::$_model->find('all', array(
+			'fields' => array('DISTINCT domain as val')
+		)), '{n}.Translation.val');
+		return array_combine($domains, $domains);
+	}
+
+/**
  * forLocale
  *
  * @param string $locale
@@ -202,7 +230,10 @@ class Translation extends TranslationsAppModel {
 
 			$cached = Cache::read($cacheKey, self::$_config['cacheConfig']);
 			if ($cached !== false) {
-				return $cached;
+				$array = unserialize($cached);
+				if (is_array($array)) {
+					return $array;
+				}
 			}
 		}
 
@@ -252,7 +283,7 @@ class Translation extends TranslationsAppModel {
 		}
 
 		if (!empty($cacheKey)) {
-			Cache::write($cacheKey, $data, self::$_config['cacheConfig']);
+			Cache::write($cacheKey, serialize($data), self::$_config['cacheConfig']);
 		}
 		return $data;
 	}
@@ -266,31 +297,48 @@ class Translation extends TranslationsAppModel {
  */
 	public static function export($file, $settings = array()) {
 		$settings = $settings + array(
+			'locale' => Configure::read('Config.language'),
 			'nested' => false,
 			'addDefaults' => true,
 			'domain' => 'default',
-			'category' => 'LC_MESSAGES'
+			'category' => 'LC_MESSAGES',
 		);
+
 		$translations = self::forLocale($settings['locale'], $settings);
 
 		$info = pathinfo($file);
 		$parserClass = ucfirst($info['extension']) . 'Parser';
 
 		App::uses($parserClass, 'Translations.Parser');
-		$return = $parserClass::generate($file, $settings);
+		return $parserClass::generate($file, $settings);
 	}
 
-
 /**
- * import
+ * import translation definitions
  *
  * @param mixed $file
  * @param mixed $settings
- * @return void
+ * @return array
  */
 	public static function import($file, $settings = array()) {
-		$return = self::parse($file, $settings);
+		$settings = $settings + array(
+			'locale' => Configure::read('Config.language'),
+			'domain' => 'default',
+			'category' => 'LC_MESSAGES',
+		);
 
+		if (!empty($settings['reset'])) {
+			if (!self::$_model) {
+				self::_loadModel();
+			}
+			self::$_model->deleteAll(array(
+				'locale' => $settings['locale'],
+				'domain' => $settings['domain'],
+				'category' => $settings['category']
+			));
+		}
+
+		$return = self::parse($file, $settings);
 		foreach ($return['translations'] as $domain => $locales) {
 			foreach ($locales as $locale => $categories) {
 				foreach ($categories as $category => $translations) {
@@ -300,22 +348,37 @@ class Translation extends TranslationsAppModel {
 				}
 			}
 		}
+		return $return;
 	}
 
 /**
- * parse
+ * parse a translations file
+ *
+ * If $file is an upload, derive from the name the type of file that it is.
+ * Look for a parser based on the file extension, and return the output
  *
  * @param mixed $file
  * @param array $settings
- * @return void
+ * @return array
  */
 	public static function parse($file, $settings = array()) {
-		if (!file_exists($file)) {
-			throw new \Exception("File doesn't exist");
-		}
-		$info = pathinfo($file);
-		$parserClass = ucfirst($info['extension']) . 'Parser';
+		$settings = $settings + array(
+			'locale' => Configure::read('Config.language'),
+			'domain' => 'default',
+			'category' => 'LC_MESSAGES',
+		);
 
+		if (is_array($file)) {
+			$info = pathinfo($file['name']);
+			$file = $file['tmp_name'];
+		} else {
+			if (!file_exists($file)) {
+				throw new \Exception("File doesn't exist");
+			}
+			$info = pathinfo($file);
+		}
+
+		$parserClass = ucfirst($info['extension']) . 'Parser';
 		App::uses($parserClass, 'Translations.Parser');
 		return $parserClass::parse($file, $settings);
 	}
@@ -329,6 +392,7 @@ class Translation extends TranslationsAppModel {
  */
 	public static function locales($all = false, $options = array()) {
 		self::config();
+
 		// Setup options
 		$defaults = array(
 			'query' => array(
