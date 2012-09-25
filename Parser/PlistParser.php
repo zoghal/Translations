@@ -47,11 +47,10 @@ class PlistParser {
 /**
  * generate
  *
- * @param mixed $translations
- * @param array $defaults
+ * @param array $array
  * @return string
  */
-	public static function generate($translations, $defaults = array()) {
+	public static function generate($array = array()) {
 		throw new \Exception("Not implemented");
 	}
 

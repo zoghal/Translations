@@ -43,13 +43,10 @@ class JsonParser {
 /**
  * generate
  *
- * @param mixed $translations
- * @param array $defaults
+ * @param array $array
  * @return string
  */
-	public static function generate($translations, $defaults = array()) {
-		return json_encode($defaults + array(
-			'translations' => $translations
-		));
+	public static function generate($array = array()) {
+		return json_encode($array);
 	}
 }

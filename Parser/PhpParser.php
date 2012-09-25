@@ -38,16 +38,13 @@ class PhpParser {
  * generate
  *
  * @param mixed $translations
- * @param array $defaults
  * @return string
  */
-	public static function generate($translations, $defaults = array()) {
-		$defaults['translations'] = $translations;
-
+	public static function generate($array = array()) {
 		$return = "<?php\n";
-		foreach ($defaults as $var => $value) {
-			$exported = var_export($value);
-			$return .= "$var = $exported;\n";
+		foreach ($array as $var => $value) {
+			$exported = var_export($value, true);
+			$return .= "\$$var = $exported;\n";
 		}
 		return $return;
 	}
