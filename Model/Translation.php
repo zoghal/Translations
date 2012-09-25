@@ -272,6 +272,9 @@ class Translation extends TranslationsAppModel {
 		}
 
 		$return = self::parse($file, $settings);
+		if (!$return) {
+			return false;
+		}
 		foreach ($return['translations'] as $domain => $locales) {
 			foreach ($locales as $locale => $categories) {
 				foreach ($categories as $category => $translations) {
@@ -302,6 +305,9 @@ class Translation extends TranslationsAppModel {
 		);
 
 		if (is_array($file)) {
+			if (!empty($file['error'])) {
+				return false;
+			}
 			$info = pathinfo($file['name']);
 			$file = $file['tmp_name'];
 		} else {
