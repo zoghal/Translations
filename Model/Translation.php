@@ -321,6 +321,22 @@ class Translation extends TranslationsAppModel {
 			$info = pathinfo($file['name']);
 			$file = $file['tmp_name'];
 		} else {
+			if (false !== strstr($file, 'http://') || false !== strstr($file, 'https://')) {
+				$ch = curl_init();
+				curl_setopt($ch, CURLOPT_URL, $file);
+				curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+				curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+				curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+				$content = curl_exec($ch);
+				curl_close($ch);
+
+				$info = pathinfo($file);
+				$file = TMP . time() . '.json';
+				file_put_contents($file, $content);
+			} else {
+				$content = file_get_contents($data['resource']);
+			}
+
 			if (!file_exists($file)) {
 				throw new \Exception("File doesn't exist");
 			}
