@@ -1,12 +1,16 @@
 <?php
-class PhpParser {
+class JsonParser {
 
 /**
  * parse
  *
- * Load a php file, and assume it contains a variable named $translations with a flat list
- * may also define $domain, $locale and $category - these settings would affect
- * all translations in the file
+ * Load a json file, and assume it contains a flat array of translations
+ * OR
+ * an array of:
+ * 	domain:
+ * 	locale
+ * 	category:
+ * 	translations:
  *
  * @param string $file
  * @param array $defaults
@@ -15,8 +19,10 @@ class PhpParser {
 	public static function parse($file, $defaults = array()) {
 		extract($defaults);
 
-		$translations = array();
-		require $file;
+		$translations = json_decode(file_get_contents($file), true);
+		if (isset($translations['translations']) && is_array($translations['translations'])) {
+			extract($translations);
+		}
 
 		$count = 0;
 		$return = array();
@@ -42,14 +48,8 @@ class PhpParser {
  * @return string
  */
 	public static function generate($translations, $defaults = array()) {
-		$defaults['translations'] = $translations;
-
-		$return = "<?php\n";
-		foreach ($defaults as $var => $value) {
-			$exported = var_export($value);
-			$return .= "$var = $exported;\n";
-		}
-		return $return;
+		return json_encode($defaults + array(
+			'translations' => $translations
+		));
 	}
-
 }

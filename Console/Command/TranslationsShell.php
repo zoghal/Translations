@@ -23,18 +23,26 @@ class TranslationsShell extends AppShell {
 	public function getOptionParser() {
 		$parser = parent::getOptionParser();
 		return $parser
-			->addSubcommand('load', array(
-					'help' => 'Load translations from file',
-					'parser' => array(
-						'arguments' => array(
-							'file' => array('help' => 'relative or abs path to translations file', 'required' => true)
-						)
-					)
+			->addArgument('file', array(
+				'help' => 'relative or abs path to translations file',
+				'required' => true
+			))
+			->addOption('locale', array(
+				'help' => 'the locale to import/export, defaults to "en"'
+			))
+			->addOption('domain', array(
+				'help' => 'the domain to import/export, defaults to "default"'
+			))
+			->addOption('category', array(
+				'help' => 'the category to import/export, defaults to "LC_MESSAGES"'
+			))
+			->addSubcommand('import', array(
+				'help' => 'Load translations from file',
 			));
 	}
 
 /**
- * load
+ * import
  *
  * Load translations in a recognised format.
  * Currently supports:
@@ -42,8 +50,11 @@ class TranslationsShell extends AppShell {
  *
  * @throws \Exception if the file specified doesn't exist
  */
-	public function load() {
+	public function import() {
 		$file = $this->args[0];
+		foreach ($this->params as $key => $val) {
+			$this->_settings[$key] = $val;
+		}
 
 		if (!file_exists($file)) {
 			throw new \Exception("File doesn't exist");

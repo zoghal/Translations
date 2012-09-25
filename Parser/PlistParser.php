@@ -45,6 +45,17 @@ class PlistParser {
 	}
 
 /**
+ * generate
+ *
+ * @param mixed $translations
+ * @param array $defaults
+ * @return string
+ */
+	public static function generate($translations, $defaults = array()) {
+		throw new \Exception("Not implemented");
+	}
+
+/**
  * _flatten
  *
  * Turn a nested array into a flat array appropriate for the translations plugin
