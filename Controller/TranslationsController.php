@@ -11,13 +11,19 @@ class TranslationsController extends TranslationsAppController {
 		'Translations.Translation',
 	);
 
+/**
+ * beforeFilter
+ *
+ * @return void
+ */
 	public function beforeFilter() {
 		$defaultLanguage = Configure::read('Config.language');
 		if (!$defaultLanguage) {
 			$defaultLanguage = 'en';
 			Configure::write('Config.language', $defaultLanguage);
 		}
-		if ($this->isAdminRequest()) {
+
+		if (!empty($this->request->params['prefix']) && $this->request->params['prefix'] === 'admin') {
 			$locales = $this->Translation->find('list', array(
 				'fields' => array('locale', 'locale')
 			));
@@ -27,6 +33,19 @@ class TranslationsController extends TranslationsAppController {
 		$this->Api->allowPublic('flat');
 		$this->Api->allowPublic('nested');
 		parent::beforeFilter();
+	}
+
+/**
+ * admin_add
+ *
+ * @param mixed $locale
+ * @param string $domain
+ * @param string $category
+ * @return void
+ */
+	public function admin_add($locale = null, $domain = 'default', $category = 'LC_MESSAGES') {
+		$this->set(compact('locale', 'domain', 'category'));
+		$this->Crud->executeAction();
 	}
 
 	public function admin_add_locale() {
@@ -47,12 +66,22 @@ class TranslationsController extends TranslationsAppController {
 		$this->set(compact('locales', 'based_on'));
 	}
 
-	public function admin_edit_locale($locale = null, $section = null) {
+/**
+ * admin_edit_locale
+ *
+ * @param mixed $locale
+ * @param string $domain
+ * @param string $category
+ * @param mixed $section
+ * @return void
+ */
+	public function admin_edit_locale($locale = null, $domain = 'default', $category = 'LC_MESSAGES', $section = null) {
+		$this->set(compact('locale', 'domain', 'category', 'section'));
 		if (!$locale) {
 			if ($this->data) {
 				if (!empty($this->data['Translation']['locale'])) {
 					$locale = $this->data['Translation']['locale'];
-					return $this->redirect(array($locale, $section));
+					return $this->redirect(array($locale, $domain, $category, $section));
 				}
 			}
 
@@ -69,9 +98,11 @@ class TranslationsController extends TranslationsAppController {
 		}
 
 		$defaultLanguage = Configure::read('Config.language');
-		$default = $this->Translation->forLocale($defaultLanguage, array('nested' => false, 'section' => $section));
+		$params = compact('domain', 'category') + array('nested' => false);
+		$default = $this->Translation->forLocale($defaultLanguage, $params);
 
 		if ($this->data) {
+			$defaultConditions = compact('locale', 'domain', 'category');
 			foreach ($this->data['Translation'] as $key => $value) {
 				if ($key === 'id') {
 					continue;
@@ -79,50 +110,58 @@ class TranslationsController extends TranslationsAppController {
 
 				$key = str_replace('¿', '.', $key);
 
+				$conditions = $defaultConditions + compact('key');
 				if ($locale !== $defaultLanguage && $value === $default[$key]) {
-					$this->Translation->deleteAll(array(
-						'locale' => $locale,
-						'key' => $key
-					));
+					$this->Translation->deleteAll($conditions);
 					continue;
 				}
 
 				$this->Translation->create();
-				$this->Translation->id = $this->Translation->field('id', array(
-					'locale' => $locale,
-					'key' => $key
-				));
-				$this->Translation->save(array(
-					'locale' => $locale,
-					'key' => $key,
-					'value' => $value
-				));
+				$this->Translation->id = $this->Translation->field('id', $conditions);
+				$this->Translation->save($conditions + compact('value'));
 			}
 			$this->Session->setFlash("Translations for $locale updated", 'success');
-			return $this->redirect(array('action' => 'index', $locale, $section));
+			return $this->redirect(array('action' => 'index', $locale, $domain, $category, $section));
 		}
 
 		if ($locale !== $defaultLanguage) {
-			$default = $this->Translation->forLocale($defaultLanguage, array('nested' => false, 'section' => $section));
+			$params = compact('domain', 'category', 'section') + array('nested' => false);
+			$default = $this->Translation->forLocale($defaultLanguage, $params);
 		}
-		$toEdit = $this->Translation->forLocale($locale, array('nested' => false, 'addDefaults' => false, 'section' => $section));
+		$params = compact('domain', 'category', 'section') + array('nested' => false, 'addDefaults' => false);
+		$toEdit = $this->Translation->forLocale($locale, $params);
 		$this->set(compact('default', 'toEdit'));
 		$this->render('admin_edit_locale');
 	}
 
-	public function admin_index($locale = null) {
-		$conditions = array();
-		if ($locale) {
-			$conditions['locale'] = $locale;
-		}
+/**
+ * admin_index
+ *
+ * @param mixed $locale
+ * @param mixed $domain
+ * @param mixed $category
+ * @return void
+ */
+	public function admin_index($locale = null, $domain = 'default', $category = 'LC_MESSAGES') {
+		$this->set(compact('locale', 'domain', 'category'));
+		$conditions = compact('locale', 'domain', 'category');
 		$items = $this->paginate($conditions);
 		foreach ($items as &$item) {
-			$item['Translation']['ns'] = current(explode('.', $item['Translation']['key']));
+			if (preg_match('/^(\w+\.?)+$/', $item['Translation']['key'])) {
+				$item['Translation']['ns'] = current(explode('.', $item['Translation']['key']));
+			} else {
+				$item['Translation']['ns'] = null;
+			}
 		}
 		$locales = Translation::locales();
 		$this->set(compact('items', 'locales'));
 	}
 
+/**
+ * admin_upload
+ *
+ * @return void
+ */
 	public function admin_upload() {
 		if ($this->data) {
 			if ($return = $this->Translation->loadPlist(
@@ -151,13 +190,17 @@ class TranslationsController extends TranslationsAppController {
  * flat
  *
  * @param string $locale
+ * @param string $domain
+ * @param string $category
  * @param string $section
  */
-	public function flat($locale = null, $section = null) {
+	public function flat($locale = null, $domain = 'default', $category = 'LC_MESSAGES', $section = null) {
 		if (!$locale) {
 			$locale = Configure::read('Config.language');
 		}
-		$return = $this->Translation->forLocale($locale, array('nested' => false, 'section' => $section));
+		$options = compact('domain', 'category', 'section');
+		$options['nested'] = false;
+		$return = $this->Translation->forLocale($locale, $options);
 		$this->set('items', $return);
 		$this->render('index');
 	}
@@ -168,11 +211,12 @@ class TranslationsController extends TranslationsAppController {
  * @param string $locale
  * @param string $section
  */
-	public function nested($locale = null, $section = null) {
+	public function nested($locale = null, $domain = 'default', $category = 'LC_MESSAGES', $section = null) {
 		if (!$locale) {
 			$locale = Configure::read('Config.language');
 		}
-		$return = $this->Translation->forLocale($locale, array('section' => $section));
+		$options = compact('domain', 'category', 'section');
+		$return = $this->Translation->forLocale($locale, $options);
 		$this->set('items', $return);
 		$this->render('index');
 	}

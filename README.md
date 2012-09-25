@@ -42,6 +42,7 @@ into your code as appropriate, and then update via the admin interface.
 
 ##TODO
 
+ * all plural rule checks (__n and associated functions will always use the singular form)
  * Add config so that it's possible to have a wysiwyg editor on certain fields in the backend
  * Add config so that it's possible to have validation when adding/editing certain fields in the backend
  * For Cake 3.0 - make this compatible with the proposed translations engine API (not yet defined)

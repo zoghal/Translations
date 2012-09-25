@@ -27,11 +27,80 @@ class Translation extends TranslationsAppModel {
 		)
 	);
 
+/**
+ * Categories map.
+ *
+ * used to translate numeric categories (the key) to the string value
+ */
+	protected static $_categories = array(
+		'LC_ALL',
+		'LC_COLLATE',
+		'LC_CTYPE',
+		'LC_MONETARY',
+		'LC_NUMERIC',
+		'LC_TIME',
+		'LC_MESSAGES'
+	);
+
+/**
+ * Runtime config settings
+ */
+	protected static $_config = array(
+		'autoPopulate' => null
+	);
+
+/**
+ * Default config settings
+ */
+	protected static $_defaultConfig = array(
+		'configured' => true,
+		'useDbConfig' => 'default',
+		'useTable' => 'translations',
+		'cacheConfig' => 'default',
+		'autoPopulate' => null
+	);
+
+/**
+ * Placeholder for the static model instance
+ */
 	protected static $_model;
 
 	protected static $_locales;
 
+/**
+ * Indexed array or all translations
+ *
+ * root
+ * 	<domain name>
+ * 		<locale>
+ * 			<category>
+ *				<translation key>
+ */
 	protected static $_translations = array();
+
+/**
+ * Override runtime settings
+ *
+ * @param array $settings
+ * @return array
+ */
+	public static function config($settings = array()) {
+		if (empty($settings) && !empty(self::$_config['configured'])) {
+			return self::$_config;
+		}
+
+		if (defined('CORE_TEST_CASES')) {
+			self::$_defaultConfig['useTable'] = false;
+			self::$_defaultConfig['autoPopulate'] = false;
+		}
+
+		self::$_config = $settings + self::$_config + self::$_defaultConfig;
+
+		if (is_null(self::$_config['autoPopulate'])) {
+			self::$_config['autoPopulate'] = !empty(self::$_config['useTable']);
+		}
+		return self::$_config;
+	}
 
 /**
  * Create a localization based on another (existing) set of translations.
@@ -74,7 +143,6 @@ class Translation extends TranslationsAppModel {
 		foreach ($translations as $key => $value) {
 			$translation = $this->find('first', array(
 				'conditions' => array(
-					'application_id' => Configure::read('Application.id'),
 					'locale'         => $locale,
 					'key'            => $key
 				)
@@ -84,7 +152,6 @@ class Translation extends TranslationsAppModel {
 			}
 
 			$translation = $this->create(array(
-				'application_id' => Configure::read('Application.id'),
 				'locale'         => $locale,
 				'key'            => $key,
 				'value'          => $value
@@ -104,28 +171,44 @@ class Translation extends TranslationsAppModel {
  * @return
  */
 	public function forLocale($locale = null, $settings = array()) {
+		self::config();
 		if (!self::$_model) {
-			self::$_model = ClassRegistry::init('Translations.Translation');
+			self::_loadModel();
 		}
 		if (self::$_model !== $this) {
 			return self::$_model->forLocale($locale, $settings);
 		}
+		if (!self::$_config['useTable']) {
+			return array();
+		}
 
-		$settings = $settings + array('nested' => true, 'addDefaults' => true, 'section' => null);
+		$settings = $settings + array(
+			'nested' => true,
+			'addDefaults' => true,
+			'domain' => 'default',
+			'category' => 'LC_MESSAGES',
+			'section' => null
+		);
 
 		$defaultLanguage = Configure::read('Config.language');
 		if (!$locale) {
 			$locale = $defaultLanguage;
 		}
 
-		if ($settings['addDefaults']) {
-			$locales = array_unique(array(
-				$locale,
-				substr($locale, 0, 2),
-				$defaultLanguage
-			));
+		if (self::$_config['cacheConfig']) {
+			$cacheKey = "translations-$locale-{$settings['domain']}-{$settings['category']}{$settings['section']}";
+			$counter = (int)Cache::read('translations-counter', self::$_config['cacheConfig']);
+			$cacheKey .= "-$counter";
 
+			$cached = Cache::read($cacheKey, self::$_config['cacheConfig']);
+			if ($cached !== false) {
+				return $cached;
+			}
+		}
+
+		if ($settings['addDefaults']) {
 			$settings['addDefaults'] = false;
+			$locales = $this->_fallbackLocales($locale);
 			$return = array();
 			foreach ($locales as $locale) {
 				$return += $this->forLocale($locale, $settings);
@@ -134,11 +217,14 @@ class Translation extends TranslationsAppModel {
 		}
 
 		$conditions = array(
-			'locale' => $locale
+			'locale' => $locale,
+			'domain' => $settings['domain'],
+			'category' => $settings['category']
 		);
 		if (!empty($settings['section'])) {
 			$conditions['key LIKE'] = $settings['section'] . '%';
 		}
+
 		$data = $this->find('list', array(
 			'fields' => array('key', 'value'),
 			'conditions' => $conditions,
@@ -164,6 +250,10 @@ class Translation extends TranslationsAppModel {
 				}
 			}
 		}
+
+		if (!empty($cacheKey)) {
+			Cache::write($cacheKey, $data, self::$_config['cacheConfig']);
+		}
 		return $data;
 	}
 
@@ -175,7 +265,7 @@ class Translation extends TranslationsAppModel {
  * @return array
  */
 	public static function locales($all = false, $options = array()) {
-
+		self::config();
 		// Setup options
 		$defaults = array(
 			'query' => array(
@@ -191,9 +281,8 @@ class Translation extends TranslationsAppModel {
 			$options['query']['bounds'] = false;
 		}
 
-		// Load model
 		if (!self::$_model) {
-			self::$_model = ClassRegistry::init('Translations.Translation');
+			self::_loadModel();
 		}
 
 		// Load languages
@@ -220,102 +309,185 @@ class Translation extends TranslationsAppModel {
 		}
 	}
 
-	public static function translate($key, $pluralKey = null, $options = array()) {
-		if (is_array($pluralKey)) {
-			$options = $pluralKey;
-			$pluralKey = null;
-		}
+/**
+ * translate
+ *
+ * Used by the translation functions in override_i18n in this plugin
+ * Returns a translated string based on current locale and translations in the db
+ *
+ * @param string $singular string to translate
+ * @param array $options
+ * @return string translated string
+ */
+	public static function translate($singular, $options = array()) {
+		self::config();
 		$options += array(
+			'plural' => null,
 			'domain' => 'default',
 			'category' => 'LC_MESSAGES',
 			'count' => null,
-			'locale' => Configure::read('Config.language'),
-			'autoPopulate' => Nodes\Environment::isDevelopment()
+			'locale' => !empty($_SESSION['Config']['language']) ? $_SESSION['Config']['language'] : Configure::read('Config.language'),
+			'autoPopulate' => is_null(self::$_config['autoPopulate']) ? Configure::read() : self::$_config['autoPopulate']
 		);
 
+		$domain = $options['domain'];
 		$locale = $options['locale'];
+		$category = $options['category'];
 
-		if (!self::$_model) {
-			self::$_model = ClassRegistry::init('Translations.Translation');
-		}
-		if (!array_key_exists($locale, self::$_translations)) {
-			self::$_translations[$locale] = self::$_model->forLocale($locale, array('nested' => false));
+		if (is_numeric($category)) {
+			$category = self::$_categories[$category];
 		}
 
-		if (array_key_exists($key, self::$_translations[$locale])) {
-			return self::$_translations[$locale][$key];
+		if (self::hasTranslation($singular, $options)) {
+			return self::$_translations[$domain][$locale][$category][$singular];
 		}
 
 		if ($options['autoPopulate']) {
+			self::$_translations[$domain][$locale][$category][$singular] = $singular;
 			self::$_model->create();
 			self::$_model->save(array(
-				'locale' => $locale,
-				'key' => $key,
-				'value' => $key
+				'domain' => $options['domain'],
+				'category' => $options['category'],
+				'locale' => $options['locale'],
+				'key' => $singular,
+				'value' => $singular
 			));
 		}
-		return $key;
+		return $singular;
 	}
 
-	public static function clear() {
+/**
+ * update
+ *
+ * Update one translation
+ *
+ * @param mixed $key
+ * @param array $options
+ * @return void
+ */
+	public static function update($key, $value = '', $options = array()) {
+		self::config();
+		$defaultLocale = Configure::read('Config.langauge');
+
+		$options += array(
+			'domain' => 'default',
+			'category' => 'LC_MESSAGES',
+			'locale' => $defaultLocale
+		);
+		extract($options);
+
+		$update = compact('domain', 'locale', 'category', 'key');
+		self::$_translations[$domain][$locale][$category][$key] = $value;
+		self::$_model->create();
+		self::$_model->id = self::$_model->field('id', $update);
+		return self::$_model->save($update + array('value' => $value));
+	}
+
+/**
+ * reset
+ *
+ * Reset the static state
+ *
+ * @return void
+ */
+	public static function reset() {
+		self::$_config = self::$_defaultConfig;
 		self::$_model = null;
 		self::$_translations = null;
 	}
 
-	public function loadPlist($file, $locale, $options = array()) {
-		$doc = new DomDocument();
-		if (!$doc->load($file)) {
-			throw new \Exception("File could not be loaded");
-		}
-		$return = array(
-			'create' => array(),
-			'update' => array(),
-			'delete' => array(),
-		);
+/**
+ * hasTranslation
+ *
+ * @param mixed $key
+ * @param array $options
+ * @return bool
+ */
+	public static function hasTranslation($key, $options = array()) {
+		self::config();
+		$domain = $options['domain'];
+		$category = $options['category'];
+		$locale = $options['locale'];
 
-		if (!empty($options['reset'])) {
-			$return['delete'] = $this->find('list', array(
-				'conditions' => array('locale' => $locale),
-				'fields' => array('key', 'key'),
-			));
-			$this->deleteAll(array('locale' => $locale));
+		if (!self::$_model) {
+			self::_loadModel();
 		}
 
-		$array = $this->_parsePlist($doc);
-		$parsed = array();
-		$this->_flatten($array, $parsed);
+		if (empty(self::$_translations[$domain][$locale][$category])) {
+			$options['nested'] = false;
+			self::$_translations[$domain][$locale][$category] = self::$_model->forLocale($locale, $options);
+		}
 
-		foreach ($parsed as $key => $value) {
-			$this->create();
-			$this->id = $this->field('id', array(
-				'key' => $key,
-				'locale' => $locale
-			));
-			if (!empty($return['delete'][$key])) {
-				$return['update'][] = $key;
-				unset($return['delete'][$key]);
-			} elseif ($this->id) {
-				$return['update'][] = $key;
+		if (array_key_exists($key, self::$_translations[$domain][$locale][$category])) {
+			return true;
+		}
+		return false;
+	}
+
+/**
+ * _clearCache
+ *
+ * Whenever something touches the data increment the cache counter
+ *
+ * @param mixed $type
+ * @return void
+ */
+	protected function _clearCache($type = null) {
+		Cache::increment('translations-counter', self::$_config['cacheConfig']);
+		parent::_clearCache();
+	}
+
+/**
+ * _fallbackLocales
+ *
+ * Get the list of locales to itterate through when looking for translations
+ *
+ * @param mixed $locale
+ * @return array
+ */
+	protected function _fallbackLocales($locale = null) {
+		if ($locale) {
+			$locales[] = $locale;
+		} elseif (!empty($_SESSION['Config']['language'])) {
+			$locales[] = $_SESSION['Config']['language'];
+		}
+		$locales[] = Configure::read('Config.language');
+		$locales[] = Configure::read('Config.defaultLanguage');
+		$locales = array_unique(array_filter($locales));
+
+		$return = array();
+		foreach ($locales as $locale) {
+			if (strlen($locale) === 5) {
+				$generic = substr($locale, 0, 2);
+				if (!in_array($generic, $return)) {
+					$return[] = $locale;
+					$return[] = substr($locale, 0, 2);
+				}
 			} else {
-				$return['create'][] = $key;
+				$return[] = $locale;
 			}
-
-			$this->save(array(
-				'key' => $key,
-				'value' => $value,
-				'locale' => $locale
-			));
 		}
-
 		return $return;
+	}
+
+/**
+ * _loadModel
+ *
+ * Load the model instance, using the configured settings
+ *
+ * @return void
+ */
+	protected static function _loadModel() {
+		self::$_model = ClassRegistry::init(array(
+			'class' => 'Translations.Translation',
+			'table' => self::$_config['useTable'],
+			'ds' => self::$_config['useDbConfig'],
+		));
 	}
 
 /**
  * expand dot notation to a nested array
  *
- * TODO move all this plist parsing stuff into a seperate class
- *
- * @throws \Exception if there's too much nesting in a translation key
  * @param mixed $array
  * @return array
  */
@@ -329,7 +501,7 @@ class Translation extends TranslationsAppModel {
 			}
 
 			if (count($keys) > 1) {
-				$return = $this->_recursiveInsert($return, $keys, $value);
+				$this->_recursiveInsert($return, $keys, $value);
 			} else {
 				$return[$key] = $value;
 			}
@@ -337,7 +509,15 @@ class Translation extends TranslationsAppModel {
 		return $return;
 	}
 
-	protected function _recursiveInsert($array, $keys, $value) {
+/**
+ * _recursiveInsert
+ *
+ * @param mixed $array
+ * @param mixed $keys
+ * @param mixed $value
+ * @return void
+ */
+	protected function _recursiveInsert(&$array, $keys, $value) {
 		$key = array_shift($keys);
 		if (empty($keys)) {
 			$array[$key] = $value;
@@ -345,125 +525,10 @@ class Translation extends TranslationsAppModel {
 			if (!isset($array[$key])) {
 				$array[$key] = array();
 			}
-			$temp = $this->_recursiveInsert($array[$key], $keys, $value);
-			foreach ($temp as $k => $v) {
+			$this->_recursiveInsert($array[$key], $keys, $value);
+			foreach ($array[$key] as $k => $v) {
 				$array[$key][$k] = $v; // array_merge treats string and number keys differently so we have to do it manually
 			}
 		}
-
-		return $array;
-	}
-
-	protected function _parseValue( $valueNode ) {
-		$valueType = $valueNode->nodeName;
-
-		$transformerName = "_parse_$valueType";
-
-		if ( is_callable(array($this, $transformerName))) {
-			// there is a transformer protected function _for this node type
-			return call_user_func(array($this, $transformerName), $valueNode);
-		}
-
-		// if no transformer was found
-		return null;
-	}
-
-	protected function _parsePlist( $document ) {
-		$plistNode = $document->documentElement;
-
-		$root = $plistNode->firstChild;
-
-		// skip any text nodes before the first value node
-		while ( $root->nodeName == "#text" ) {
-			$root = $root->nextSibling;
-		}
-
-		return $this->_parseValue($root);
-	}
-
-	protected function _flatten($array, &$return, $prefix = '') {
-		if (!$array) {
-			return;
-		}
-		$keys = array_keys($array);
-		foreach ($array as $key => $value) {
-			if ($keys[0] === 0) {
-				$key += 1;
-			}
-			if (is_array($value)) {
-				$this->_flatten($value, $return, ltrim($prefix . ".$key", '.'));
-				continue;
-			}
-			if ($prefix) {
-				$return[$prefix . '.' . $key] = $value;
-			} else {
-				$return[$key] = $value;
-			}
-		}
-	}
-
-	protected function _parse_integer( $integerNode ) {
-		return $integerNode->textContent;
-	}
-
-	protected function _parse_string( $stringNode ) {
-		return $stringNode->textContent;
-	}
-
-	protected function _parse_date( $dateNode ) {
-		return $dateNode->textContent;
-	}
-
-	protected function _parse_true( $trueNode ) {
-		return true;
-	}
-
-	protected function _parse_false( $trueNode ) {
-		return false;
-	}
-
-	protected function _parse_dict( $dictNode ) {
-		$dict = array();
-
-		// for each child of this node
-		for (
-			$node = $dictNode->firstChild;
-			$node != null;
-			$node = $node->nextSibling
-		) {
-			if ( $node->nodeName == "key" ) {
-				$key = $node->textContent;
-
-				$valueNode = $node->nextSibling;
-
-				// skip text nodes
-				while ( $valueNode->nodeType == XML_TEXT_NODE ) {
-					$valueNode = $valueNode->nextSibling;
-				}
-
-				// recursively parse the children
-				$value = $this->_parseValue($valueNode);
-
-				$dict[$key] = $value;
-			}
-		}
-
-		return $dict;
-	}
-
-	protected function _parse_array( $arrayNode ) {
-		$array = array();
-
-		for (
-			$node = $arrayNode->firstChild;
-			$node != null;
-			$node = $node->nextSibling
-		) {
-			if ( $node->nodeType == XML_ELEMENT_NODE ) {
-				array_push($array, $this->_parseValue($node));
-			}
-		}
-
-		return $array;
 	}
 }
