@@ -24,11 +24,10 @@ class TranslationsController extends TranslationsAppController {
 		}
 
 		if (!empty($this->request->params['prefix']) && $this->request->params['prefix'] === 'admin') {
-			$locales = $this->Translation->find('list', array(
-				'fields' => array('locale', 'locale')
-			));
-			$locales[$defaultLanguage] = $defaultLanguage;
-			$this->set('locales', $locales);
+			$locales = Translation::locales(true);
+			$domains = Translation::domains();
+			$categories = Translation::categories();
+			$this->set(compact('locales', 'domains', 'categories'));
 		}
 		$this->Api->allowPublic('flat');
 		$this->Api->allowPublic('nested');
@@ -158,31 +157,39 @@ class TranslationsController extends TranslationsAppController {
 	}
 
 /**
- * admin_upload
+ * admin_export
  *
  * @return void
  */
-	public function admin_upload() {
+	public function admin_export() {
 		if ($this->data) {
-			if ($return = $this->Translation->loadPlist(
-					$this->data['Translation']['upload']['tmp_name'],
-					$this->data['Translation']['locale'],
-					array('reset' => $this->data['Translation']['reset']))
-				) {
-
-				foreach ($return as $key => &$rows) {
-					if (!$rows) {
-						unset($return[$key]);
-						continue;
-					}
-					$rows = $key . ": \n\t" . implode($rows, "\n\t") . "\n";
-				}
-				$string = "<br /><pre>" . implode($return) . "</pre>";
-				$this->Session->setFlash('Translations uploaded successfully' . $string, 'success');
+			$options = $this->data['Translation'];
+			if ($return = $this->Translation->export(false, $options)) {
 			} else {
-				$this->Session->setFlash('Errors were generated processing the upload', 'error');
+				$this->Session->setFlash('Errors were generated processing the export', 'error');
 			}
-			$this->redirect(array('action' => 'index', $this->data['Translation']['locale']));
+		}
+	}
+
+/**
+ * admin_import
+ *
+ * @return void
+ */
+	public function admin_import() {
+		if ($this->data) {
+			$options = $this->data['Translation'];
+			if ($this->Translation->import($this->data['Translation']['import'], $options)) {
+				$this->Session->setFlash('Translations imported successfully' . $string, 'success');
+				$this->redirect(array(
+					'action' => 'index',
+					$this->data['Translation']['locale'],
+					$this->data['Translation']['domain'],
+					$this->data['Translation']['category']
+				));
+			} else {
+				$this->Session->setFlash('Errors were generated processing the import', 'error');
+			}
 		}
 	}
 
