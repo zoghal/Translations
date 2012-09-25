@@ -24,10 +24,11 @@ class TranslationsController extends TranslationsAppController {
 		}
 
 		if (!empty($this->request->params['prefix']) && $this->request->params['prefix'] === 'admin') {
-			$locales = Translation::locales(true);
+			$allLocales = Translation::locales(true);
+			$locales = Translation::locales();
 			$domains = Translation::domains();
 			$categories = Translation::categories();
-			$this->set(compact('locales', 'domains', 'categories'));
+			$this->set(compact('allLocales', 'locales', 'domains', 'categories'));
 		}
 		$this->Api->allowPublic('flat');
 		$this->Api->allowPublic('nested');

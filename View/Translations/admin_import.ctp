@@ -5,7 +5,8 @@ echo $this->element('Shared.Crud/form', array(
 	'title' => 'Upload translations',
 	'columns' => array(
 		'locale' => array(
-			'default' => Configure::read('Config.defaultLanguage') ?: Configure::read('Config.language')
+			'default' => Configure::read('Config.defaultLanguage') ?: Configure::read('Config.language'),
+			'options' => $allLocales
 		),
 		'domain' => array(
 			'default' => 'default'
