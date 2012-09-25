@@ -46,7 +46,9 @@ class TranslationsShell extends AppShell {
  *
  * Load translations in a recognised format.
  * Currently supports:
- * 	php - a file containing $translations => array( key => value)
+ * 	php   - a file containing $translations => array( key => value)
+ * 	json  -
+ * 	plist - not tested
  *
  * @throws \Exception if the file specified doesn't exist
  */
@@ -56,15 +58,7 @@ class TranslationsShell extends AppShell {
 			$this->_settings[$key] = $val;
 		}
 
-		if (!file_exists($file)) {
-			throw new \Exception("File doesn't exist");
-		}
-		$info = pathinfo($file);
-		$parserClass = ucfirst($info['extension']) . 'Parser';
-		App::uses($parserClass, 'Translations.Parser');
-
-		$count = 0;
-		$return = $parserClass::parse($file, $this->_settings);
+		$return = Translation::parse($file, $this->_settings);
 
 		$this->out(sprintf('Found %d translations', $return['count']));
 		foreach ($return['translations'] as $domain => $locales) {
@@ -79,4 +73,31 @@ class TranslationsShell extends AppShell {
 		}
 		$this->out('Done');
 	}
+
+/**
+ * export
+ *
+ * Export translations to the specified path
+ * Currently supports:
+ * 	php
+ * 	json
+ *
+ * @throws \Exception if the file specified is not writable
+ */
+	public function export() {
+		$file = $this->args[0];
+		foreach ($this->params as $key => $val) {
+			$this->_settings[$key] = $val;
+		}
+
+		$return = Translation::export($file, $this->_settings);
+
+		if ($return['success']) {
+			$this->out(sprintf('Wrote %d translations', $return['count']));
+		} else {
+			$this->warn(sprintf('Error creating %s', $file));
+		}
+		$this->out('Done');
+	}
+
 }

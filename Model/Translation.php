@@ -258,6 +258,69 @@ class Translation extends TranslationsAppModel {
 	}
 
 /**
+ * export
+ *
+ * @param mixed $file
+ * @param mixed $settings
+ * @return void
+ */
+	public static function export($file, $settings = array()) {
+		$settings = $settings + array(
+			'nested' => false,
+			'addDefaults' => true,
+			'domain' => 'default',
+			'category' => 'LC_MESSAGES'
+		);
+		$translations = self::forLocale($settings['locale'], $settings);
+
+		$info = pathinfo($file);
+		$parserClass = ucfirst($info['extension']) . 'Parser';
+
+		App::uses($parserClass, 'Translations.Parser');
+		$return = $parserClass::generate($file, $settings);
+	}
+
+
+/**
+ * import
+ *
+ * @param mixed $file
+ * @param mixed $settings
+ * @return void
+ */
+	public static function import($file, $settings = array()) {
+		$return = self::parse($file, $settings);
+
+		foreach ($return['translations'] as $domain => $locales) {
+			foreach ($locales as $locale => $categories) {
+				foreach ($categories as $category => $translations) {
+					foreach ($translations as $key => $val) {
+						Translation::update($key, $val, compact('domain', 'locale', 'category'));
+					}
+				}
+			}
+		}
+	}
+
+/**
+ * parse
+ *
+ * @param mixed $file
+ * @param array $settings
+ * @return void
+ */
+	public static function parse($file, $settings = array()) {
+		if (!file_exists($file)) {
+			throw new \Exception("File doesn't exist");
+		}
+		$info = pathinfo($file);
+		$parserClass = ucfirst($info['extension']) . 'Parser';
+
+		App::uses($parserClass, 'Translations.Parser');
+		return $parserClass::parse($file, $settings);
+	}
+
+/**
  * Lists the avaliable locales.
  *
  * @param boolean $all     (optional) Whether to print out all locales
@@ -518,6 +581,9 @@ class Translation extends TranslationsAppModel {
  * @return void
  */
 	protected function _recursiveInsert(&$array, $keys, $value) {
+		if (!is_array($array)) {
+			return;
+		}
 		$key = array_shift($keys);
 		if (empty($keys)) {
 			$array[$key] = $value;
