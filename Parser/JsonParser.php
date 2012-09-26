@@ -22,8 +22,13 @@ class JsonParser {
 		$translations = json_decode(file_get_contents($file), true);
 		if (isset($translations['translations']) && is_array($translations['translations'])) {
 			extract($translations);
-		} elseif (isset($translations['data']['Translation'])) {
-			$translations = $translations['data']['Translation'];
+		} else {
+			if (isset($translations['data']) && is_array($translations['data'])) {
+				$translations = $translations['data'];
+			}
+			if (isset($translations['Translation']) && is_array($translations['Translation'])) {
+				$translations = $translations['Translation'];
+			}
 		}
 
 		$count = 0;
