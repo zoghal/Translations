@@ -54,6 +54,9 @@ class Translation extends TranslationsAppModel {
  */
 	protected static $_defaultConfig = array(
 		'configured' => true,
+		'locale' => 'en',
+		'domain' => 'default',
+		'category' => 'LC_MESSAGES',
 		'useDbConfig' => 'default',
 		'useTable' => 'translations',
 		'cacheConfig' => 'default',
@@ -264,10 +267,11 @@ class Translation extends TranslationsAppModel {
  * @return array
  */
 	public static function import($file, $settings = array()) {
+		self::config();
 		$settings = $settings + array(
 			'locale' => Configure::read('Config.language'),
-			'domain' => 'default',
-			'category' => 'LC_MESSAGES',
+			'domain' => self::$_config['domain'],
+			'category' => self::$_config['category'],
 		);
 
 		if (!empty($settings['reset'])) {
@@ -308,10 +312,11 @@ class Translation extends TranslationsAppModel {
  * @return array
  */
 	public static function parse($file, $settings = array()) {
+		self::config();
 		$settings = $settings + array(
 			'locale' => Configure::read('Config.language'),
-			'domain' => 'default',
-			'category' => 'LC_MESSAGES',
+			'domain' => self::$_config['domain'],
+			'category' => self::$_config['category'],
 		);
 
 		if (is_array($file)) {
@@ -415,8 +420,8 @@ class Translation extends TranslationsAppModel {
 		self::config();
 		$options += array(
 			'plural' => null,
-			'domain' => 'default',
-			'category' => 'LC_MESSAGES',
+			'domain' => self::$_config['domain'],
+			'category' => self::$_config['category'],
 			'count' => null,
 			'locale' => !empty($_SESSION['Config']['language']) ? $_SESSION['Config']['language'] : Configure::read('Config.language'),
 			'autoPopulate' => is_null(self::$_config['autoPopulate']) ? Configure::read() : self::$_config['autoPopulate']
@@ -462,8 +467,8 @@ class Translation extends TranslationsAppModel {
 		$defaultLocale = Configure::read('Config.langauge');
 
 		$options += array(
-			'domain' => 'default',
-			'category' => 'LC_MESSAGES',
+			'domain' => self::$_config['domain'],
+			'category' => self::$_config['category'],
 			'locale' => $defaultLocale
 		);
 		extract($options);
@@ -588,8 +593,8 @@ class Translation extends TranslationsAppModel {
 		$settings = $settings + array(
 			'nested' => true,
 			'addDefaults' => true,
-			'domain' => 'default',
-			'category' => 'LC_MESSAGES',
+			'domain' => self::$_config['domain'],
+			'category' => self::$_config['category'],
 			'section' => null
 		);
 
