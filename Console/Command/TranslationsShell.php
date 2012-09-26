@@ -23,37 +23,42 @@ class TranslationsShell extends AppShell {
 	public function getOptionParser() {
 		$parser = parent::getOptionParser();
 		return $parser
-			->addSubcommand('load', array(
-					'help' => 'Load translations from file',
-					'parser' => array(
-						'arguments' => array(
-							'file' => array('help' => 'relative or abs path to translations file', 'required' => true)
-						)
-					)
+			->addArgument('file', array(
+				'help' => 'relative or abs path to translations file',
+				'required' => true
+			))
+			->addOption('locale', array(
+				'help' => 'the locale to import/export, defaults to "en"'
+			))
+			->addOption('domain', array(
+				'help' => 'the domain to import/export, defaults to "default"'
+			))
+			->addOption('category', array(
+				'help' => 'the category to import/export, defaults to "LC_MESSAGES"'
+			))
+			->addSubcommand('import', array(
+				'help' => 'Load translations from file',
 			));
 	}
 
 /**
- * load
+ * import
  *
  * Load translations in a recognised format.
  * Currently supports:
- * 	php - a file containing $translations => array( key => value)
+ * 	php   - a file containing $translations => array( key => value)
+ * 	json  -
+ * 	plist - not tested
  *
  * @throws \Exception if the file specified doesn't exist
  */
-	public function load() {
+	public function import() {
 		$file = $this->args[0];
-
-		if (!file_exists($file)) {
-			throw new \Exception("File doesn't exist");
+		foreach ($this->params as $key => $val) {
+			$this->_settings[$key] = $val;
 		}
-		$info = pathinfo($file);
-		$parserClass = ucfirst($info['extension']) . 'Parser';
-		App::uses($parserClass, 'Translations.Parser');
 
-		$count = 0;
-		$return = $parserClass::parse($file, $this->_settings);
+		$return = Translation::parse($file, $this->_settings);
 
 		$this->out(sprintf('Found %d translations', $return['count']));
 		foreach ($return['translations'] as $domain => $locales) {
@@ -68,4 +73,31 @@ class TranslationsShell extends AppShell {
 		}
 		$this->out('Done');
 	}
+
+/**
+ * export
+ *
+ * Export translations to the specified path
+ * Currently supports:
+ * 	php
+ * 	json
+ *
+ * @throws \Exception if the file specified is not writable
+ */
+	public function export() {
+		$file = $this->args[0];
+		foreach ($this->params as $key => $val) {
+			$this->_settings[$key] = $val;
+		}
+
+		$return = Translation::export($file, $this->_settings);
+
+		if ($return['success']) {
+			$this->out(sprintf('Wrote %d translations', $return['count']));
+		} else {
+			$this->out(sprintf('Error creating %s', $file));
+		}
+		$this->out('Done');
+	}
+
 }

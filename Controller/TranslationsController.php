@@ -24,11 +24,11 @@ class TranslationsController extends TranslationsAppController {
 		}
 
 		if (!empty($this->request->params['prefix']) && $this->request->params['prefix'] === 'admin') {
-			$locales = $this->Translation->find('list', array(
-				'fields' => array('locale', 'locale')
-			));
-			$locales[$defaultLanguage] = $defaultLanguage;
-			$this->set('locales', $locales);
+			$allLocales = Translation::locales(true);
+			$locales = Translation::locales();
+			$domains = Translation::domains();
+			$categories = Translation::categories();
+			$this->set(compact('allLocales', 'locales', 'domains', 'categories'));
 		}
 		$this->Api->allowPublic('flat');
 		$this->Api->allowPublic('nested');
@@ -147,7 +147,7 @@ class TranslationsController extends TranslationsAppController {
 		$conditions = compact('locale', 'domain', 'category');
 		$items = $this->paginate($conditions);
 		foreach ($items as &$item) {
-			if (preg_match('/^(\w+\.?)+$/', $item['Translation']['key'])) {
+			if (preg_match('/^(\w+\.)(\w+\.?)*$/', $item['Translation']['key'])) {
 				$item['Translation']['ns'] = current(explode('.', $item['Translation']['key']));
 			} else {
 				$item['Translation']['ns'] = null;
@@ -158,31 +158,44 @@ class TranslationsController extends TranslationsAppController {
 	}
 
 /**
- * admin_upload
+ * admin_export
  *
  * @return void
  */
-	public function admin_upload() {
+	public function admin_export() {
 		if ($this->data) {
-			if ($return = $this->Translation->loadPlist(
-					$this->data['Translation']['upload']['tmp_name'],
-					$this->data['Translation']['locale'],
-					array('reset' => $this->data['Translation']['reset']))
-				) {
+			$options = $this->data['Translation'];
+			$return = $this->Translation->export(false, $options);
 
-				foreach ($return as $key => &$rows) {
-					if (!$rows) {
-						unset($return[$key]);
-						continue;
-					}
-					$rows = $key . ": \n\t" . implode($rows, "\n\t") . "\n";
-				}
-				$string = "<br /><pre>" . implode($return) . "</pre>";
-				$this->Session->setFlash('Translations uploaded successfully' . $string, 'success');
+			if ($return['success']) {
+				$filename = sprintf("%s-%s-%s.%s", $options['locale'], $options['domain'], $options['category'], $options['format']);
+				file_put_contents(TMP . $filename, $return['string']);
+				$this->response->file(TMP . $filename, array('download' => true));
 			} else {
-				$this->Session->setFlash('Errors were generated processing the upload', 'error');
+				$this->Session->setFlash('Errors were generated processing the export', 'error');
 			}
-			$this->redirect(array('action' => 'index', $this->data['Translation']['locale']));
+		}
+	}
+
+/**
+ * admin_import
+ *
+ * @return void
+ */
+	public function admin_import() {
+		if ($this->data) {
+			$options = $this->data['Translation'];
+			if ($this->Translation->import($this->data['Translation']['import'], $options)) {
+				$this->Session->setFlash('Translations imported successfully' . $string, 'success');
+				$this->redirect(array(
+					'action' => 'index',
+					$this->data['Translation']['locale'],
+					$this->data['Translation']['domain'],
+					$this->data['Translation']['category']
+				));
+			} else {
+				$this->Session->setFlash('Errors were generated processing the import', 'error');
+			}
 		}
 	}
 

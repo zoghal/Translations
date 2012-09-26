@@ -17,7 +17,7 @@ foreach ($default as $key => $string) {
 	);
 
 	if ($split) {
-		if (preg_match('/^(\w+\.?)+$/', $key)) { // for keys of format xxx.yyy.zzz
+		if (preg_match('/^(\w+\.)(\w+\.?)*$/', $key)) { // for keys of format xxx.yyy.zzz
 			list($section, $rest) = explode('.', $key, 2);
 		} else {
 			$section = 'Free Text';
