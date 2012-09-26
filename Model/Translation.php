@@ -599,16 +599,12 @@ class Translation extends TranslationsAppModel {
 		}
 
 		if (self::$_config['cacheConfig']) {
-			$cacheKey = "translations-$locale-{$settings['domain']}-{$settings['category']}{$settings['section']}";
 			$counter = (int)Cache::read('translations-counter', self::$_config['cacheConfig']);
-			$cacheKey .= "-$counter";
+			$cacheKey = "translations-$locale-{$settings['domain']}-{$settings['category']}{$settings['section']}-$counter";
 
 			$cached = Cache::read($cacheKey, self::$_config['cacheConfig']);
 			if ($cached !== false) {
-				$array = unserialize($cached);
-				if (is_array($array)) {
-					return $array;
-				}
+				return $cached;
 			}
 		}
 
@@ -658,7 +654,7 @@ class Translation extends TranslationsAppModel {
 		}
 
 		if (!empty($cacheKey)) {
-			Cache::write($cacheKey, serialize($data), self::$_config['cacheConfig']);
+			Cache::write($cacheKey, $data, self::$_config['cacheConfig']);
 		}
 		return $data;
 	}
