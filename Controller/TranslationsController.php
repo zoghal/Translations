@@ -5,34 +5,83 @@ App::uses('TranslationsAppController', 'Translations.Controller');
  */
 class TranslationsController extends TranslationsAppController {
 
+	public $helpers = array('Text');
+
 	public $uses = array(
 		'Translations.Translation',
 	);
 
+/**
+ * beforeFilter
+ *
+ * @return void
+ */
 	public function beforeFilter() {
 		$defaultLanguage = Configure::read('Config.language');
 		if (!$defaultLanguage) {
 			$defaultLanguage = 'en';
 			Configure::write('Config.language', $defaultLanguage);
 		}
-		if ($this->isAdminRequest()) {
-			$locales = $this->Translation->find('list', array(
-				'fields' => array('locale', 'locale')
-			));
-			$locales[$defaultLanguage] = $defaultLanguage;
-			$this->set('locales', $locales);
+
+		if (!empty($this->request->params['prefix']) && $this->request->params['prefix'] === 'admin') {
+			$allLocales = Translation::locales(true);
+			$locales = Translation::locales();
+			$domains = Translation::domains();
+			$categories = Translation::categories();
+			$this->set(compact('allLocales', 'locales', 'domains', 'categories'));
 		}
 		$this->Api->allowPublic('flat');
 		$this->Api->allowPublic('nested');
 		parent::beforeFilter();
 	}
 
-	public function admin_edit_locale($locale = null, $section = null) {
+/**
+ * admin_add
+ *
+ * @param mixed $locale
+ * @param string $domain
+ * @param string $category
+ * @return void
+ */
+	public function admin_add($locale = null, $domain = 'default', $category = 'LC_MESSAGES') {
+		$this->set(compact('locale', 'domain', 'category'));
+		$this->Crud->executeAction();
+	}
+
+	public function admin_add_locale() {
+		$locales = Translation::locales(true);
+		$based_on = Translation::locales();
+
+		if ($this->request->is('post') && !empty($this->request->data['Translation']['locale'])) {
+			$translations = $this->Translation->createLocale($this->request->data['Translation']['locale'], $this->request->data['Translation']['based_on']);
+			if (!empty($translations)) {
+				// Go to edit page
+				$this->redirect(array(
+					'action' => 'edit_locale',
+					$this->request->data['Translation']['locale']
+				));
+			}
+		}
+
+		$this->set(compact('locales', 'based_on'));
+	}
+
+/**
+ * admin_edit_locale
+ *
+ * @param mixed $locale
+ * @param string $domain
+ * @param string $category
+ * @param mixed $section
+ * @return void
+ */
+	public function admin_edit_locale($locale = null, $domain = 'default', $category = 'LC_MESSAGES', $section = null) {
+		$this->set(compact('locale', 'domain', 'category', 'section'));
 		if (!$locale) {
 			if ($this->data) {
 				if (!empty($this->data['Translation']['locale'])) {
 					$locale = $this->data['Translation']['locale'];
-					return $this->redirect(array($locale, $section));
+					return $this->redirect(array($locale, $domain, $category, $section));
 				}
 			}
 
@@ -49,9 +98,11 @@ class TranslationsController extends TranslationsAppController {
 		}
 
 		$defaultLanguage = Configure::read('Config.language');
-		$default = $this->Translation->forLocale($defaultLanguage, array('nested' => false, 'section' => $section));
+		$params = compact('domain', 'category') + array('nested' => false);
+		$default = $this->Translation->forLocale($defaultLanguage, $params);
 
 		if ($this->data) {
+			$defaultConditions = compact('locale', 'domain', 'category');
 			foreach ($this->data['Translation'] as $key => $value) {
 				if ($key === 'id') {
 					continue;
@@ -59,70 +110,92 @@ class TranslationsController extends TranslationsAppController {
 
 				$key = str_replace('¿', '.', $key);
 
+				$conditions = $defaultConditions + compact('key');
 				if ($locale !== $defaultLanguage && $value === $default[$key]) {
-					$this->Translation->deleteAll(array(
-						'locale' => $locale,
-						'key' => $key
-					));
+					$this->Translation->deleteAll($conditions);
 					continue;
 				}
 
 				$this->Translation->create();
-				$this->Translation->id = $this->Translation->field('id', array(
-					'locale' => $locale,
-					'key' => $key
-				));
-				$this->Translation->save(array(
-					'locale' => $locale,
-					'key' => $key,
-					'value' => $value
-				));
+				$this->Translation->id = $this->Translation->field('id', $conditions);
+				$this->Translation->save($conditions + compact('value'));
 			}
 			$this->Session->setFlash("Translations for $locale updated", 'success');
-			return $this->redirect(array('action' => 'index', $locale, $section));
+			return $this->redirect(array('action' => 'index', $locale, $domain, $category, $section));
 		}
 
 		if ($locale !== $defaultLanguage) {
-			$default = $this->Translation->forLocale($defaultLanguage, array('nested' => false, 'section' => $section));
+			$params = compact('domain', 'category', 'section') + array('nested' => false);
+			$default = $this->Translation->forLocale($defaultLanguage, $params);
 		}
-		$toEdit = $this->Translation->forLocale($locale, array('nested' => false, 'addDefaults' => false, 'section' => $section));
+		$params = compact('domain', 'category', 'section') + array('nested' => false, 'addDefaults' => false);
+		$toEdit = $this->Translation->forLocale($locale, $params);
 		$this->set(compact('default', 'toEdit'));
 		$this->render('admin_edit_locale');
 	}
 
-	public function admin_index($locale = null) {
-		$conditions = array();
-		if ($locale) {
-			$conditions['locale'] = $locale;
-		}
+/**
+ * admin_index
+ *
+ * @param mixed $locale
+ * @param mixed $domain
+ * @param mixed $category
+ * @return void
+ */
+	public function admin_index($locale = null, $domain = 'default', $category = 'LC_MESSAGES') {
+		$this->set(compact('locale', 'domain', 'category'));
+		$conditions = compact('locale', 'domain', 'category');
 		$items = $this->paginate($conditions);
-		$locales = $this->Translation->find('list', array(
-			'fields' => array('locale', 'locale')
-		));
+		foreach ($items as &$item) {
+			if (preg_match('/^(\w+\.)(\w+\.?)*$/', $item['Translation']['key'])) {
+				$item['Translation']['ns'] = current(explode('.', $item['Translation']['key']));
+			} else {
+				$item['Translation']['ns'] = null;
+			}
+		}
+		$locales = Translation::locales();
 		$this->set(compact('items', 'locales'));
 	}
 
-	public function admin_upload() {
+/**
+ * admin_export
+ *
+ * @return void
+ */
+	public function admin_export() {
 		if ($this->data) {
-			if ($return = $this->Translation->loadPlist(
-					$this->data['Translation']['upload']['tmp_name'],
-					$this->data['Translation']['locale'],
-					array('reset' => $this->data['Translation']['reset']))
-				) {
+			$options = $this->data['Translation'];
+			$return = $this->Translation->export(false, $options);
 
-				foreach ($return as $key => &$rows) {
-					if (!$rows) {
-						unset($return[$key]);
-						continue;
-					}
-					$rows = $key . ": \n\t" . implode($rows, "\n\t") . "\n";
-				}
-				$string = "<br /><pre>" . implode($return) . "</pre>";
-				$this->Session->setFlash('Translations uploaded successfully' . $string, 'success');
+			if ($return['success']) {
+				$filename = sprintf("%s-%s-%s.%s", $options['locale'], $options['domain'], $options['category'], $options['format']);
+				file_put_contents(TMP . $filename, $return['string']);
+				$this->response->file(TMP . $filename, array('download' => true));
 			} else {
-				$this->Session->setFlash('Errors were generated processing the upload', 'error');
+				$this->Session->setFlash('Errors were generated processing the export', 'error');
 			}
-			$this->redirect(array('action' => 'index', $this->data['Translation']['locale']));
+		}
+	}
+
+/**
+ * admin_import
+ *
+ * @return void
+ */
+	public function admin_import() {
+		if ($this->data) {
+			$options = $this->data['Translation'];
+			if ($this->Translation->import($this->data['Translation']['import'], $options)) {
+				$this->Session->setFlash('Translations imported successfully' . $string, 'success');
+				$this->redirect(array(
+					'action' => 'index',
+					$this->data['Translation']['locale'],
+					$this->data['Translation']['domain'],
+					$this->data['Translation']['category']
+				));
+			} else {
+				$this->Session->setFlash('Errors were generated processing the import', 'error');
+			}
 		}
 	}
 
@@ -130,13 +203,17 @@ class TranslationsController extends TranslationsAppController {
  * flat
  *
  * @param string $locale
+ * @param string $domain
+ * @param string $category
  * @param string $section
  */
-	public function flat($locale = null, $section = null) {
+	public function flat($locale = null, $domain = 'default', $category = 'LC_MESSAGES', $section = null) {
 		if (!$locale) {
 			$locale = Configure::read('Config.language');
 		}
-		$return = $this->Translation->forLocale($locale, array('nested' => false, 'section' => $section));
+		$options = compact('domain', 'category', 'section');
+		$options['nested'] = false;
+		$return = $this->Translation->forLocale($locale, $options);
 		$this->set('items', $return);
 		$this->render('index');
 	}
@@ -147,11 +224,12 @@ class TranslationsController extends TranslationsAppController {
  * @param string $locale
  * @param string $section
  */
-	public function nested($locale = null, $section = null) {
+	public function nested($locale = null, $domain = 'default', $category = 'LC_MESSAGES', $section = null) {
 		if (!$locale) {
 			$locale = Configure::read('Config.language');
 		}
-		$return = $this->Translation->forLocale($locale, array('section' => $section));
+		$options = compact('domain', 'category', 'section');
+		$return = $this->Translation->forLocale($locale, $options);
 		$this->set('items', $return);
 		$this->render('index');
 	}

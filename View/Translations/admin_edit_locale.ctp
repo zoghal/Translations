@@ -17,7 +17,12 @@ foreach ($default as $key => $string) {
 	);
 
 	if ($split) {
-		list($section, $rest) = explode('.', $key, 2);
+		if (preg_match('/^(\w+\.)(\w+\.?)*$/', $key)) { // for keys of format xxx.yyy.zzz
+			list($section, $rest) = explode('.', $key, 2);
+		} else {
+			$section = 'Free Text';
+			$rest = $key;
+		}
 		if (empty($sections[$section])) {
  			$sections[$section]['title'] = Inflector::humanize(Inflector::underscore($section));
 		}

@@ -26,28 +26,38 @@ class TranslationTest extends CakeTestCase {
 
 		// Load config
 		$this->config = array(
-			'Boundary.enable' => Configure::read('Boundary.enable'),
 			'Config.language' => Configure::read('Config.language')
 		);
-		Configure::write('Boundary.enable', false);
 		Configure::write('Config.language', 'en');
 
-		// Load translations
+		ClassRegistry::removeObject('Translation');
 		$this->Translation = ClassRegistry::init('Translations.Translation');
+
+		Translation::reset();
+		Translation::config(array(
+			'useTable' => 'translations',
+			'cacheConfig' => false,
+			'autoPopulate' => false
+		));
 	}
 
 /**
  * tearDown method
  *
+ * Reapply original config and destroy traces of the translate model
+ *
  * @return void
  */
 	public function tearDown() {
-		// Re-apply old config
 		foreach ($this->config as $key => $value) {
 			Configure::write($key, $value);
 		}
 
+		ClassRegistry::removeObject('Translation');
+		Translation::reset();
+
 		unset($this->Translation, $this->config);
+
 		parent::tearDown();
 	}
 
@@ -55,6 +65,8 @@ class TranslationTest extends CakeTestCase {
 		$result = $this->Translation->forLocale('en', array('nested' => false));
 
 		$expected = array(
+			'...a...b...c...' => 'Dotted key',
+			'foo bar 42' => 'Non-namespaced key',
 			'key.with.param' => 'Value with {param}',
 			'key_one' => 'Value One',
 			'key_two' => 'Value Two',
@@ -62,6 +74,7 @@ class TranslationTest extends CakeTestCase {
 			'nested.key.two' => 'Nested Value Two',
 			'numerical.key.0' => 'Numerical Value One',
 			'numerical.key.1' => 'Numerical Value Two',
+			'super.duper.nested.key.of.doom' => 'Super duper nested key of doom'
 		);
 
 		$this->assertSame($expected, $result);
@@ -71,6 +84,8 @@ class TranslationTest extends CakeTestCase {
 		$result = $this->Translation->forLocale();
 
 		$expected = array(
+			'...a...b...c...' => 'Dotted key',
+			'foo bar 42' => 'Non-namespaced key',
 			'key' => array(
 				'with' => array(
 					'param' => 'Value with {param}'
@@ -89,6 +104,17 @@ class TranslationTest extends CakeTestCase {
 					   'Numerical Value One',
 					   'Numerical Value Two'
 				   )
+			),
+			'super' => array(
+				'duper' => array(
+					'nested' => array(
+						'key' => array(
+							'of' => array(
+								'doom' => 'Super duper nested key of doom'
+							)
+						)
+					)
+				)
 			)
 		);
 
@@ -112,6 +138,8 @@ class TranslationTest extends CakeTestCase {
 		$result = $this->Translation->forLocale();
 
 		$expected = array(
+			'...a...b...c...' => 'Prikkete nøkkel',
+			'foo bar 42' => 'Ikke-navnplass nøkkel',
 			'key' => array(
 				'with' => array(
 					'param' => 'Verdi med {param}'
@@ -130,6 +158,17 @@ class TranslationTest extends CakeTestCase {
 					   'Tall Verdi En',
 					   'Tall Verdi To'
 				   )
+			),
+			'super' => array(
+				'duper' => array(
+					'nested' => array(
+						'key' => array(
+							'of' => array(
+								'doom' => 'Super duper nøstet nøkkel av doom'
+							)
+						)
+					)
+				)
 			)
 		);
 
@@ -218,11 +257,34 @@ class TranslationTest extends CakeTestCase {
 		$this->assertSame($expected, $result);
 	}
 
-	public function testForCachedLocale() {
-		Configure::write('Config.langauge', 'no');
-		Configure::delete('Config.language');
-		$result = t('key_one');
-		$expected = 'Verdi En';
+	public function testForLocales() {
+		$result = Translation::locales();
+		$expected = array(
+			'en' => 'English',
+			'no' => 'Norwegian'
+		);
+		$this->assertSame($expected, $result);
+	}
+
+	public function testForCreateLocale() {
+		$result = $this->Translation->createLocale('dk');
+		$expected = $this->Translation->forLocale();
+		$this->assertSame($expected, $result);
+	}
+
+	public function testForCreateLocaleBasedOn() {
+		$result = $this->Translation->createLocale('dk', 'no');
+		$expected = $this->Translation->forLocale('no');
+		$this->assertSame($expected, $result);
+	}
+
+	public function testForCreateLocaleSettings() {
+		$settings = array(
+			'basedOn' => 'no',
+			'nested' => false
+		);
+		$result = $this->Translation->createLocale('dk', $settings);
+		$expected = $this->Translation->forLocale('no', $settings);
 		$this->assertSame($expected, $result);
 	}
 }
