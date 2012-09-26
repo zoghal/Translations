@@ -1,6 +1,13 @@
 #Translations
 
-Backend / Platform translations plugin
+A database driven solution for translations
+
+##Features
+
+ * Can transparently replace cake's own functions
+ * Generates translation definitions as they are used
+ * Human-readable replacement markers
+ * Admin interface for editing translations, creating new locales importing/exporting
 
 ##Installation
 
@@ -21,14 +28,33 @@ Then add the following to your `app/Config/bootstrap.php` file
 
 	CakePlugin::load('Translations', array('bootstrap' => true));
 
+If you want this plugin to take over all translations from cake - you MUST include `Config/override_i18n.php`
+
+ * 	In your app/webroot/index.php
+ * 	In your app/webroot/test.php
+ * 	In your app/Console/cake.php
+
 ##Usage
 
-This plugin is very simple to use:
+A simple example would be:
 
 	$translated = Translation::translate('Original');
 
-It's up to you whether you use codes or full sentances. Note however that this plugin offers no mechanism
-(at least not right now) for handling plurals, domains or categories.
+If you use the translate function defined in the bootstrap file, that can also be written as:
+
+    $translated = t('Original');
+
+If override_i18n is used, then it's even simpler, as it's the same as any other cake project:
+
+    $translated = __('Original');
+
+It's up to you whether you use codes or full sentances. If you want to add some replacement markers into translations
+this can be done in a couple of ways. For example, both of these examples will output "Welcome back John":
+
+    $translated = __('Welcome back {name}', array('name' => 'John'));
+    $translated = __('Welcome back %s', 'John');
+
+##Config
 
 You can change language at any time:
 
@@ -37,8 +63,21 @@ You can change language at any time:
 	Configure::write('Config.language', 'dk');
 	$translatedDK = Translation::translate('original');
 
+The plugin as a whole can be configured via the `Translation::config` function:
+
+   Translation::config(array(
+		'locale' => 'en',
+		'domain' => 'default',
+		'category' => 'LC_MESSAGES',
+		'useDbConfig' => 'default',
+		'useTable' => 'translations',
+		'cacheConfig' => 'default',
+		'autoPopulate' => null
+   ));
+
 Missing entries are automatically added on first use in development mode - so you can just add the markers
-into your code as appropriate, and then update via the admin interface.
+into your code as appropriate, and then update via the admin interface. In production mode, this functionality
+is disabled by default
 
 ##TODO
 
