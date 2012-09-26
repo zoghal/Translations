@@ -147,7 +147,7 @@ class TranslationsController extends TranslationsAppController {
 		$conditions = compact('locale', 'domain', 'category');
 		$items = $this->paginate($conditions);
 		foreach ($items as &$item) {
-			if (preg_match('/^(\w+\.?)+$/', $item['Translation']['key'])) {
+			if (preg_match('/^(\w+\.)(\w+\.?)*$/', $item['Translation']['key'])) {
 				$item['Translation']['ns'] = current(explode('.', $item['Translation']['key']));
 			} else {
 				$item['Translation']['ns'] = null;

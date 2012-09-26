@@ -674,7 +674,7 @@ class Translation extends TranslationsAppModel {
 	protected function _expand($array) {
 		$return = array();
 		foreach ($array as $key => $value) {
-			if (preg_match('/^(\w+\.?)+$/', $key)) { // for keys of format xxx.yyy.zzz
+			if (preg_match('/^(\w+\.)(\w+\.?)*$/', $key)) { // for keys of format xxx.yyy.zzz
 				$keys = explode('.', $key);
 			} else {
 				$keys = array($key);
