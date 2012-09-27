@@ -82,6 +82,33 @@ class Translation extends TranslationsAppModel {
 	protected static $_translations = array();
 
 /**
+ * beforeValidate
+ *
+ * Maintain inheritance, don't create duplicate or empty translations
+ *
+ * @param array $options
+ * @return boolean
+ */
+	public function beforeValidate($options = array()) {
+		if (!$this->id) {
+			if ($this->data[$this->alias]['value'] === '') {
+				return false;
+			}
+			$locales = $this->_fallbackLocales($this->data[$this->alias]['locale']);
+			if (count($locales) > 1) {
+				$inherited = Translation::translate(
+					$this->data[$this->alias]['key'],
+					array('locale' => $locales[1]) + $this->data[$this->alias]
+				);
+				if ($inherited === $this->data[$this->alias]['value']) {
+					return false;
+				}
+			}
+		}
+
+		return true;
+	}
+/**
  * categories
  *
  * Return the list of all categories
@@ -445,7 +472,7 @@ class Translation extends TranslationsAppModel {
 			self::$_model->save(array(
 				'domain' => $options['domain'],
 				'category' => $options['category'],
-				'locale' => $options['locale'],
+				'locale' => Configure::read('Config.defaultLanguage'),
 				'key' => $singular,
 				'value' => $singular
 			));

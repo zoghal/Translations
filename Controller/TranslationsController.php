@@ -17,12 +17,6 @@ class TranslationsController extends TranslationsAppController {
  * @return void
  */
 	public function beforeFilter() {
-		$defaultLanguage = Configure::read('Config.language');
-		if (!$defaultLanguage) {
-			$defaultLanguage = 'en';
-			Configure::write('Config.language', $defaultLanguage);
-		}
-
 		if (!empty($this->request->params['prefix']) && $this->request->params['prefix'] === 'admin') {
 			$allLocales = Translation::locales(true);
 			$locales = Translation::locales();
@@ -111,10 +105,6 @@ class TranslationsController extends TranslationsAppController {
 				$key = str_replace('¿', '.', $key);
 
 				$conditions = $defaultConditions + compact('key');
-				if ($locale !== $defaultLanguage && $value === $default[$key]) {
-					$this->Translation->deleteAll($conditions);
-					continue;
-				}
 
 				$this->Translation->create();
 				$this->Translation->id = $this->Translation->field('id', $conditions);
@@ -144,7 +134,7 @@ class TranslationsController extends TranslationsAppController {
  */
 	public function admin_index($locale = null, $domain = 'default', $category = 'LC_MESSAGES') {
 		$this->set(compact('locale', 'domain', 'category'));
-		$conditions = compact('locale', 'domain', 'category');
+		$conditions = array('locale' => Configure::read('Config.defaultLanguage')) + compact('domain', 'category');
 		$items = $this->paginate($conditions);
 		foreach ($items as &$item) {
 			if (preg_match('/^(\w+\.)(\w+\.?)*$/', $item['Translation']['key'])) {
