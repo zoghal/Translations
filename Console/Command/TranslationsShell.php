@@ -21,6 +21,7 @@ class TranslationsShell extends AppShell {
  * @link http://book.cakephp.org/2.0/en/console-and-shells.html#Shell::getOptionParser
  */
 	public function getOptionParser() {
+		$this->_settings = Translation::config();
 		$parser = parent::getOptionParser();
 		return $parser
 			->addArgument('file', array(
