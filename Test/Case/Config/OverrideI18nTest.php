@@ -29,6 +29,15 @@ class OverrideI18nTest extends CakeTestCase {
 		$return = __('Simple');
 		$this->assertSame('Simple', $return);
 
+		$return = __('Simple %s', array('name' => 'something'));
+		$this->assertSame('Simple something', $return);
+
+		$return = __('Single %s', 'something');
+		$this->assertSame('Single something', $return);
+
+		$return = __('Multiple %s %s', 'something', 'else');
+		$this->assertSame('Multiple something else', $return);
+
 		$return = __('Simple {name}', array('name' => 'something'));
 		$this->assertSame('Simple something', $return);
 
@@ -39,6 +48,37 @@ class OverrideI18nTest extends CakeTestCase {
 		$this->assertSame('Multiple something {markers}', $return);
 
 		$return = __('Multiple {replace} {markers}', 'something', 'else');
-		$this->assertSame('Multiple {replace} {markers}', $return, 'Should not modify if there are multiple replace markers');
+		$this->assertSame('Multiple {replace} {markers}', $return, 'When using named markers, if multiple args are passed they should be ignored (as it\'s ambiguous)');
+	}
+
+/**
+ * testSubstitutionDomain
+ *
+ * @return void
+ */
+	public function testSubstitutionDomain() {
+		$return = __d('testing', 'Simple');
+		$this->assertSame('Simple', $return);
+
+		$return = __d('testing', 'Simple %s', array('name' => 'something'));
+		$this->assertSame('Simple something', $return);
+
+		$return = __d('testing', 'Single %s', 'something');
+		$this->assertSame('Single something', $return);
+
+		$return = __d('testing', 'Multiple %s %s', 'something', 'else');
+		$this->assertSame('Multiple something else', $return);
+
+		$return = __d('testing', 'Simple {name}', array('name' => 'something'));
+		$this->assertSame('Simple something', $return);
+
+		$return = __d('testing', 'Single {replace}', 'something');
+		$this->assertSame('Single something', $return);
+
+		$return = __d('testing', 'Multiple {replace} {markers}', 'something');
+		$this->assertSame('Multiple something {markers}', $return);
+
+		$return = __d('testing', 'Multiple {replace} {markers}', 'something', 'else');
+		$this->assertSame('Multiple {replace} {markers}', $return, 'When using named markers, if multiple args are passed they should be ignored (as it\'s ambiguous)');
 	}
 }
