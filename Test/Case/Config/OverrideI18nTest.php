@@ -31,5 +31,14 @@ class OverrideI18nTest extends CakeTestCase {
 
 		$return = __('Simple {name}', array('name' => 'something'));
 		$this->assertSame('Simple something', $return);
+
+		$return = __('Single {replace}', 'something');
+		$this->assertSame('Single something', $return);
+
+		$return = __('Multiple {replace} {markers}', 'something');
+		$this->assertSame('Multiple something {markers}', $return);
+
+		$return = __('Multiple {replace} {markers}', 'something', 'else');
+		$this->assertSame('Multiple {replace} {markers}', $return, 'Should not modify if there are multiple replace markers');
 	}
 }
