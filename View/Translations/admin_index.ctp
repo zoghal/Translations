@@ -20,8 +20,8 @@ echo $this->element('Shared.Crud/index', array(
 		'key',
 		'value' => array(
 			'name' => 'value',
-			'callback' => function($view, $item, $model, $baseUrl) {
-				return $view->Text->truncate($item['Translation']['value'], 100);
+			'callback' => function($view, $item, $model, $baseUrl) use ($locale) {
+				return $view->Text->truncate(__($item['Translation']['key'], array('locale' => $locale)), 100);
 			}
 		)
 	),

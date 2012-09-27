@@ -26,8 +26,10 @@ class TranslationTest extends CakeTestCase {
 
 		// Load config
 		$this->config = array(
+			'Config.defaultLanguage' => Configure::read('Config.defaultLanguage'),
 			'Config.language' => Configure::read('Config.language')
 		);
+		Configure::write('Config.defaultLanguage', 'en');
 		Configure::write('Config.language', 'en');
 
 		ClassRegistry::removeObject('Translation');
@@ -220,15 +222,23 @@ class TranslationTest extends CakeTestCase {
 		$this->assertSame($expected, $result);
 	}
 
+/**
+ * testForMissingLocale
+ *
+ * If there is no language specific translations - it should use use the inheritance.
+ * Config.defaultLangauge is always added as a top level fallback
+ *
+ * @return void
+ */
 	public function testForMissingLocale() {
 		Configure::write('Config.language', 'de');
 		$result = Translation::translate('key_one');
-		$expected = 'key_one';
+		$expected = 'Value One';
 		$this->assertSame($expected, $result);
 
 		Configure::write('Config.language', 'THIS IS NOT A LANGUAGE CODE');
 		$result = Translation::translate('key_one');
-		$expected = 'key_one';
+		$expected = 'Value One';
 		$this->assertSame($expected, $result);
 	}
 
