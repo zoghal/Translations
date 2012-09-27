@@ -106,7 +106,7 @@ class Translation extends TranslationsAppModel {
 			}
 		}
 
-		return true;
+		return parent::beforeValidate($options);
 	}
 /**
  * categories
