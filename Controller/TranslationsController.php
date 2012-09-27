@@ -11,6 +11,10 @@ class TranslationsController extends TranslationsAppController {
 		'Translations.Translation',
 	);
 
+	public $paginate = array(
+		'order' => 'key ASC',
+	);
+
 /**
  * beforeFilter
  *
@@ -135,6 +139,10 @@ class TranslationsController extends TranslationsAppController {
 	public function admin_index($locale = null, $domain = 'default', $category = 'LC_MESSAGES') {
 		$this->set(compact('locale', 'domain', 'category'));
 		$conditions = array('locale' => Configure::read('Config.defaultLanguage')) + compact('domain', 'category');
+		if (!empty($this->request->query['all'])) {
+			$this->paginate['limit'] = 10000;
+		}
+
 		$items = $this->paginate($conditions);
 		foreach ($items as &$item) {
 			if (preg_match('/^(\w+\.)(\w+\.?)*$/', $item['Translation']['key'])) {
