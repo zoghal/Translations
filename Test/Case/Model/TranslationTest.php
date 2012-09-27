@@ -26,8 +26,10 @@ class TranslationTest extends CakeTestCase {
 
 		// Load config
 		$this->config = array(
+			'Config.defaultLanguage' => Configure::read('Config.defaultLanguage'),
 			'Config.language' => Configure::read('Config.language')
 		);
+		Configure::write('Config.defaultLanguage', 'en');
 		Configure::write('Config.language', 'en');
 
 		ClassRegistry::removeObject('Translation');
