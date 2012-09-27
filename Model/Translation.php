@@ -433,6 +433,7 @@ class Translation extends TranslationsAppModel {
 
 		if (is_numeric($category)) {
 			$category = self::$_categories[$category];
+			$options['category'] = $category;
 		}
 
 		if (self::hasTranslation($singular, $options)) {
