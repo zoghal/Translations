@@ -82,6 +82,30 @@ class TranslationTest extends CakeTestCase {
 	}
 
 /**
+ * testCreateDefaultNotDefault
+ *
+ * Make sure that if the site langauge is different from defaultLanguage
+ * It's still possible to create translations. This is effectively a regression test
+ *
+ * @return void
+ */
+	public function testCreateDefaultNotDefault() {
+		$this->Translation->deleteAll(true);
+
+		Configure::write('Config.defaultLanguage', 'en');
+		Configure::write('Config.language', 'da');
+
+		$result = $this->Translation->save(array(
+			'locale' => 'en',
+			'domain' => 'test',
+			'category' => 'LC_MESSAGES',
+			'key' => 'yes',
+			'value' => 'yes'
+		));
+		$this->assertTrue((bool)$result);
+	}
+
+/**
  * testCreateEmpties
  *
  * Shouldn't be able to create empty translations
