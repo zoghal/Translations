@@ -1,6 +1,7 @@
 <?php
+App::uses('Parser', 'Translations.Parser');
 
-class PlistParser {
+class PlistParser extends Parser{
 
 /**
  * parse
@@ -34,7 +35,7 @@ class PlistParser {
 			if (!strpos($key, '.')) {
 				$key = str_replace('_', '.', Inflector::underscore($key));
 			}
-			$return[$domain][$locale][$category][$key] = $val;
+			$return[] = compact('domain', 'locale', 'category', 'key', 'value');
 			$count++;
 		}
 
