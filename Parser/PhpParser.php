@@ -1,5 +1,7 @@
 <?php
-class PhpParser {
+App::uses('Parser', 'Translations.Parser');
+
+class PhpParser extends Parser{
 
 /**
  * parse
@@ -18,20 +20,7 @@ class PhpParser {
 		$translations = array();
 		require $file;
 
-		$count = 0;
-		$return = array();
-		foreach ($translations as $key => $val) {
-			if (!strpos($key, '.')) {
-				$key = str_replace('_', '.', Inflector::underscore($key));
-			}
-			$return[$domain][$locale][$category][$key] = $val;
-			$count++;
-		}
-
-		return array(
-			'count' => $count,
-			'translations' => $return
-		);
+		return self::_parseArray($translations, compact('domain', 'locale', 'category') + $defaults);
 	}
 
 /**

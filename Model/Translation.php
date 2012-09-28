@@ -381,14 +381,8 @@ class Translation extends TranslationsAppModel {
 		if (!$return) {
 			return false;
 		}
-		foreach ($return['translations'] as $domain => $locales) {
-			foreach ($locales as $locale => $categories) {
-				foreach ($categories as $category => $translations) {
-					foreach ($translations as $key => $val) {
-						Translation::update($key, $val, compact('domain', 'locale', 'category'));
-					}
-				}
-			}
+		foreach ($return['translations'] as $translation) {
+			Translation::update($translation['key'], $translation['value'], $translation);
 		}
 		return $return;
 	}

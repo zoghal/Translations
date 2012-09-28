@@ -1,5 +1,7 @@
 <?php
-class JsonParser {
+App::uses('Parser', 'Translations.Parser');
+
+class JsonParser extends Parser {
 
 /**
  * parse
@@ -31,20 +33,7 @@ class JsonParser {
 			}
 		}
 
-		$count = 0;
-		$return = array();
-		foreach ($translations as $key => $val) {
-			if (!strpos($key, '.')) {
-				$key = str_replace('_', '.', Inflector::underscore($key));
-			}
-			$return[$domain][$locale][$category][$key] = $val;
-			$count++;
-		}
-
-		return array(
-			'count' => $count,
-			'translations' => $return
-		);
+		return self::_parseArray($translations, $defaults);
 	}
 
 /**
