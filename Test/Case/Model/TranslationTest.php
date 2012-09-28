@@ -63,6 +63,159 @@ class TranslationTest extends CakeTestCase {
 		parent::tearDown();
 	}
 
+/**
+ * testCreateDefaultLocale
+ *
+ * @return void
+ */
+	public function testCreateDefaultLocale() {
+		$this->Translation->deleteAll(true);
+
+		$result = $this->Translation->save(array(
+			'locale' => 'en',
+			'domain' => 'test',
+			'category' => 'LC_MESSAGES',
+			'key' => 'yes',
+			'value' => 'yes'
+		));
+		$this->assertTrue((bool)$result);
+	}
+
+/**
+ * testCreateEmpties
+ *
+ * Shouldn't be able to create empty translations
+ *
+ * @return void
+ */
+	public function testCreateEmpties() {
+		$this->Translation->deleteAll(true);
+
+		$result = $this->Translation->save(array(
+			'locale' => 'en',
+			'domain' => 'test',
+			'category' => 'LC_MESSAGES',
+			'key' => 'yes',
+			'value' => ''
+		));
+		$this->assertTrue((bool)$result);
+
+		$this->Translation->create();
+		$result = $this->Translation->save(array(
+			'locale' => 'en_GB',
+			'domain' => 'test',
+			'category' => 'LC_MESSAGES',
+			'key' => 'no',
+			'value' => '',
+		));
+		$this->assertFalse($result);
+	}
+
+/**
+ * testCreateBlocked
+ *
+ * Unless it's the base language, shouldn't be possible to create empty translations.
+ *
+ * @return void
+ */
+	public function testCreateBlocked() {
+		$this->Translation->deleteAll(true);
+
+		$result = $this->Translation->save(array(
+			'locale' => 'en',
+			'domain' => 'test',
+			'category' => 'LC_MESSAGES',
+			'key' => 'yes',
+			'value' => 'yes'
+		));
+		$this->assertTrue((bool)$result);
+
+		$this->Translation->create();
+		$result = $this->Translation->save(array(
+			'locale' => 'en_GB',
+			'domain' => 'test',
+			'category' => 'LC_MESSAGES',
+			'key' => 'yes',
+			'value' => 'yes',
+		));
+		$this->assertFalse($result);
+	}
+
+/**
+ * testUpdateDeleted
+ *
+ * If a translation is edited such that it's the same as the inherited translation - it should be deleted
+ *
+ * @return void
+ */
+	public function testUpdateDeleted() {
+		$this->Translation->deleteAll(true);
+
+		$result = $this->Translation->save(array(
+			'locale' => 'en',
+			'domain' => 'test',
+			'category' => 'LC_MESSAGES',
+			'key' => 'yes',
+			'value' => 'yes'
+		));
+		$this->assertTrue((bool)$result);
+
+		$this->Translation->create();
+		$result = $this->Translation->save(array(
+			'locale' => 'en_GB',
+			'domain' => 'test',
+			'category' => 'LC_MESSAGES',
+			'key' => 'yes',
+			'value' => 'aye',
+		));
+		$this->assertTrue((bool)$result);
+
+		$result = $this->Translation->save(array(
+			'locale' => 'en_GB',
+			'domain' => 'test',
+			'category' => 'LC_MESSAGES',
+			'key' => 'yes',
+			'value' => 'yes',
+		));
+
+		$all = $this->Translation->find('all', array(
+			'fields' => array('locale', 'domain', 'category', 'key', 'value')
+		));
+
+		$expected = array(
+			array(
+				'Translation' => array(
+					'locale' => 'en',
+					'domain' => 'test',
+					'category' => 'LC_MESSAGES',
+					'key' => 'yes',
+					'value' => 'yes'
+				)
+			)
+		);
+		$this->assertSame($expected, $all, 'There should only be one translation');
+	}
+
+/**
+ * testCategories
+ *
+ * @return void
+ */
+	public function testCategories() {
+		$categories = Translation::categories();
+		$expected = array(
+			'LC_ALL' => 'LC_ALL',
+			'LC_COLLATE' => 'LC_COLLATE',
+			'LC_CTYPE' => 'LC_CTYPE',
+			'LC_MONETARY' => 'LC_MONETARY',
+			'LC_NUMERIC' => 'LC_NUMERIC',
+			'LC_TIME' => 'LC_TIME',
+			'LC_MESSAGES' => 'LC_MESSAGES'
+		);
+
+		$this->assertSame($expected, $categories);
+	}
+
 	public function testForLocaleFlat() {
 		$result = $this->Translation->forLocale('en', array('nested' => false));
 

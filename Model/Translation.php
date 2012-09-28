@@ -91,9 +91,15 @@ class Translation extends TranslationsAppModel {
  */
 	public function beforeValidate($options = array()) {
 		if (!$this->id) {
-			if ($this->data[$this->alias]['value'] === '') {
+			if (
+				$this->data[$this->alias]['value'] === '' &&
+				$this->data[$this->alias]['locale'] !== Configure::read('Config.defaultLanguage')
+			) {
 				return false;
 			}
+		}
+
+		if (!empty($this->data[$this->alias]['locale']) && !empty($this->data[$this->alias]['key'])) {
 			$locales = $this->_fallbackLocales($this->data[$this->alias]['locale']);
 			if (count($locales) > 1) {
 				$inherited = Translation::translate(
@@ -101,6 +107,9 @@ class Translation extends TranslationsAppModel {
 					array('locale' => $locales[1]) + $this->data[$this->alias]
 				);
 				if ($inherited === $this->data[$this->alias]['value']) {
+					if ($this->id) {
+						$this->delete();
+					}
 					return false;
 				}
 			}
@@ -691,7 +700,6 @@ class Translation extends TranslationsAppModel {
 		}
 		return $data;
 	}
-
 
 /**
  * expand dot notation to a nested array
