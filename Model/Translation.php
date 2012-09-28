@@ -91,9 +91,19 @@ class Translation extends TranslationsAppModel {
  */
 	public function beforeValidate($options = array()) {
 		if (!$this->id) {
-			if ($this->data[$this->alias]['value'] === '') {
+			if (
+				$this->data[$this->alias]['value'] === '' &&
+				$this->data[$this->alias]['locale'] !== Configure::read('Config.defaultLanguage')
+			) {
 				return false;
 			}
+		}
+
+		if (
+			!empty($this->data[$this->alias]['locale']) &&
+			!empty($this->data[$this->alias]['key']) &&
+			$this->data[$this->alias]['locale'] !== Configure::read('Config.defaultLanguage')
+		) {
 			$locales = $this->_fallbackLocales($this->data[$this->alias]['locale']);
 			if (count($locales) > 1) {
 				$inherited = Translation::translate(
@@ -101,6 +111,9 @@ class Translation extends TranslationsAppModel {
 					array('locale' => $locales[1]) + $this->data[$this->alias]
 				);
 				if ($inherited === $this->data[$this->alias]['value']) {
+					if ($this->id) {
+						$this->delete();
+					}
 					return false;
 				}
 			}
@@ -576,8 +589,8 @@ class Translation extends TranslationsAppModel {
 		} elseif (!empty($_SESSION['Config']['language'])) {
 			$locales[] = $_SESSION['Config']['language'];
 		}
-		$locales[] = Configure::read('Config.language');
 		$locales[] = Configure::read('Config.defaultLanguage');
+		$locales[] = Configure::read('Config.language');
 		$locales = array_unique(array_filter($locales));
 
 		$return = array();
@@ -691,7 +704,6 @@ class Translation extends TranslationsAppModel {
 		}
 		return $data;
 	}
-
 
 /**
  * expand dot notation to a nested array
