@@ -166,7 +166,12 @@ class TranslationTest extends CakeTestCase {
 		$this->assertFalse($result);
 	}
 
-	public function testUpdateIncrementsCacheCounter() {
+/**
+ * testUpdateBumpsCacheTs
+ *
+ * @return void
+ */
+	public function testUpdateBumpsCacheTs() {
 		Configure::write('Cache.disable', false);
 		$config = Translation::config(array(
 			'cacheConfig' => 'default'
@@ -183,8 +188,8 @@ class TranslationTest extends CakeTestCase {
 
 		$this->assertTrue((bool)$result);
 
-		$counter = (int)Cache::read('translations-ts');
-		$this->assertNotSame(42, $counter);
+		$ts = (int)Cache::read('translations-ts');
+		$this->assertNotSame(42, $ts);
 	}
 
 /**
