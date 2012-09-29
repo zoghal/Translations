@@ -571,7 +571,7 @@ class Translation extends TranslationsAppModel {
  * @return void
  */
 	protected function _clearCache($type = null) {
-		Cache::increment('translations-counter', 1, self::$_config['cacheConfig']);
+		Cache::write('translations-counter', time(), self::$_config['cacheConfig']);
 		parent::_clearCache();
 	}
 

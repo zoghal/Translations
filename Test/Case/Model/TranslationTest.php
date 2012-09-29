@@ -172,7 +172,7 @@ class TranslationTest extends CakeTestCase {
 			'cacheConfig' => 'default'
 		));
 
-		Cache::write('translations-counter', 41);
+		Cache::write('translations-counter', 42);
 		$result = $this->Translation->save(array(
 			'locale' => 'en',
 			'domain' => 'test',
@@ -183,8 +183,8 @@ class TranslationTest extends CakeTestCase {
 
 		$this->assertTrue((bool)$result);
 
-		$updatedCounter = (int)Cache::read('translations-counter');
-		$this->assertSame(42, $updatedCounter);
+		$counter = (int)Cache::read('translations-counter');
+		$this->assertNotSame(42, $counter);
 	}
 
 /**
