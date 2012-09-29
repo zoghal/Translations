@@ -565,13 +565,15 @@ class Translation extends TranslationsAppModel {
 /**
  * _clearCache
  *
- * Whenever something touches the data increment the cache counter
+ * Whenever something touches the data bump the translations timestamp
+ * This prevents the need to clear the cache, instead just rely on older cache entries
+ * being cycled or gc-ed
  *
  * @param mixed $type
  * @return void
  */
 	protected function _clearCache($type = null) {
-		Cache::increment('translations-counter', self::$_config['cacheConfig']);
+		Cache::write('translations-ts', time(), self::$_config['cacheConfig']);
 		parent::_clearCache();
 	}
 
@@ -645,8 +647,8 @@ class Translation extends TranslationsAppModel {
 		}
 
 		if (self::$_config['cacheConfig']) {
-			$counter = (int)Cache::read('translations-counter', self::$_config['cacheConfig']);
-			$cacheKey = "translations-$locale-{$settings['domain']}-{$settings['category']}{$settings['section']}-$counter";
+			$ts = (int)Cache::read('translations-ts', self::$_config['cacheConfig']);
+			$cacheKey = "translations-$locale-{$settings['domain']}-{$settings['category']}{$settings['section']}-$ts";
 
 			$cached = Cache::read($cacheKey, self::$_config['cacheConfig']);
 			if ($cached !== false) {
@@ -699,7 +701,7 @@ class Translation extends TranslationsAppModel {
 			}
 		}
 
-		if (!empty($cacheKey)) {
+		if (self::$_config['cacheConfig']) {
 			Cache::write($cacheKey, $data, self::$_config['cacheConfig']);
 		}
 		return $data;
