@@ -571,7 +571,7 @@ class Translation extends TranslationsAppModel {
  * @return void
  */
 	protected function _clearCache($type = null) {
-		Cache::write('translations-counter', time(), self::$_config['cacheConfig']);
+		Cache::write('translations-ts', time(), self::$_config['cacheConfig']);
 		parent::_clearCache();
 	}
 
@@ -645,7 +645,7 @@ class Translation extends TranslationsAppModel {
 		}
 
 		if (self::$_config['cacheConfig']) {
-			$counter = (int)Cache::read('translations-counter', self::$_config['cacheConfig']);
+			$counter = (int)Cache::read('translations-ts', self::$_config['cacheConfig']);
 			$cacheKey = "translations-$locale-{$settings['domain']}-{$settings['category']}{$settings['section']}-$counter";
 
 			$cached = Cache::read($cacheKey, self::$_config['cacheConfig']);
