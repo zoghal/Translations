@@ -27,7 +27,8 @@ class TranslationTest extends CakeTestCase {
 		// Load config
 		$this->config = array(
 			'Config.defaultLanguage' => Configure::read('Config.defaultLanguage'),
-			'Config.language' => Configure::read('Config.language')
+			'Config.language' => Configure::read('Config.language'),
+			'Cache.disable' => Configure::read('Cache.disable')
 		);
 		Configure::write('Config.defaultLanguage', 'en');
 		Configure::write('Config.language', 'en');
@@ -163,6 +164,27 @@ class TranslationTest extends CakeTestCase {
 			'value' => 'yes',
 		));
 		$this->assertFalse($result);
+	}
+
+	public function testUpdateIncrementsCacheCounter() {
+		Configure::write('Cache.disable', false);
+		$config = Translation::config(array(
+			'cacheConfig' => 'default'
+		));
+
+		Cache::write('translations-counter', 41);
+		$result = $this->Translation->save(array(
+			'locale' => 'en',
+			'domain' => 'test',
+			'category' => 'LC_MESSAGES',
+			'key' => 'yes',
+			'value' => 'yes'
+		));
+
+		$this->assertTrue((bool)$result);
+
+		$updatedCounter = (int)Cache::read('translations-counter');
+		$this->assertSame(42, $updatedCounter);
 	}
 
 /**
