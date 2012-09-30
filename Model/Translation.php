@@ -603,11 +603,20 @@ class Translation extends TranslationsAppModel {
 			Cache::write('translations-ts', $ts, self::$_config['cacheConfig']);
 		}
 
-		$settings = array_intersect_key(
-			$settings,
-			array_flip(array('locale', 'domain', 'category', 'section'))
-		);
-		return implode('-', $settings) . '-' . $ts;
+		$settings['nested'] = $settings['nested'] ? 'nested' : 'flat';
+		$settings['addDefaults'] = $settings['addDefaults'] ? 'defaults' : 'nodefaults';
+
+		$return = array();
+		foreach(array('locale', 'domain', 'category', 'nested', 'addDefaults', 'section') as $key) {
+			if ($key === 'section' && !$settings[$key]) {
+				continue;
+			}
+
+			$return[] = $settings[$key];
+		}
+		$return[] = $ts;
+
+		return strtolower(implode('-', $return));
 	}
 
 /**
