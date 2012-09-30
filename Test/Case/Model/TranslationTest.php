@@ -280,7 +280,8 @@ class TranslationTest extends CakeTestCase {
 			'nested.key.two' => 'Nested Value Two',
 			'numerical.key.0' => 'Numerical Value One',
 			'numerical.key.1' => 'Numerical Value Two',
-			'super.duper.nested.key.of.doom' => 'Super duper nested key of doom'
+			'super.duper.nested.key.of.doom' => 'Super duper nested key of doom',
+			'untranslated.key' => 'Only defined in English'
 		);
 
 		$this->assertSame($expected, $result);
@@ -321,6 +322,9 @@ class TranslationTest extends CakeTestCase {
 						)
 					)
 				)
+			),
+			'untranslated' => array(
+				'key' => 'Only defined in English'
 			)
 		);
 
@@ -337,6 +341,66 @@ class TranslationTest extends CakeTestCase {
 		);
 
 		$this->assertSame($expected, $result);
+	}
+
+	public function testForLocaleCache() {
+		Cache::config('translations', array(
+			'engine' => 'File',
+			'prefix' => 'translations_',
+			'path' => CACHE . 'persistent' . DS,
+			'serialize' => true,
+			'duration' => '+10 seconds'
+		));
+
+		$Translation = $this->getMock(
+			'Translation',
+			array('_forLocale'),
+			array(array('name' => 'Translation', 'ds' => 'test'))
+		);
+		ClassRegistry::removeObject('Translation');
+		ClassRegistry::addObject('Translation', $Translation);
+
+		Translation::reset();
+		Translation::config(array(
+			'useTable' => 'translations',
+			'cacheConfig' => 'translations',
+			'autoPopulate' => false
+		));
+
+		$Translation->expects($this->once())
+			->method('_forLocale')
+			->will($this->returnValue(array('foo' => 'bar')));
+
+		$this->Translation->forLocale('en', array('nested' => false));
+		$result = $this->Translation->forLocale('en', array('nested' => false));
+
+		$expected = array(
+			'foo' => 'bar'
+		);
+		$this->assertSame($expected, $result);
+	}
+
+	public function testForLocaleCacheInheritance() {
+		Cache::config('translations', array(
+			'engine' => 'File',
+			'prefix' => 'translations_2_',
+			'path' => CACHE . 'persistent' . DS,
+			'serialize' => true,
+			'duration' => '+10 seconds'
+		));
+
+		Translation::config(array(
+			'cacheConfig' => 'translations',
+		));
+
+		$enBefore = $this->Translation->forLocale('en', array('nested' => false));
+		$noBefore = $this->Translation->forLocale('no', array('nested' => false));
+
+		$enAfter = $this->Translation->forLocale('en', array('nested' => false));
+		$noAfter = $this->Translation->forLocale('no', array('nested' => false));
+
+		$this->assertSame($enBefore, $enAfter, 'The result of a cache-miss (1st call) and cache-hit (2nd call) should not differ');
+		$this->assertSame($noBefore, $noAfter, 'The result of a cache-miss (1st call) and cache-hit (2nd call) should not differ');
 	}
 
 	public function testForSettingLanguageConfig() {
@@ -375,6 +439,9 @@ class TranslationTest extends CakeTestCase {
 						)
 					)
 				)
+			),
+			'untranslated' => array(
+				'key' => 'Only defined in English'
 			)
 		);
 
@@ -471,7 +538,7 @@ class TranslationTest extends CakeTestCase {
 		$this->assertSame($expected, $result);
 	}
 
-	public function testForLocales() {
+	public function testLocales() {
 		$result = Translation::locales();
 		$expected = array(
 			'en' => 'English',
