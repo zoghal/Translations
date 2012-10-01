@@ -253,8 +253,7 @@ class Translation extends TranslationsAppModel {
 			'locale' => $locale ?: Configure::read('Config.language')
 		);
 
-		if (self::$_config['cacheConfig']) {
-			$cacheKey = self::_cacheKey($settings);
+		if (self::$_config['cacheConfig'] && $cacheKey = self::_cacheKey($settings)) {
 			$cached = Cache::read($cacheKey, self::$_config['cacheConfig']);
 			if ($cached !== false) {
 				return $cached;
@@ -271,7 +270,7 @@ class Translation extends TranslationsAppModel {
 
 		$return = self::$_model->_forLocale($settings);
 
-		if (self::$_config['cacheConfig']) {
+		if (!empty($cacheKey)) {
 			Cache::write($cacheKey, $return, self::$_config['cacheConfig']);
 		}
 
@@ -591,7 +590,7 @@ class Translation extends TranslationsAppModel {
 /**
  * cacheKey
  *
- * Get the cache key to use for the given settings
+ * Get the cache key to use for the given settings. Returns false if caching is disabled/badly configured
  *
  * @param array $settings
  * @return string
@@ -600,7 +599,9 @@ class Translation extends TranslationsAppModel {
 		$ts = Cache::read('translations-ts', self::$_config['cacheConfig']);
 		if (!$ts) {
 			$ts = time();
-			Cache::write('translations-ts', $ts, self::$_config['cacheConfig']);
+			if (!Cache::write('translations-ts', $ts, self::$_config['cacheConfig'])) {
+				return false;
+			};
 		}
 
 		$settings['nested'] = $settings['nested'] ? 'nested' : 'flat';
@@ -616,7 +617,8 @@ class Translation extends TranslationsAppModel {
 		}
 		$return[] = $ts;
 
-		return strtolower(implode('-', $return));
+		$return = strtolower(implode('-', $return));
+		return $return;
 	}
 
 /**
