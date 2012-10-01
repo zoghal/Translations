@@ -36,6 +36,7 @@ class TranslationTest extends CakeTestCase {
 		ClassRegistry::removeObject('Translation');
 		$this->Translation = ClassRegistry::init('Translations.Translation');
 
+		Cache::clear(true, 'default');
 		Translation::reset();
 		Translation::config(array(
 			'useTable' => 'translations',
@@ -188,7 +189,7 @@ class TranslationTest extends CakeTestCase {
 
 		$this->assertTrue((bool)$result);
 
-		$ts = (int)Cache::read('translations-ts');
+		$ts = Cache::read('translations-ts');
 		$this->assertNotSame(42, $ts);
 	}
 
@@ -344,13 +345,7 @@ class TranslationTest extends CakeTestCase {
 	}
 
 	public function testForLocaleCache() {
-		Cache::config('translations', array(
-			'engine' => 'File',
-			'prefix' => 'translations_',
-			'path' => CACHE . 'persistent' . DS,
-			'serialize' => true,
-			'duration' => '+10 seconds'
-		));
+		Configure::write('Cache.disable', false);
 
 		$Translation = $this->getMock(
 			'Translation',
@@ -363,7 +358,7 @@ class TranslationTest extends CakeTestCase {
 		Translation::reset();
 		Translation::config(array(
 			'useTable' => 'translations',
-			'cacheConfig' => 'translations',
+			'cacheConfig' => 'default',
 			'autoPopulate' => false
 		));
 
@@ -381,20 +376,25 @@ class TranslationTest extends CakeTestCase {
 	}
 
 	public function testForLocaleCacheInheritance() {
-		Cache::config('translations', array(
-			'engine' => 'File',
-			'prefix' => 'translations_2_',
-			'path' => CACHE . 'persistent' . DS,
-			'serialize' => true,
-			'duration' => '+10 seconds'
-		));
+		Configure::write('Cache.disable', false);
 
 		Translation::config(array(
-			'cacheConfig' => 'translations',
+			'cacheConfig' => 'default',
 		));
 
 		$enBefore = $this->Translation->forLocale('en', array('nested' => false));
 		$noBefore = $this->Translation->forLocale('no', array('nested' => false));
+
+		$ts = Cache::read('translations-ts', 'default');
+		$this->assertTrue((bool)$ts, 'The timestamp should have been set to a value');
+
+		$key = "en-default-lc_messages-flat-defaults-$ts";
+		$enCached = Cache::read($key, 'default');
+		$key = "no-default-lc_messages-flat-defaults-$ts";
+		$noCached = Cache::read($key, 'default');
+
+		$this->assertSame($enBefore, $enCached, 'The cached result should exactly match the returned value');
+		$this->assertSame($noBefore, $noCached, 'The cached result should exactly match the returned value');
 
 		$enAfter = $this->Translation->forLocale('en', array('nested' => false));
 		$noAfter = $this->Translation->forLocale('no', array('nested' => false));
