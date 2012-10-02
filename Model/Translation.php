@@ -530,20 +530,22 @@ class Translation extends TranslationsAppModel {
  */
 	public static function update($key, $value = '', $options = array()) {
 		self::config();
-		$defaultLocale = Configure::read('Config.langauge');
-
 		$options += array(
 			'domain' => self::$_config['domain'],
 			'category' => self::$_config['category'],
-			'locale' => $defaultLocale
+			'locale' => Configure::read('Config.language')
 		);
 		extract($options);
 
-		$update = compact('domain', 'locale', 'category', 'key');
 		self::$_translations[$domain][$locale][$category][$key] = $value;
-		self::$_model->create();
-		self::$_model->id = self::$_model->field('id', $update);
-		return self::$_model->save($update + array('value' => $value));
+
+		if (self::$_config['useTable']) {
+			$update = compact('domain', 'locale', 'category', 'key');
+			self::$_model->create();
+			self::$_model->id = self::$_model->field('id', $update);
+			return self::$_model->save($update + array('value' => $value));
+		}
+		return false;
 	}
 
 /**
