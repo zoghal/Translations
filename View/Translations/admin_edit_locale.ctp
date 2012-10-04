@@ -1,6 +1,6 @@
 <?php
 $sections = array();
-if (count($this->request['pass']) == 1) {
+if (count($this->request['pass']) < 4) {
 	$split = true;
 } else {
 	$split = false;
