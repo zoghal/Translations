@@ -21,7 +21,7 @@ echo $this->element('Shared.Crud/index', array(
 		'value' => array(
 			'name' => 'value',
 			'callback' => function($view, $item, $model, $baseUrl) use ($locale) {
-				return $view->Text->truncate(__($item['Translation']['key'], array('locale' => $locale)), 100);
+				return $view->Text->truncate(Translation::translate($item['Translation']['key'], array('locale' => $locale)), 100);
 			}
 		)
 	),
