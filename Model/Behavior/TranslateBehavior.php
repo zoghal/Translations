@@ -8,16 +8,41 @@ App::uses('TranslateInjector', 'Translations.Iterator');
  */
 class TranslateBehavior extends ModelBehavior {
 
+/**
+ * runtime settings
+ *
+ * @var array
+ */
 	public $settings = array();
 
+/**
+ * _defaultSettings
+ *
+ * @var array
+ */
 	protected $_defaultSettings = array(
-		'translationKey' => '%s.%s',
 		'domain' => 'default',
 		'fields' => array()
 	);
 
+/**
+ * _pendingTranslations
+ *
+ * Stashed in beforesave, translations that are pending committing to the translations model
+ *
+ * @var array
+ */
 	protected $_pendingTranslations = array();
 
+/**
+ * setup
+ *
+ * Store model-alias indexed settings
+ *
+ * @param Model $Model
+ * @param array $config
+ * @return void
+ */
 	public function setup(Model $Model, $config = array()) {
 		if (isset($config[0])) {
 			$config = array(
@@ -40,11 +65,33 @@ class TranslateBehavior extends ModelBehavior {
 	}
 
 /**
+ * beforeFind
+ *
+ * If any of the translated fields are in the query - make sure the primary key is too
+ * Otherwise it's not possible to translate the entries
+ *
+ * @param Model $Model
+ * @param array $query
+ * @return mixed
+ */
+	public function beforeFind(Model $Model, $query) {
+		if (!array_intersect($this->settings[$Model->alias]['fields'], $query['fields'])) {
+			return true;
+		}
+
+		$pk = $Model->alias . '.' . $Model->primaryKey;
+		if (!in_array($pk, $query['fields'])) {
+			$query['fields'][] = $pk;
+		}
+		return $query;
+	}
+
+/**
  * afterFind Callback
  *
  * @param Model $Model Model find was run on
  * @param array $results Array of model results.
- * @param boolean $primary Did the find originate on $model.
+ * @param boolean $primary Did the find originate on $Model.
  * @return array Modified results
  */
 	public function afterFind(Model $Model, $results, $primary) {
@@ -55,7 +102,6 @@ class TranslateBehavior extends ModelBehavior {
 		$settings = array(
 			'modelAlias' => $Model->alias,
 			'modelName' => $Model->name,
-			'translationKey' => $this->settings[$Model->alias]['translationKey']
 		);
 		$iterator = new TranslateInjector($results, $this->settings[$Model->alias]['fields'], $settings);
 		$results = iterator_to_array($iterator);
@@ -72,21 +118,17 @@ class TranslateBehavior extends ModelBehavior {
  * @return boolean true.
  */
 	public function beforeSave(Model $Model, $options = array()) {
-		if ($Model->id) {
-			$locale = Configure::read('Config.language');
+		$locale = Configure::read('Config.language');
 
-			foreach ($this->settings[$Model->alias]['fields'] as $field) {
-				list($alias, $field) = explode('.', $field);
-				if (isset($Model->data[$Model->alias][$field])) {
-					if ($Model->id) {
-						$original = $Model->field($field, array($Model->primaryKey => $Model->id));
+		foreach ($this->settings[$Model->alias]['fields'] as $field) {
+			list($alias, $field) = explode('.', $field);
 
-						$key = sprintf($this->settings[$Model->alias]['translationKey'], $Model->name . '.' . $field, $original);
-						$value = $Model->data[$Model->alias][$field];
-						$this->_pendingTranslations[$locale][$key] = $value;
-						unset($Model->data[$Model->alias][$field]);
-					}
-				}
+			if (isset($Model->data[$Model->alias][$field])) {
+				$key = sprintf('%s.%s.%s', $Model->name, ($Model->id ?: '{id}'), $field);
+				$value = $Model->data[$Model->alias][$field];
+				unset($Model->data[$Model->alias][$field]);
+
+				$this->_pendingTranslations[$locale][$key] = $value;
 			}
 		}
 		return true;
@@ -106,6 +148,12 @@ class TranslateBehavior extends ModelBehavior {
 				$params = compact('locale');
 
 				foreach ($translations as $key => $value) {
+					if (strpos($key, '{') !== false) {
+						if (!$Model->id) {
+							continue;
+						}
+						$key = String::insert($key, array('id' => $Model->id), array('before' => '{', 'after'  => '}'));
+					}
 					Translation::update($key, $value, $params);
 				}
 			}

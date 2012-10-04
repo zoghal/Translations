@@ -48,8 +48,8 @@ class TranslateBehaviorTest extends CakeTestCase {
  * @return void
  */
 	public function testReadTranslation() {
-		Translation::update('Tag.tag.tag1', 'Foo');
-		Translation::update('Tag.tag.tag3', 'Zum');
+		Translation::update('Tag.1.tag', 'Foo');
+		Translation::update('Tag.3.tag', 'Zum');
 		$expected = array(
 			1 => 'Foo',
 			'tag2',
@@ -59,7 +59,7 @@ class TranslateBehaviorTest extends CakeTestCase {
 		$result = $this->Tag->find('list');
 		$this->assertSame($expected, $result);
 
-		Translation::update('Tag.tag.tag2', 'Bar');
+		Translation::update('Tag.2.tag', 'Bar');
 
 		$expected = array(
 			1 => 'Foo',
@@ -99,7 +99,7 @@ class TranslateBehaviorTest extends CakeTestCase {
 		$this->assertSame($expected, $result);
 
 		$expected = array(
-			'Tag.tag.tag1' => 'Updated'
+			'Tag.1.tag' => 'Updated'
 		);
 		$translations = Translation::forLocale();
 		$this->assertSame($expected, $translations);
