@@ -1,8 +1,7 @@
 <?php
 
 App::uses('ModelBehavior', 'Model');
-App::uses('I18n', 'I18n');
-App::uses('I18nModel', 'Model');
+App::uses('TranslateInjector', 'Translations.Iterator');
 
 /**
  * Translate behavior
@@ -69,7 +68,7 @@ class TranslateBehavior extends ModelBehavior {
  * @return boolean true.
  */
 	public function beforeSave(Model $Model, $options = array()) {
-		if ($this->id) {
+		if ($Model->id) {
 			$locale = Configure::read('Config.language');
 
 			foreach ($this->settings[$Model->alias]['fields'] as $field) {
@@ -78,7 +77,7 @@ class TranslateBehavior extends ModelBehavior {
 					if ($Model->id) {
 						$original = $Model->field($field, array($Model->primaryKey => $Model->id));
 
-						$key = sprintf($this->settings[$Model->alias], $Model->name . '.' . $field, $key);
+						$key = sprintf($this->settings[$Model->alias]['translationKey'], $Model->name . '.' . $field, $original);
 						$value = $Model->data[$Model->alias][$field];
 						$this->_pendingTranslations[$locale][$key] = $value;
 						unset($Model->data[$Model->alias][$field]);

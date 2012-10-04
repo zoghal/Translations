@@ -261,6 +261,9 @@ class Translation extends TranslationsAppModel {
 		}
 
 		if (!self::$_config['useTable']) {
+			if (isset(self::$_translations[$settings['domain']][$settings['locale']][$settings['category']])) {
+				return self::$_translations[$settings['domain']][$settings['locale']][$settings['category']];
+			}
 			return array();
 		}
 
