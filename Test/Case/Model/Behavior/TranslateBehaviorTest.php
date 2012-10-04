@@ -99,7 +99,9 @@ class TranslateBehaviorTest extends CakeTestCase {
 		$this->assertSame($expected, $result);
 
 		$expected = array(
-			'Tag.1.tag' => 'Updated'
+			'Tag.1.tag' => 'Updated',
+			'Tag.2.tag' => 'tag2',
+			'Tag.3.tag' => 'tag3',
 		);
 		$translations = Translation::forLocale();
 		$this->assertSame($expected, $translations);
