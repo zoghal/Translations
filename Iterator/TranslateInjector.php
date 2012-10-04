@@ -33,6 +33,7 @@ class TranslateInjector extends IteratorIterator {
 		} else {
 			$settings['fields'] = (array)$fields;
 		}
+		$settings += $this->_settings;
 
 		if ($settings['modelAlias'] && $settings['modelAlias'] === $settings['modelName']) {
 			unset ($settings['modelAlias'], $settings['modelName']);

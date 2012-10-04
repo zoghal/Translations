@@ -1,9 +1,8 @@
 <?php
 
-App::uses('AppCakeTestCase', 'TestSuite');
-App::uses('TranslateInjector', 'Iterator');
+App::uses('TranslateInjector', 'Translations.Iterator');
 
-class TranslateInjectorTest extends AppCakeTestCase {
+class TranslateInjectorTest extends CakeTestCase {
 
 	public function testEmptyArray() {
 		$iterator = new TranslateInjector(array(), array());
