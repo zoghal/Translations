@@ -11,10 +11,10 @@ class TranslateInjector extends IteratorIterator {
  */
 	protected $_settings = array(
 		'domain' => 'default',
-		'translationKey' => '%s.%s',
+		'modelPrimaryKey' => 'id',
 		'modelAlias' => null,
 		'modelName' => null,
-		'fields' => array()
+		'fields' => array(),
 	);
 
 /**
@@ -35,9 +35,6 @@ class TranslateInjector extends IteratorIterator {
 		}
 		$settings += $this->_settings;
 
-		if ($settings['modelAlias'] && $settings['modelAlias'] === $settings['modelName']) {
-			unset ($settings['modelAlias'], $settings['modelName']);
-		}
 		$this->_settings = $settings + $this->_settings;
 
 		parent::__construct($items);
@@ -62,6 +59,7 @@ class TranslateInjector extends IteratorIterator {
  *
  * Iterate over the data and translate the specified fields/keys
  *
+ * @throws \InternalErrorException if the primary key isn't in the data
  * @param array $data
  * @param string $path
  */
@@ -69,6 +67,12 @@ class TranslateInjector extends IteratorIterator {
 		if (empty($data) || empty($path)) {
 			return;
 		}
+
+		if (empty($data[$this->_settings['modelAlias']][$this->_settings['modelPrimaryKey']])) {
+			throw new \InternalErrorException('To use the translate iterator, the primary key value must be present in the data');
+		}
+		$id = $data[$this->_settings['modelAlias']][$this->_settings['modelPrimaryKey']];
+
 		if (is_string($path)) {
 			$parts = explode('.', $path);
 		} else {
@@ -83,7 +87,7 @@ class TranslateInjector extends IteratorIterator {
 				return;
 			}
 		}
-		$value = $this->_translate($path, $value);
+		$value = $this->_translate($path, $value, $id);
 	}
 
 /**
@@ -91,15 +95,12 @@ class TranslateInjector extends IteratorIterator {
  *
  * Translate one field value. If there is no translation at all - return the original
  *
- * @param string $path
+ * @param string $key
  * @param string $value
  * @return string
  */
-	protected function _translate($path, $value) {
-		if ($this->_settings['modelAlias']) {
-			$path = preg_replace('@^' . $this->_settings['modelAlias'] . '@', $this->_settings['modelName'], $path);
-		}
-		$key = sprintf($this->_settings['translationKey'], $path, $value);
+	protected function _translate($key, $value, $id) {
+		$key = sprintf('%s.%s.%s', $this->_settings['modelName'], $id, array_pop(explode('.', $key)));
 
 		$translated = Translation::translate($key, array('domain' => $this->_settings['domain']));
 		if ($translated === $key) {
