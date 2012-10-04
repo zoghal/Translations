@@ -102,6 +102,10 @@ class TranslateInjector extends IteratorIterator {
 
 		$translated = Translation::translate($key, array('domain' => $this->_settings['domain']));
 		if ($translated === $key) {
+			Translation::update($key, $value, array(
+				'locale' => Configure::read('Config.defaultLanguage'),
+				'domain' => $this->_settings['domain']
+			));
 			return $value;
 		}
 		return $translated;
