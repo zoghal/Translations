@@ -41,6 +41,18 @@ class TranslateBehaviorTest extends CakeTestCase {
 	}
 
 /**
+ * testCount
+ *
+ * A count is an example of a query that shouldn't get hijacked
+ *
+ * @return void
+ */
+	public function testCount() {
+		$result = $this->Tag->find('count');
+		$this->assertSame(3, $result);
+	}
+
+/**
  * testReadTranslation
  *
  * Reading a translated field value should return the translated value

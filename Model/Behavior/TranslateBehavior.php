@@ -97,7 +97,7 @@ class TranslateBehavior extends ModelBehavior {
  * @return array Modified results
  */
 	public function afterFind(Model $Model, $results, $primary) {
-		if (empty($this->settings[$Model->alias]['fields'])) {
+		if (empty($this->settings[$Model->alias]['fields']) || empty($results[0][$Model->alias][$Model->primaryKey])) {
 			return $results;
 		};
 
