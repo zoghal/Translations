@@ -33,8 +33,6 @@ class TranslateInjector extends IteratorIterator {
 		} else {
 			$settings['fields'] = (array)$fields;
 		}
-		$settings += $this->_settings;
-
 		$this->_settings = $settings + $this->_settings;
 
 		parent::__construct($items);
