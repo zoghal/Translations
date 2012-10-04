@@ -75,9 +75,11 @@ class TranslateBehavior extends ModelBehavior {
  * @return mixed
  */
 	public function beforeFind(Model $Model, $query) {
-		if (!array_intersect($this->settings[$Model->alias]['fields'], $query['fields'])) {
+		if ($query['fields'] || !array_intersect($this->settings[$Model->alias]['fields'], (array)$query['fields'])) {
 			return true;
 		}
+
+		$query['fields'] = (array)$query['fields'];
 
 		$pk = $Model->alias . '.' . $Model->primaryKey;
 		if (!in_array($pk, $query['fields'])) {
