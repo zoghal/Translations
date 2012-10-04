@@ -8,6 +8,9 @@ CREATE TABLE IF NOT EXISTS `translations` (
   `has_plural` tinyint(1) DEFAULT 0 COMMENT 'If this is a singlular translation - is there a plural',
   `singular_key` varchar(255) CHARACTER SET utf8 COLLATE utf8_bin NOT NULL COMMENT 'If this is a plural translation, this is the singular form',
   `plural_case` tinyint(2) DEFAULT NULL COMMENT 'Only relevant for plural translations 0-6',
+  `comments` varchar(255) default NULL COMMENT 'description for the translation in the default locale, translator\'s own notes for other locales',
+  `references` text COMMENT 'Where is this translation used',
+  `history` text COMMENT 'Stack of previous versions of this translation',
   PRIMARY KEY (`id`),
   UNIQUE KEY `locale` (`locale`,`domain`,`category`,`key`, `plural_case`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
