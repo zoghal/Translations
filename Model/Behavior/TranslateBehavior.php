@@ -26,6 +26,10 @@ class TranslateBehavior extends ModelBehavior {
 		}
 
 		$config += $this->_defaultSettings;
+		if (!is_array($config['fields'])) {
+			$config['fields'] = array($config['fields']);
+		}
+
 		foreach ($config['fields'] as &$field) {
 			if (!strpos($field, '.')) {
 				$field = $Model->alias . '.' . $field;
