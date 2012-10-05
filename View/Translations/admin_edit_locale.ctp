@@ -13,7 +13,13 @@ foreach ($default as $key => $string) {
 		'placeholder' => $string,
 		'value' => !empty($toEdit[$key]) ? $toEdit[$key] : "",
 		'type' => 'textarea',
-		'rows' => 2
+		'rows' => 3,
+		'cols' => 20,
+		'style' => 'width:600px', // All textareas are 258px wide? wtfns
+		'data-locale' => $locale,
+		'data-domain' => $domain,
+		'data-key' => $key,
+		'before' => '<div class="pull-right"><button class="btn btn-primary disabled">Save</button></div>'
 	);
 
 	if ($split) {
