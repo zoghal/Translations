@@ -95,10 +95,6 @@ class TranslationsController extends TranslationsAppController {
 			return $this->render('admin_choose_locale');
 		}
 
-		$defaultLanguage = Configure::read('Config.language');
-		$params = compact('domain', 'category') + array('nested' => false);
-		$default = $this->Translation->forLocale($defaultLanguage, $params);
-
 		if ($this->data) {
 			$defaultConditions = compact('locale', 'domain', 'category');
 			foreach ($this->data['Translation'] as $key => $value) {
@@ -118,12 +114,16 @@ class TranslationsController extends TranslationsAppController {
 			return $this->redirect(array('action' => 'index', $locale, $domain, $category, $section));
 		}
 
-		if ($locale !== $defaultLanguage) {
-			$params = compact('domain', 'category', 'section') + array('nested' => false);
-			$default = $this->Translation->forLocale($defaultLanguage, $params);
-		}
 		$params = compact('domain', 'category', 'section') + array('nested' => false, 'addDefaults' => false);
 		$toEdit = $this->Translation->forLocale($locale, $params);
+
+		$defaultLanguage = Configure::read('Config.defaultLanguage');
+		if ($defaultLanguage === $locale) {
+			$default = $toEdit;
+		} else {
+			$default = $this->Translation->forLocale($defaultLanguage, $params);
+		}
+
 		$this->set(compact('default', 'toEdit'));
 		$this->render('admin_edit_locale');
 	}
