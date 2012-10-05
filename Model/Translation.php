@@ -436,15 +436,9 @@ class Translation extends TranslationsAppModel {
 			'query' => array(
 				'fields' => 'Translation.locale',
 				'group'  => 'Translation.locale'
-			),
-			'application' => null
+			)
 		);
 		$options = array_merge($defaults, $options);
-
-		if (!empty($options['application'])) {
-			$options['query']['conditions']['Translation.application_id'] = $options['application'];
-			$options['query']['bounds'] = false;
-		}
 
 		if (!self::$_model) {
 			self::_loadModel();
