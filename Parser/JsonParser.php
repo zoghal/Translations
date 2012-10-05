@@ -19,11 +19,13 @@ class JsonParser extends Parser {
  * @return array
  */
 	public static function parse($file, $defaults = array()) {
-		extract($defaults);
-
 		$translations = json_decode(file_get_contents($file), true);
+
 		if (isset($translations['translations']) && is_array($translations['translations'])) {
-			extract($translations);
+			$defaults += $translations;
+			unset($defaults['translations']);
+
+			$translations = $translations['translations'];
 		} else {
 			if (isset($translations['data']) && is_array($translations['data'])) {
 				$translations = $translations['data'];
