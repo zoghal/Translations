@@ -19,7 +19,7 @@ foreach ($default as $key => $string) {
 		'data-locale' => $locale,
 		'data-domain' => $domain,
 		'data-key' => $key,
-		'before' => '<div class="pull-right"><button class="btn btn-primary disabled">Save</button></div>'
+		'before' => '<div class="pull-right"><button class="saveOne btn btn-primary disabled">Save</button></div>'
 	);
 
 	if ($split) {
@@ -56,3 +56,5 @@ echo $this->element('Shared.Crud/form', array(
 		'title' => 'Edit translations',
 		'sections' => $sections
 ));
+
+$this->Html->script('/translations/js/admin.js', array('inline' => false));
