@@ -143,8 +143,6 @@ class PoParser extends Parser {
 
 		fclose($file);
 
-		$defaults = array(
-		);
 		foreach($return as &$val) {
 			if (is_string($val)) {
 				$val = trim($val);
