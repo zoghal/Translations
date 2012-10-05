@@ -192,6 +192,15 @@ class TranslationFixture extends CakeTestFixture {
 			'key' => 'super.duper.nested.key.of.doom',
 			'value' => 'Super duper nøstet nøkkel av doom'
 		),
+		array(
+			'id' => '4fc4a7ac-2468-4796-9655-31f92a72c77b',
+			'locale' => 'en',
+			'domain' => 'default',
+			'category' => 'LC_MESSAGES',
+			'key' => 'untranslated.key',
+			'value' => 'Only defined in English'
+		),
+
 	);
 
 }

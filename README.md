@@ -30,6 +30,8 @@ Then add the following to your `app/Config/bootstrap.php` file
 
 If you want this plugin to take over all translations from cake - you MUST include `Config/override_i18n.php`
 
+    include_once dirname(__DIR__) . '/Plugin/Translations/Config/override_i18n.php';
+
  * 	In your app/webroot/index.php
  * 	In your app/webroot/test.php
  * 	In your app/Console/cake.php

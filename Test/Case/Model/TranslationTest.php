@@ -36,6 +36,7 @@ class TranslationTest extends CakeTestCase {
 		ClassRegistry::removeObject('Translation');
 		$this->Translation = ClassRegistry::init('Translations.Translation');
 
+		Cache::clear(true, 'default');
 		Translation::reset();
 		Translation::config(array(
 			'useTable' => 'translations',
@@ -188,7 +189,7 @@ class TranslationTest extends CakeTestCase {
 
 		$this->assertTrue((bool)$result);
 
-		$ts = (int)Cache::read('translations-ts');
+		$ts = Cache::read('translations-ts');
 		$this->assertNotSame(42, $ts);
 	}
 
@@ -280,7 +281,8 @@ class TranslationTest extends CakeTestCase {
 			'nested.key.two' => 'Nested Value Two',
 			'numerical.key.0' => 'Numerical Value One',
 			'numerical.key.1' => 'Numerical Value Two',
-			'super.duper.nested.key.of.doom' => 'Super duper nested key of doom'
+			'super.duper.nested.key.of.doom' => 'Super duper nested key of doom',
+			'untranslated.key' => 'Only defined in English'
 		);
 
 		$this->assertSame($expected, $result);
@@ -321,6 +323,9 @@ class TranslationTest extends CakeTestCase {
 						)
 					)
 				)
+			),
+			'untranslated' => array(
+				'key' => 'Only defined in English'
 			)
 		);
 
@@ -337,6 +342,65 @@ class TranslationTest extends CakeTestCase {
 		);
 
 		$this->assertSame($expected, $result);
+	}
+
+	public function testForLocaleCache() {
+		Configure::write('Cache.disable', false);
+
+		$Translation = $this->getMock(
+			'Translation',
+			array('_forLocale'),
+			array(array('name' => 'Translation', 'ds' => 'test'))
+		);
+		ClassRegistry::removeObject('Translation');
+		ClassRegistry::addObject('Translation', $Translation);
+
+		Translation::reset();
+		Translation::config(array(
+			'useTable' => 'translations',
+			'cacheConfig' => 'default',
+			'autoPopulate' => false
+		));
+
+		$Translation->expects($this->once())
+			->method('_forLocale')
+			->will($this->returnValue(array('foo' => 'bar')));
+
+		$this->Translation->forLocale('en', array('nested' => false));
+		$result = $this->Translation->forLocale('en', array('nested' => false));
+
+		$expected = array(
+			'foo' => 'bar'
+		);
+		$this->assertSame($expected, $result);
+	}
+
+	public function testForLocaleCacheInheritance() {
+		Configure::write('Cache.disable', false);
+
+		Translation::config(array(
+			'cacheConfig' => 'default',
+		));
+
+		$enBefore = $this->Translation->forLocale('en', array('nested' => false));
+		$noBefore = $this->Translation->forLocale('no', array('nested' => false));
+
+		$ts = Cache::read('translations-ts', 'default');
+		$this->assertTrue((bool)$ts, 'The timestamp should have been set to a value');
+
+		$key = "en-default-lc_messages-flat-defaults-$ts";
+		$enCached = Cache::read($key, 'default');
+		$key = "no-default-lc_messages-flat-defaults-$ts";
+		$noCached = Cache::read($key, 'default');
+
+		$this->assertSame($enBefore, $enCached, 'The cached result should exactly match the returned value');
+		$this->assertSame($noBefore, $noCached, 'The cached result should exactly match the returned value');
+
+		$enAfter = $this->Translation->forLocale('en', array('nested' => false));
+		$noAfter = $this->Translation->forLocale('no', array('nested' => false));
+
+		$this->assertSame($enBefore, $enAfter, 'The result of a cache-miss (1st call) and cache-hit (2nd call) should not differ');
+		$this->assertSame($noBefore, $noAfter, 'The result of a cache-miss (1st call) and cache-hit (2nd call) should not differ');
 	}
 
 	public function testForSettingLanguageConfig() {
@@ -375,6 +439,9 @@ class TranslationTest extends CakeTestCase {
 						)
 					)
 				)
+			),
+			'untranslated' => array(
+				'key' => 'Only defined in English'
 			)
 		);
 
@@ -452,26 +519,7 @@ class TranslationTest extends CakeTestCase {
 		$this->assertSame($expected, $result);
 	}
 
-	public function testForHelperFunction() {
-		$result = t('key_one');
-		$expected = 'Value One';
-		$this->assertSame($expected, $result);
-
-		$result = t('key.with.param', array('param' => 'PARAMETER'));
-		$expected = 'Value with PARAMETER';
-		$this->assertSame($expected, $result);
-
-		$result = t('key.with.param');
-		$expected = 'Value with {param}';
-		$this->assertSame($expected, $result);
-
-		Configure::write('Config.language', 'no');
-		$result = t('key.with.param');
-		$expected = 'Verdi med {param}';
-		$this->assertSame($expected, $result);
-	}
-
-	public function testForLocales() {
+	public function testLocales() {
 		$result = Translation::locales();
 		$expected = array(
 			'en' => 'English',

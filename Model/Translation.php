@@ -243,13 +243,41 @@ class Translation extends TranslationsAppModel {
  */
 	public static function forLocale($locale = null, $settings = array()) {
 		self::config();
+
+		$settings = $settings + array(
+			'nested' => true,
+			'addDefaults' => true,
+			'domain' => self::$_config['domain'],
+			'category' => self::$_config['category'],
+			'section' => null,
+			'locale' => $locale ?: Configure::read('Config.language')
+		);
+
+		if (self::$_config['cacheConfig'] && $cacheKey = self::_cacheKey($settings)) {
+			$cached = Cache::read($cacheKey, self::$_config['cacheConfig']);
+			if ($cached !== false) {
+				return $cached;
+			}
+		}
+
 		if (!self::$_config['useTable']) {
+			if (isset(self::$_translations[$settings['domain']][$settings['locale']][$settings['category']])) {
+				return self::$_translations[$settings['domain']][$settings['locale']][$settings['category']];
+			}
 			return array();
 		}
+
 		if (!self::$_model) {
 			self::_loadModel();
 		}
-		return self::$_model->_forLocale($locale, $settings);
+
+		$return = self::$_model->_forLocale($settings);
+
+		if (!empty($cacheKey)) {
+			Cache::write($cacheKey, $return, self::$_config['cacheConfig']);
+		}
+
+		return $return;
 	}
 
 /**
@@ -408,15 +436,9 @@ class Translation extends TranslationsAppModel {
 			'query' => array(
 				'fields' => 'Translation.locale',
 				'group'  => 'Translation.locale'
-			),
-			'application' => null
+			)
 		);
 		$options = array_merge($defaults, $options);
-
-		if (!empty($options['application'])) {
-			$options['query']['conditions']['Translation.application_id'] = $options['application'];
-			$options['query']['bounds'] = false;
-		}
 
 		if (!self::$_model) {
 			self::_loadModel();
@@ -505,20 +527,22 @@ class Translation extends TranslationsAppModel {
  */
 	public static function update($key, $value = '', $options = array()) {
 		self::config();
-		$defaultLocale = Configure::read('Config.langauge');
-
 		$options += array(
 			'domain' => self::$_config['domain'],
 			'category' => self::$_config['category'],
-			'locale' => $defaultLocale
+			'locale' => Configure::read('Config.language')
 		);
 		extract($options);
 
-		$update = compact('domain', 'locale', 'category', 'key');
 		self::$_translations[$domain][$locale][$category][$key] = $value;
-		self::$_model->create();
-		self::$_model->id = self::$_model->field('id', $update);
-		return self::$_model->save($update + array('value' => $value));
+
+		if (self::$_config['useTable']) {
+			$update = compact('domain', 'locale', 'category', 'key');
+			self::$_model->create();
+			self::$_model->id = self::$_model->field('id', $update);
+			return self::$_model->save($update + array('value' => $value));
+		}
+		return false;
 	}
 
 /**
@@ -560,6 +584,40 @@ class Translation extends TranslationsAppModel {
 			return true;
 		}
 		return false;
+	}
+
+/**
+ * cacheKey
+ *
+ * Get the cache key to use for the given settings. Returns false if caching is disabled/badly configured
+ *
+ * @param array $settings
+ * @return string
+ */
+	protected static function _cacheKey($settings) {
+		$ts = Cache::read('translations-ts', self::$_config['cacheConfig']);
+		if (!$ts) {
+			$ts = time();
+			if (!Cache::write('translations-ts', $ts, self::$_config['cacheConfig'])) {
+				return false;
+			};
+		}
+
+		$settings['nested'] = $settings['nested'] ? 'nested' : 'flat';
+		$settings['addDefaults'] = $settings['addDefaults'] ? 'defaults' : 'nodefaults';
+
+		$return = array();
+		foreach(array('locale', 'domain', 'category', 'nested', 'addDefaults', 'section') as $key) {
+			if ($key === 'section' && !$settings[$key]) {
+				continue;
+			}
+
+			$return[] = $settings[$key];
+		}
+		$return[] = $ts;
+
+		$return = strtolower(implode('-', $return));
+		return $return;
 	}
 
 /**
@@ -628,46 +686,22 @@ class Translation extends TranslationsAppModel {
 /**
  * _forLocale
  *
- * @param mixed $locale
  * @param mixed $settings
  * @return array
  */
-	protected function _forLocale($locale, $settings) {
-		$settings = $settings + array(
-			'nested' => true,
-			'addDefaults' => true,
-			'domain' => self::$_config['domain'],
-			'category' => self::$_config['category'],
-			'section' => null
-		);
-
-		$defaultLanguage = Configure::read('Config.language');
-		if (!$locale) {
-			$locale = $defaultLanguage;
-		}
-
-		if (self::$_config['cacheConfig']) {
-			$ts = (int)Cache::read('translations-ts', self::$_config['cacheConfig']);
-			$cacheKey = "translations-$locale-{$settings['domain']}-{$settings['category']}{$settings['section']}-$ts";
-
-			$cached = Cache::read($cacheKey, self::$_config['cacheConfig']);
-			if ($cached !== false) {
-				return $cached;
-			}
-		}
-
+	protected function _forLocale($settings) {
 		if ($settings['addDefaults']) {
 			$settings['addDefaults'] = false;
-			$locales = $this->_fallbackLocales($locale);
+			$locales = $this->_fallbackLocales($settings['locale']);
 			$return = array();
 			foreach ($locales as $locale) {
-				$return += $this->_forLocale($locale, $settings);
+				$return += $this->_forLocale(compact('locale') + $settings);
 			}
 			return $return;
 		}
 
 		$conditions = array(
-			'locale' => $locale,
+			'locale' => $settings['locale'],
 			'domain' => $settings['domain'],
 			'category' => $settings['category']
 		);
@@ -701,9 +735,6 @@ class Translation extends TranslationsAppModel {
 			}
 		}
 
-		if (self::$_config['cacheConfig']) {
-			Cache::write($cacheKey, $data, self::$_config['cacheConfig']);
-		}
 		return $data;
 	}
 
