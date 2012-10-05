@@ -5,11 +5,11 @@ var Nodes = (function (app, $) {
 		textareas = $('form#TranslationAdminEditLocaleForm textarea'),
 		buttons = $('button.saveOne');
 
-    /**
-     * Act on blur
+	/**
+	 * Act on blur
 	 *
 	 * If the content changes mark the save button active
-     */
+	 */
 	function bindTextAreas() {
 		textareas.blur(function(e) {
 			var button = $(this).parents('div.control-group').find('button');
@@ -26,8 +26,8 @@ var Nodes = (function (app, $) {
 	}
 
 	/**
-     * Clicking the save button for one translations, should save one translation only
-     */
+	 * Clicking the save button for one translations, should save one translation only
+	 */
 	function bindSaveOne() {
 		buttons.click(function(e) {
 			var that = this,
@@ -100,15 +100,15 @@ var Nodes = (function (app, $) {
 		});
 	}
 
-    Translations.init = function() {
+	Translations.init = function() {
 		bindTextAreas();
 		bindSaveOne();
 		bindSaveAll();
 		warnUnsavedChanges();
-    }
+	}
 
 	app.Translations = Translations;
 	app.Translations.init();
 
-    return app;
+	return app;
 }(Nodes || {}, jQuery));
