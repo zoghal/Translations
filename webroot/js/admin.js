@@ -73,7 +73,7 @@ var Nodes = (function (app, $) {
 
 		});
 
-		$('button.btn-primary', scope).addClass('disabled');
+		saveAll.addClass('disabled');
 	}
 
 	/**
