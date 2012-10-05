@@ -63,15 +63,9 @@ class TranslationsShell extends AppShell {
 		$return = Translation::parse($file, $this->_settings);
 
 		$this->out(sprintf('Found %d translations', $return['count']));
-		foreach ($return['translations'] as $domain => $locales) {
-			foreach ($locales as $locale => $categories) {
-				foreach ($categories as $category => $translations) {
-					foreach ($translations as $key => $val) {
-						$this->out(sprintf('Processing %s', $key));
-						Translation::update($key, $val, compact('domain', 'locale', 'category'));
-					}
-				}
-			}
+		foreach ($return['translations'] as $translation) {
+			$this->out(sprintf('Processing %s', $translation['key']));
+			Translation::update($translation['key'], $translation['value'], $translation);
 		}
 		$this->out('Done');
 	}

@@ -425,7 +425,7 @@ class Translation extends TranslationsAppModel {
 				$file = TMP . time() . '.json';
 				file_put_contents($file, $content);
 			} else {
-				$content = file_get_contents($data['resource']);
+				$content = file_get_contents($file);
 			}
 
 			if (!file_exists($file)) {
@@ -580,6 +580,9 @@ class Translation extends TranslationsAppModel {
 		}
 
 		if (self::$_config['useTable']) {
+			if (!self::$_model) {
+				self::_loadModel();
+			}
 			$update = compact('domain', 'locale', 'category', 'key', 'plural_case');
 			self::$_model->create();
 			self::$_model->id = self::$_model->field('id', $update);
