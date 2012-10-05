@@ -34,6 +34,24 @@ class TranslationsController extends TranslationsAppController {
 	}
 
 /**
+ * admin_update_translation
+ *
+ * Called by the js-based backend edit form
+
+ * See webroot/js/admin.js
+ *
+ * @return void
+ */
+	public function admin_update() {
+		if (!$this->data) {
+			return;
+		}
+		$data = $this->data['Translation'];
+		$return = Translation::update($data['key'], $data['value'], $data);
+		$this->set('data', $return);
+	}
+
+/**
  * admin_add
  *
  * @param mixed $locale

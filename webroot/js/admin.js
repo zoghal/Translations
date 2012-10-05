@@ -42,7 +42,7 @@ var Nodes = (function (app, $) {
 			textarea = $(this).parents('div.control-group').find('textarea');
 
 			$.ajax({
-				url: '/admin' + Nodes.Router.applicationPrefix() + 'translations/translations/update.json',
+				url: '/admin' + Nodes.Router.applicationPrefix() + '/translations/translations/update.json',
 				type: 'POST',
 				data: {
 					Translation: {
