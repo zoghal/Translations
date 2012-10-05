@@ -11,11 +11,13 @@ class PoParser extends Parser {
  * @return array
  */
 	public static function parse($file, $defaults = array()) {
+		$defaults += Translation::config();
 		$file = fopen($file, 'r');
 		$isHeader = true;
 		$type = 0;
 		$return = array(
-			'comments' => array(),
+			'count' => 0,
+			'translations' => array()
 		);
 		$comments = $extractedComments = $references = $flags = $previous = $translations = array();
 		$msgid = $msgid_plural = "";
@@ -26,8 +28,8 @@ class PoParser extends Parser {
 			if ($line == "") {
 				continue;
 			} elseif ($line[0] == "#") {
-				if ($isHeader) {
-					$return['comments'][] = substr($line, 2);
+				if (!$isHeader) {
+					//$return['comments'][] = substr($line, 2);
 				} else {
 					if (!empty($line[1])) {
 						if ($line[1] === '.') {
@@ -57,11 +59,14 @@ class PoParser extends Parser {
 				$msgid .= stripcslashes($regs[1]);
 			} elseif (preg_match("/msgstr\s+\"(.+)\"$/i", $line, $regs) && ($type == 1 || $type == 3) && $msgid) {
 				$translations[$msgid] = array(
-					'comments' => $comments,
-					'extractedComments' => $extractedComments,
-					'references' => $references,
-					'flags' => $flags,
-					'previous' => $previous,
+					//'comments' => $comments,
+					//'extractedComments' => $extractedComments,
+					//'references' => $references,
+					//'flags' => $flags,
+					//'previous' => $previous,
+					'locale' => $defaults['locale'],
+					'domain' => $defaults['domain'],
+					'category' => $defaults['category'],
 					'key' => $msgid,
 					'value' => stripcslashes($regs[1])
 				);
@@ -71,11 +76,14 @@ class PoParser extends Parser {
 			} elseif (preg_match("/msgstr\s+\"\"$/i", $line, $regs) && ($type == 1 || $type == 3) && $msgid) {
 				$type = 4;
 				$translations[$msgid] = array(
-					'comments' => $comments,
-					'extractedComments' => $extractedComments,
-					'references' => $references,
-					'flags' => $flags,
-					'previous' => $previous,
+					//'comments' => $comments,
+					//'extractedComments' => $extractedComments,
+					//'references' => $references,
+					//'flags' => $flags,
+					//'previous' => $previous,
+					'locale' => $defaults['locale'],
+					'domain' => $defaults['domain'],
+					'category' => $defaults['category'],
 					'key' => $msgid,
 					'value' => ''
 				);
@@ -93,11 +101,14 @@ class PoParser extends Parser {
 
 				if ($regs[1] == '0') {
 					$translations[$msgid] = array(
-						'comments' => $comments,
-						'extractedComments' => $extractedComments,
-						'references' => $references,
-						'flags' => $flags,
-						'previous' => $previous,
+						//'comments' => $comments,
+						//'extractedComments' => $extractedComments,
+						//'references' => $references,
+						//'flags' => $flags,
+						//'previous' => $previous,
+						'locale' => $defaults['locale'],
+						'domain' => $defaults['domain'],
+						'category' => $defaults['category'],
 						'key' => $msgid,
 						'key_plural' => $msgid_plural,
 						'value' => ''
@@ -121,7 +132,7 @@ class PoParser extends Parser {
 			} elseif (preg_match("/msgstr\s+\"\"$/i", $line, $regs) && !$msgid) {
 				$type = 5;
 			} elseif (preg_match("/^\"(.*?):(.*)\"$/i", $line, $regs) && $type == 5) {
-				$return[$regs[1]] = stripcslashes($regs[2]);
+				//$return[$regs[1]] = stripcslashes($regs[2]);
 			} else {
 				unset($translations[$msgid]);
 				$type = 0;
@@ -132,12 +143,15 @@ class PoParser extends Parser {
 
 		fclose($file);
 
+		$defaults = array(
+		);
 		foreach($return as &$val) {
 			if (is_string($val)) {
 				$val = trim($val);
 			}
 		}
 		$return['translations'] = array_values($translations);
+		$return['count'] = count($return['translations']);
 
 		return $return;
 	}

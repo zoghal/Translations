@@ -1,5 +1,6 @@
 <?php
 App::uses('Parser', 'Translations.Parser');
+App::uses('Translation', 'Translations.Model');
 
 abstract class Parser {
 
