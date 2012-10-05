@@ -10,8 +10,7 @@
 		<div class="controls">
 			<ul class="locales">
 				<?php
-				$application = !empty($this->request->data['Application']['id']) ? $this->request->data['Application']['id'] : null;
-				foreach (Translation::locales(false, array('application' => $application)) as $locale) {
+				foreach (Translation::locales(false) as $locale) {
 					echo '<li>' . $locale . '</li>';
 				} ?>
 			</ul>
