@@ -98,7 +98,8 @@ class TranslateInjector extends IteratorIterator {
  * @return string
  */
 	protected function _translate($key, $value, $id) {
-		$key = sprintf('%s.%s.%s', $this->_settings['modelName'], $id, array_pop(explode('.', $key)));
+		$field = preg_replace('@.*\.@', '', $key);
+		$key = sprintf('%s.%s.%s', $this->_settings['modelName'], $id, $field);
 
 		$translated = Translation::translate($key, array('domain' => $this->_settings['domain']));
 		if ($translated === $key) {

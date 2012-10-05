@@ -519,25 +519,6 @@ class TranslationTest extends CakeTestCase {
 		$this->assertSame($expected, $result);
 	}
 
-	public function testForHelperFunction() {
-		$result = t('key_one');
-		$expected = 'Value One';
-		$this->assertSame($expected, $result);
-
-		$result = t('key.with.param', array('param' => 'PARAMETER'));
-		$expected = 'Value with PARAMETER';
-		$this->assertSame($expected, $result);
-
-		$result = t('key.with.param');
-		$expected = 'Value with {param}';
-		$this->assertSame($expected, $result);
-
-		Configure::write('Config.language', 'no');
-		$result = t('key.with.param');
-		$expected = 'Verdi med {param}';
-		$this->assertSame($expected, $result);
-	}
-
 	public function testLocales() {
 		$result = Translation::locales();
 		$expected = array(

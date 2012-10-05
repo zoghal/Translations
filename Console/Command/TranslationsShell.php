@@ -1,5 +1,6 @@
 <?php
 App::uses('AppShell', 'Console/Command');
+App::uses('Translation', 'Translations.Model');
 
 class TranslationsShell extends AppShell {
 

@@ -34,6 +34,24 @@ class TranslationsController extends TranslationsAppController {
 	}
 
 /**
+ * admin_update_translation
+ *
+ * Called by the js-based backend edit form
+
+ * See webroot/js/admin.js
+ *
+ * @return void
+ */
+	public function admin_update() {
+		if (!$this->data) {
+			return;
+		}
+		$data = $this->data['Translation'];
+		$return = Translation::update($data['key'], $data['value'], $data);
+		$this->set('data', $return);
+	}
+
+/**
  * admin_add
  *
  * @param mixed $locale
@@ -74,7 +92,6 @@ class TranslationsController extends TranslationsAppController {
  * @return void
  */
 	public function admin_edit_locale($locale = null, $domain = 'default', $category = 'LC_MESSAGES', $section = null) {
-		$this->set(compact('locale', 'domain', 'category', 'section'));
 		if (!$locale) {
 			if ($this->data) {
 				if (!empty($this->data['Translation']['locale'])) {
@@ -95,10 +112,6 @@ class TranslationsController extends TranslationsAppController {
 			return $this->render('admin_choose_locale');
 		}
 
-		$defaultLanguage = Configure::read('Config.language');
-		$params = compact('domain', 'category') + array('nested' => false);
-		$default = $this->Translation->forLocale($defaultLanguage, $params);
-
 		if ($this->data) {
 			$defaultConditions = compact('locale', 'domain', 'category');
 			foreach ($this->data['Translation'] as $key => $value) {
@@ -118,13 +131,17 @@ class TranslationsController extends TranslationsAppController {
 			return $this->redirect(array('action' => 'index', $locale, $domain, $category, $section));
 		}
 
-		if ($locale !== $defaultLanguage) {
-			$params = compact('domain', 'category', 'section') + array('nested' => false);
-			$default = $this->Translation->forLocale($defaultLanguage, $params);
-		}
 		$params = compact('domain', 'category', 'section') + array('nested' => false, 'addDefaults' => false);
 		$toEdit = $this->Translation->forLocale($locale, $params);
-		$this->set(compact('default', 'toEdit'));
+
+		$defaultLanguage = Configure::read('Config.defaultLanguage');
+		if ($defaultLanguage === $locale) {
+			$default = $toEdit;
+		} else {
+			$default = $this->Translation->forLocale($defaultLanguage, $params);
+		}
+
+		$this->set(compact('default', 'toEdit', 'locale', 'domain', 'category', 'section'));
 		$this->render('admin_edit_locale');
 	}
 
