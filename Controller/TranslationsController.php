@@ -92,7 +92,6 @@ class TranslationsController extends TranslationsAppController {
  * @return void
  */
 	public function admin_edit_locale($locale = null, $domain = 'default', $category = 'LC_MESSAGES', $section = null) {
-		$this->set(compact('locale', 'domain', 'category', 'section'));
 		if (!$locale) {
 			if ($this->data) {
 				if (!empty($this->data['Translation']['locale'])) {
@@ -142,7 +141,7 @@ class TranslationsController extends TranslationsAppController {
 			$default = $this->Translation->forLocale($defaultLanguage, $params);
 		}
 
-		$this->set(compact('default', 'toEdit'));
+		$this->set(compact('default', 'toEdit', 'locale', 'domain', 'category', 'section'));
 		$this->render('admin_edit_locale');
 	}
 
