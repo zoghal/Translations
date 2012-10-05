@@ -34,13 +34,17 @@ abstract class Parser {
  * @return array
  */
 	protected static function _parseArray($translations, $defaults) {
+		$defaults = array_intersect_key(
+			$defaults,
+			array_flip(array('domain', 'locale', 'category'))
+		);
 		$count = 0;
 		$return = array();
 		foreach ($translations as $key => $value) {
 			if (!strpos($key, '.')) {
 				$key = str_replace('_', '.', Inflector::underscore($key));
 			}
-			$return[] = compact('domain', 'locale', 'category', 'key', 'value');
+			$return[] = $defaults + compact('key', 'value');
 			$count++;
 		}
 
