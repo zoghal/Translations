@@ -4,7 +4,7 @@ if (count($this->request['pass']) < 4) {
 	$split = true;
 } else {
 	$split = false;
- 	$sections['all']['title'] = $this->Html->link("Back to all {$this->request['pass'][0]} translations", array($this->request['pass'][0]));
+ 	$sections['all']['title'] = $this->Html->link(__("Back to all {locale} translations", $locale), array($this->request['pass'][0]));
 }
 
 foreach ($default as $key => $string) {
@@ -19,7 +19,7 @@ foreach ($default as $key => $string) {
 		'data-locale' => $locale,
 		'data-domain' => $domain,
 		'data-key' => $key,
-		'before' => '<div class="pull-right"><button class="saveOne btn btn-primary disabled">Save</button></div>'
+		'before' => '<div class="pull-right"><button class="saveOne btn btn-primary disabled">' . __('Save') . '</button></div>'
 	);
 
 	if ($split) {
@@ -44,7 +44,7 @@ if (count($sections) > 1) {
 			?>
 			<div class="form-actions">
 				<button type="submit" class="btn btn-primary"><?php echo __d('common', 'Save changes');?></button>
-				<?php echo $view->Html->link('View Just this section', array($view->request['pass'][0], $column), array('class' => 'btn')); ?>
+				<?php echo $view->Html->link(__('View Just this section'), array($locale, $domain, $category, $column), array('class' => 'btn')); ?>
 			</div>
 			<?php
 		};

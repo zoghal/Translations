@@ -95,7 +95,7 @@ var Nodes = (function (app, $) {
 	function warnUnsavedChanges() {
 		$(window).bind('beforeunload', function() {
 			if ($('button.saveOne').not('.disabled').length) {
-				return 'There are unsaved changes - really leave this page?';
+				return __('There are unsaved changes - really leave this page?');
 			}
 		});
 	}
