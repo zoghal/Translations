@@ -1,0 +1,144 @@
+<?php
+App::uses('Parser', 'Translations.Parser');
+
+class PoParser extends Parser {
+
+/**
+ * parse
+ *
+ * @param string $file
+ * @param array $defaults
+ * @return array
+ */
+	public static function parse($file, $defaults = array()) {
+		$file = fopen($file, 'r');
+		$isHeader = true;
+		$type = 0;
+		$return = array(
+			'comments' => array(),
+		);
+		$comments = $extractedComments = $references = $flags = $previous = $translations = array();
+		$msgid = $msgid_plural = "";
+		$plural = 0;
+
+		do {
+			$line = trim(fgets($file));
+			if ($line == "") {
+				continue;
+			} elseif ($line[0] == "#") {
+				if ($isHeader) {
+					$return['comments'][] = substr($line, 2);
+				} else {
+					if (!empty($line[1])) {
+						if ($line[1] === '.') {
+							$extractedComments[] = trim(substr($line, 2));
+						} elseif ($line[1] === ':') {
+							$references[] = trim(substr($line, 2));
+						} elseif ($line[1] === ',') {
+							$flags[trim(substr($line, 2))] = true;
+						} elseif ($line[1] === '|') {
+							$previous[] = trim(substr($line, 2));
+						}
+					} else {
+						$comments[] = substr($line, 2);
+					}
+				}
+				continue;
+			}
+
+			if (preg_match("/msgid\s+\"(.+)\"$/i", $line, $regs)) {
+				$type = 1;
+				$msgid = stripcslashes($regs[1]);
+			} elseif (preg_match("/msgid\s+\"\"$/i", $line, $regs)) {
+				$type = 2;
+				$msgid = "";
+			} elseif (preg_match("/^\"(.*)\"$/i", $line, $regs) && ($type == 1 || $type == 2 || $type == 3)) {
+				$type = 3;
+				$msgid .= stripcslashes($regs[1]);
+			} elseif (preg_match("/msgstr\s+\"(.+)\"$/i", $line, $regs) && ($type == 1 || $type == 3) && $msgid) {
+				$translations[$msgid] = array(
+					'comments' => $comments,
+					'extractedComments' => $extractedComments,
+					'references' => $references,
+					'flags' => $flags,
+					'previous' => $previous,
+					'key' => $msgid,
+					'value' => stripcslashes($regs[1])
+				);
+				$isHeader = false;
+				$comments = $extractedComments = $references = $flags = $previous =array();
+				$type = 4;
+			} elseif (preg_match("/msgstr\s+\"\"$/i", $line, $regs) && ($type == 1 || $type == 3) && $msgid) {
+				$type = 4;
+				$translations[$msgid] = array(
+					'comments' => $comments,
+					'extractedComments' => $extractedComments,
+					'references' => $references,
+					'flags' => $flags,
+					'previous' => $previous,
+					'key' => $msgid,
+					'value' => ''
+				);
+				$isHeader = false;
+				$comments = $extractedComments = $references = $flags = $previous =array();
+			} elseif (preg_match("/^\"(.*)\"$/i", $line, $regs) && $type == 4 && $msgid) {
+				$translations[$msgid]['msgstr'] .= stripcslashes($regs[1]);
+			} elseif (preg_match("/msgid_plural\s+\"(.+)\"$/i", $line, $regs)) {
+				$type = 6;
+				$msgid_plural = stripcslashes($regs[1]);
+			} elseif (preg_match("/^\"(.*)\"$/i", $line, $regs) && $type == 6 && $msgid) {
+				$type = 6;
+			} elseif (preg_match("/msgstr\[(\d+)\]\s+\"(.+)\"$/i", $line, $regs) && ($type == 6 || $type == 7) && $msgid) {
+				$plural = 'msgstr_' . $regs[1];
+
+				if ($regs[1] == '0') {
+					$translations[$msgid] = array(
+						'comments' => $comments,
+						'extractedComments' => $extractedComments,
+						'references' => $references,
+						'flags' => $flags,
+						'previous' => $previous,
+						'key' => $msgid,
+						'key_plural' => $msgid_plural,
+						'value' => ''
+					);
+				}
+				$translations[$msgid][$plural] = stripcslashes($regs[2]);
+
+				$isHeader = false;
+				$comments = $extractedComments = $references = $flags = $previous =array();
+				$type = 7;
+			} elseif (preg_match("/msgstr\[(\d+)\]\s+\"\"$/i", $line, $regs) && ($type == 6 || $type == 7) && $msgid) {
+				$plural = 'msgstr_' . $regs[1];
+				$translations[$msgid][$plural] = '';
+
+				$isHeader = false;
+				$type = 7;
+			} elseif (preg_match("/^\"(.*)\"$/i", $line, $regs) && $type == 7 && $msgid) {
+				$translations[$msgid][$plural] .= stripcslashes($regs[1]);
+			} elseif (preg_match("/msgstr\s+\"(.+)\"$/i", $line, $regs) && $type == 2 && !$msgid) {
+				$type = 5;
+			} elseif (preg_match("/msgstr\s+\"\"$/i", $line, $regs) && !$msgid) {
+				$type = 5;
+			} elseif (preg_match("/^\"(.*?):(.*)\"$/i", $line, $regs) && $type == 5) {
+				$return[$regs[1]] = stripcslashes($regs[2]);
+			} else {
+				unset($translations[$msgid]);
+				$type = 0;
+				$msgid = "";
+				$plural = null;
+			}
+		} while (!feof($file));
+
+		fclose($file);
+
+		foreach($return as &$val) {
+			if (is_string($val)) {
+				$val = trim($val);
+			}
+		}
+		$return['translations'] = array_values($translations);
+
+		return $return;
+	}
+}
