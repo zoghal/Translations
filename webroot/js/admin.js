@@ -55,6 +55,7 @@ var Nodes = (function (app, $) {
 				success: function() {
 					textarea[0].defaultValue = textarea.val();
 					$(that).addClass('disabled');
+					updateSaveAll();
 				}
 			});
 		});
