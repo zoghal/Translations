@@ -813,7 +813,7 @@ class Translation extends TranslationsAppModel {
 	}
 
 /**
- * Plural case
+  * Plural case
  *
  * Which plural form should be used
  *
@@ -832,7 +832,11 @@ class Translation extends TranslationsAppModel {
 		if ($subrules) {
 			$rule = str_replace(':', ':(', $rule) . str_repeat(')', $subrules);
 		}
-		return (int)eval("return $rule;");
+		$return = eval("return $rule;");
+		if ($return) {
+			return (int)$return;
+		}
+		return $return;
 	}
 
 /**
