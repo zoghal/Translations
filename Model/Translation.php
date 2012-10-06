@@ -71,6 +71,25 @@ class Translation extends TranslationsAppModel {
 	protected static $_locales;
 
 /**
+ * Plural rules
+ *
+ * Incomplete list of gettext plural rules, it's incomplete because we don't need
+ * to define rules for languages we'll never use.
+ *
+ * @link http://translate.sourceforge.net/wiki/l10n/pluralforms
+ */
+	protected static $_pluralRules = array(
+		'default' => 'nplurals=2; plural=(n != 1)',
+		'ar' => 'nplurals=6; plural= n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 && n%100<=10 ? 3 : n%100>=11 ? 4 : 5;',
+		'be' => 'nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2)',
+		'fr' => 'nplurals=2; plural=(n > 1)',
+		'ja' => 'nplurals=1; plural=0',
+		'pl' => 'nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2)',
+		'ru' => 'nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2)',
+		'zh' => 'nplurals=1; plural=0'
+	);
+
+/**
  * Indexed array or all translations
  *
  * root
@@ -584,6 +603,19 @@ class Translation extends TranslationsAppModel {
 			return true;
 		}
 		return false;
+	}
+
+	public static function pluralRule($locale = null) {
+		if (!$locale) {
+			$locale = Configure::read('Config.language');
+		}
+
+		$locale = substr($locale, 0, 2);
+
+		if (array_key_exists($locale, self::$_pluralRules)) {
+			return self::$_pluralRules[$locale];
+		}
+		return self::$_pluralRules['default'];
 	}
 
 /**
