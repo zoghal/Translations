@@ -825,10 +825,14 @@ class Translation extends TranslationsAppModel {
 	protected static function _pluralCase($n, $locale = null) {
 		$rule = self::_pluralRule($locale);
 
-		$split = strpos('plural=', $rule);
-		$rule = substr($rule, $split + 7);
-		$rule = str_replace('n', $n);
-		return eval($rule);
+		$split = strpos($rule, 'plural=');
+		$rule = rtrim(substr($rule, $split + 7), ';');
+		$rule = str_replace('n', $n, $rule);
+		$subrules = substr_count($rule, ':');
+		if ($subrules) {
+			$rule = str_replace(':', ':(', $rule) . str_repeat(')', $subrules);
+		}
+		return (int)eval("return $rule;");
 	}
 
 /**
