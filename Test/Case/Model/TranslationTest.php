@@ -1,6 +1,17 @@
 <?php
 App::uses('Translation', 'Translations.Model');
 
+class TestTranslation extends Translation {
+
+	public static function pluralCases($locale = null) {
+		return self::_pluralCases($locale);
+	}
+
+	public static function pluralRule($locale = null) {
+		return self::_pluralRule($locale);
+	}
+}
+
 /**
  * Translation Test Case
  *
@@ -548,5 +559,57 @@ class TranslationTest extends CakeTestCase {
 		$result = $this->Translation->createLocale('dk', $settings);
 		$expected = $this->Translation->forLocale('no', $settings);
 		$this->assertSame($expected, $result);
+	}
+
+	public function testPluralCases() {
+		$result = TestTranslation::pluralCases('ar');
+		$this->assertSame(6, $result);
+
+		$result = TestTranslation::pluralCases('en');
+		$this->assertSame(2, $result);
+
+		$result = TestTranslation::pluralCases('en_GB');
+		$this->assertSame(2, $result);
+
+		$result = TestTranslation::pluralCases('fr');
+		$this->assertSame(2, $result);
+
+		$result = TestTranslation::pluralCases('fr_XX');
+		$this->assertSame(2, $result);
+
+		$result = TestTranslation::pluralCases('ja');
+		$this->assertSame(1, $result);
+
+		$result = TestTranslation::pluralCases('ru');
+		$this->assertSame(3, $result);
+
+		$result = TestTranslation::pluralCases('xx');
+		$this->assertSame(2, $result);
+	}
+
+	public function testPluralRule() {
+		$result = TestTranslation::pluralRule('ar');
+		$this->assertSame('nplurals=6; plural= n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 && n%100<=10 ? 3 : n%100>=11 ? 4 : 5;', $result);
+
+		$result = TestTranslation::pluralRule('en');
+		$this->assertSame('nplurals=2; plural=(n != 1)', $result);
+
+		$result = TestTranslation::pluralRule('en_GB');
+		$this->assertSame('nplurals=2; plural=(n != 1)', $result);
+
+		$result = TestTranslation::pluralRule('fr');
+		$this->assertSame('nplurals=2; plural=(n > 1)', $result);
+
+		$result = TestTranslation::pluralRule('fr_XX');
+		$this->assertSame('nplurals=2; plural=(n > 1)', $result);
+
+		$result = TestTranslation::pluralRule('ja');
+		$this->assertSame('nplurals=1; plural=0', $result);
+
+		$result = TestTranslation::pluralRule('ru');
+		$this->assertSame('nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2)', $result);
+
+		$result = TestTranslation::pluralRule('xx');
+		$this->assertSame('nplurals=2; plural=(n != 1)', $result);
 	}
 }
