@@ -582,11 +582,51 @@ class TranslationTest extends CakeTestCase {
 	}
 
 /**
+ * Check russian plural rules
+ *
+ * In russian it's:
+ *	Numbers ending in 1
+ *	Numbers ending in 2,3,4
+ *	Numbers ending in 5,6,7,8,9,0
+ */
+	public function testPluralCaseRussian() {
+		$result = TestTranslation::pluralCase(0, 'ru');
+		$this->assertSame(2, $result);
+
+		$result = TestTranslation::pluralCase(1, 'ru');
+		$this->assertSame(0, $result);
+
+		$result = TestTranslation::pluralCase(2, 'ru');
+		$this->assertSame(1, $result);
+
+		$result = TestTranslation::pluralCase(3, 'ru');
+		$this->assertSame(1, $result);
+
+		$result = TestTranslation::pluralCase(4, 'ru');
+		$this->assertSame(1, $result);
+
+		$result = TestTranslation::pluralCase(5, 'ru');
+		$this->assertSame(2, $result);
+
+		$result = TestTranslation::pluralCase(6, 'ru');
+		$this->assertSame(2, $result);
+
+		$result = TestTranslation::pluralCase(7, 'ru');
+		$this->assertSame(2, $result);
+
+		$result = TestTranslation::pluralCase(8, 'ru');
+		$this->assertSame(2, $result);
+
+		$result = TestTranslation::pluralCase(9, 'ru');
+		$this->assertSame(2, $result);
+	}
+
+/**
  * Check arabic plural rules
  *
  * @TODO These are complex, need to check with some source that they are correct
  */
-	public function testPluralCaseComplex() {
+	public function testPluralCaseArabic() {
 		$result = TestTranslation::pluralCase(0, 'ar');
 		$this->assertSame(0, $result);
 
