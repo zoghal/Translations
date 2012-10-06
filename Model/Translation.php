@@ -759,11 +759,21 @@ class Translation extends TranslationsAppModel {
 			$conditions['key LIKE'] = $settings['section'] . '%';
 		}
 
-		$data = $this->find('list', array(
-			'fields' => array('key', 'value'),
+		$all = $this->find('all', array(
+			'fields' => array('key', 'value', 'plural_case'),
 			'conditions' => $conditions,
 			'order' => array('key' => 'ASC')
 		));
+
+		$data = array();
+		foreach($all as $row) {
+			$row = current($row);
+			if (is_null($row['plural_case'])) {
+				$data[$row['key']] = $row['value'];
+			} else {
+				$data[$row['key']][$row['plural_case']] = $row['value'];
+			}
+		}
 
 		if (!$settings['section']) {
 			ksort($data);
