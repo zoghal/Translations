@@ -106,9 +106,10 @@ class PoParser extends Parser {
 						'locale' => $defaults['locale'],
 						'domain' => $defaults['domain'],
 						'category' => $defaults['category'],
-						'key' => $msgid,
-						'key_plural' => $msgid_plural,
-						'value' => ''
+						'key' => $msgid_plural,
+						'value' => '',
+						'single_key' => $msgid,
+						'plural_case' => $regs[1]
 					) + array_filter(array(
 						'comments' => $comments,
 						'extractedComments' => $extractedComments,
@@ -124,12 +125,41 @@ class PoParser extends Parser {
 				$type = 7;
 			} elseif (preg_match("/msgstr\[(\d+)\]\s+\"\"$/i", $line, $regs) && ($type == 6 || $type == 7) && $msgid) {
 				$plural = 'msgstr_' . $regs[1];
-				$translations[$msgid][$plural] = '';
+
+				$translations[$msgid] = array(
+					'locale' => $defaults['locale'],
+					'domain' => $defaults['domain'],
+					'category' => $defaults['category'],
+					'key' => $msgid,
+					'value' => '',
+				) + array_filter(array(
+					'comments' => $comments,
+					'extractedComments' => $extractedComments,
+					'references' => $references,
+					'flags' => $flags,
+					'previous' => $previous,
+				));
+
+				$translations[$msgid_plural . '[' . $regs[1] . ']'] = array(
+					'locale' => $defaults['locale'],
+					'domain' => $defaults['domain'],
+					'category' => $defaults['category'],
+					'key' => $msgid_plural,
+					'value' => '',
+					'single_key' => $msgid,
+					'plural_case' => $regs[1]
+				) + array_filter(array(
+					'comments' => $comments,
+					'extractedComments' => $extractedComments,
+					'references' => $references,
+					'flags' => $flags,
+					'previous' => $previous,
+				));
 
 				$isHeader = false;
 				$type = 7;
 			} elseif (preg_match("/^\"(.*)\"$/i", $line, $regs) && $type == 7 && $msgid) {
-				$translations[$msgid][$plural] .= stripcslashes($regs[1]);
+				//$translations[$msgid][$plural] .= stripcslashes($regs[1]);
 			} elseif (preg_match("/msgstr\s+\"(.+)\"$/i", $line, $regs) && $type == 2 && !$msgid) {
 				$type = 5;
 			} elseif (preg_match("/msgstr\s+\"\"$/i", $line, $regs) && !$msgid) {
