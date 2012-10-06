@@ -3,6 +3,10 @@ App::uses('Translation', 'Translations.Model');
 
 class TestTranslation extends Translation {
 
+	public static function pluralCase($n, $locale = null) {
+		return self::_pluralCase($n, $locale);
+	}
+
 	public static function pluralCases($locale = null) {
 		return self::_pluralCases($locale);
 	}
@@ -559,6 +563,54 @@ class TranslationTest extends CakeTestCase {
 		$result = $this->Translation->createLocale('dk', $settings);
 		$expected = $this->Translation->forLocale('no', $settings);
 		$this->assertSame($expected, $result);
+	}
+
+	public function testPluralCase() {
+		$result = TestTranslation::pluralCase(0, 'en');
+		$this->assertSame(1, $result);
+
+		$result = TestTranslation::pluralCase(1, 'en');
+		$this->assertSame(0, $result);
+
+		$result = TestTranslation::pluralCase(2, 'en');
+		$this->assertSame(1, $result);
+	}
+
+/**
+ * Check arabic plural rules
+ *
+ * @TODO These are complex, need to check with some source that they are correct
+ */
+	public function testPluralCaseComplex() {
+		$result = TestTranslation::pluralCase(0, 'ar');
+		$this->assertSame(0, $result);
+
+		$result = TestTranslation::pluralCase(1, 'ar');
+		$this->assertSame(1, $result);
+
+		$result = TestTranslation::pluralCase(2, 'ar');
+		$this->assertSame(2, $result);
+
+		$result = TestTranslation::pluralCase(3, 'ar');
+		$this->assertSame(3, $result);
+
+		$result = TestTranslation::pluralCase(10, 'ar');
+		$this->assertSame(3, $result);
+
+		$result = TestTranslation::pluralCase(11, 'ar');
+		$this->assertSame(4, $result);
+
+		$result = TestTranslation::pluralCase(99, 'ar');
+		$this->assertSame(4, $result);
+
+		$result = TestTranslation::pluralCase(100, 'ar');
+		$this->assertSame(5, $result);
+
+		$result = TestTranslation::pluralCase(102, 'ar');
+		$this->assertSame(5, $result);
+
+		$result = TestTranslation::pluralCase(103, 'ar');
+		$this->assertSame(3, $result);
 	}
 
 	public function testPluralCases() {
