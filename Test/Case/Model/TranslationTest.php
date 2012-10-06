@@ -538,7 +538,8 @@ class TranslationTest extends CakeTestCase {
 		$result = Translation::locales();
 		$expected = array(
 			'en' => 'English',
-			'no' => 'Norwegian'
+			'no' => 'Norwegian',
+			'ru' => 'Russian'
 		);
 		$this->assertSame($expected, $result);
 	}
@@ -618,6 +619,9 @@ class TranslationTest extends CakeTestCase {
 		$this->assertSame(2, $result);
 
 		$result = TestTranslation::pluralCase(9, 'ru');
+		$this->assertSame(2, $result);
+
+		$result = TestTranslation::pluralCase(10, 'ru');
 		$this->assertSame(2, $result);
 	}
 
@@ -708,5 +712,56 @@ class TranslationTest extends CakeTestCase {
 
 		$result = TestTranslation::pluralRule('xx');
 		$this->assertSame('nplurals=2; plural=(n != 1)', $result);
+	}
+
+	public function testPluralTranslation() {
+		$options = array(
+			'plural' => '{number} messages',
+			'locale' => 'ru'
+		);
+
+		$options['count'] = 0;
+		$result = Translation::translate('1 message', $options);
+		$this->assertSame('ends in 5,6,7,8,9,0 message', $result);
+
+		$options['count'] = 1;
+		$result = Translation::translate('1 message', $options);
+		$this->assertSame('It\'s one message', $result);
+
+		$options['count'] = 2;
+		$result = Translation::translate('1 message', $options);
+		$this->assertSame('ends in 2,3,4 message', $result);
+
+		$options['count'] = 3;
+		$result = Translation::translate('1 message', $options);
+		$this->assertSame('ends in 2,3,4 message', $result);
+
+		$options['count'] = 4;
+		$result = Translation::translate('1 message', $options);
+		$this->assertSame('ends in 2,3,4 message', $result);
+
+		$options['count'] = 5;
+		$result = Translation::translate('1 message', $options);
+		$this->assertSame('ends in 5,6,7,8,9,0 message', $result);
+
+		$options['count'] = 6;
+		$result = Translation::translate('1 message', $options);
+		$this->assertSame('ends in 5,6,7,8,9,0 message', $result);
+
+		$options['count'] = 7;
+		$result = Translation::translate('1 message', $options);
+		$this->assertSame('ends in 5,6,7,8,9,0 message', $result);
+
+		$options['count'] = 8;
+		$result = Translation::translate('1 message', $options);
+		$this->assertSame('ends in 5,6,7,8,9,0 message', $result);
+
+		$options['count'] = 9;
+		$result = Translation::translate('1 message', $options);
+		$this->assertSame('ends in 5,6,7,8,9,0 message', $result);
+
+		$options['count'] = 10;
+		$result = Translation::translate('1 message', $options);
+		$this->assertSame('ends in 5,6,7,8,9,0 message', $result);
 	}
 }
