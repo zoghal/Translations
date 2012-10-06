@@ -565,12 +565,17 @@ class TranslationTest extends CakeTestCase {
 		$this->assertSame($expected, $result);
 	}
 
+/**
+ * Check en plural rules
+ *
+ * It's either a plural form - or false (singular)
+ */
 	public function testPluralCase() {
 		$result = TestTranslation::pluralCase(0, 'en');
 		$this->assertSame(1, $result);
 
 		$result = TestTranslation::pluralCase(1, 'en');
-		$this->assertSame(0, $result);
+		$this->assertSame(false, $result);
 
 		$result = TestTranslation::pluralCase(2, 'en');
 		$this->assertSame(1, $result);
