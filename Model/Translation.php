@@ -68,6 +68,9 @@ class Translation extends TranslationsAppModel {
  */
 	protected static $_model;
 
+/**
+ * Placeholder for an array of all locales
+ */
 	protected static $_locales;
 
 /**
@@ -140,6 +143,7 @@ class Translation extends TranslationsAppModel {
 
 		return parent::beforeValidate($options);
 	}
+
 /**
  * categories
  *
@@ -512,27 +516,47 @@ class Translation extends TranslationsAppModel {
 		$locale = $options['locale'];
 		$category = $options['category'];
 
+		$pluralCase = false;
+		if (isset($options['count']) && (int)$options['count'] !== 1) {
+			$pluralCase = self::_pluralCase($options['count'], $options['locale']);
+		}
+
+		if ($pluralCase !== false) {
+			$options['pluralCase'] = $pluralCase;
+			$key = $options['plural'];
+		} else {
+			$key = $singular;
+		}
+
 		if (is_numeric($category)) {
 			$category = self::$_categories[$category];
 			$options['category'] = $category;
 		}
 
-		if (self::hasTranslation($singular, $options)) {
-			return self::$_translations[$domain][$locale][$category][$singular];
+		if (self::hasTranslation($key, $options)) {
+			if ($pluralCase && is_array(self::$_translations[$domain][$locale][$category][$key])) {
+				return self::$_translations[$domain][$locale][$category][$key][$pluralCase];
+			}
+			return self::$_translations[$domain][$locale][$category][$key];
 		}
 
 		if ($options['autoPopulate']) {
-			self::$_translations[$domain][$locale][$category][$singular] = $singular;
+			if (!is_null($pluralCase)) {
+				self::$_translations[$domain][$locale][$category][$key][$pluralCase] = $key;
+			} else {
+				self::$_translations[$domain][$locale][$category][$key] = $key;
+			}
 			self::$_model->create();
 			self::$_model->save(array(
 				'domain' => $options['domain'],
 				'category' => $options['category'],
 				'locale' => Configure::read('Config.defaultLanguage'),
-				'key' => $singular,
-				'value' => $singular
+				'key' => $key,
+				'value' => $key,
+				'plural_case' => $pluralCase
 			));
 		}
-		return $singular;
+		return $key;
 	}
 
 /**
@@ -600,22 +624,16 @@ class Translation extends TranslationsAppModel {
 		}
 
 		if (array_key_exists($key, self::$_translations[$domain][$locale][$category])) {
-			return true;
+			if (isset($options['pluralCase'])) {
+				return array_key_exists(
+					$options['pluralCase'],
+					self::$_translations[$domain][$locale][$category][$key]
+				);
+			} else {
+				return true;
+			}
 		}
 		return false;
-	}
-
-	public static function pluralRule($locale = null) {
-		if (!$locale) {
-			$locale = Configure::read('Config.language');
-		}
-
-		$locale = substr($locale, 0, 2);
-
-		if (array_key_exists($locale, self::$_pluralRules)) {
-			return self::$_pluralRules[$locale];
-		}
-		return self::$_pluralRules['default'];
 	}
 
 /**
@@ -795,12 +813,64 @@ class Translation extends TranslationsAppModel {
 	}
 
 /**
+ * Plural case
+ *
+ * Which plural form should be used
+ *
+ * Gettext formulas are eval-able, substitute n in the formula, and treat as a php expression
+ *
+ * @param string  locale
+ * @return int
+ */
+	protected static function _pluralCase($n, $locale = null) {
+		$rule = self::_pluralRule($locale);
+
+		$split = strpos('plural=', $rule);
+		$rule = substr($rule, $split + 7);
+		$rule = str_replace('n', $n);
+		return eval($rule);
+	}
+
+/**
+ * Plural cases
+ *
+ * How many plural forms afer there for the given locale?
+ * Assume the rule is welformed, and written as:
+ *
+ *	npurals=x
+ *
+ * Where x is the number of plural cases that exist for this locale
+ *
+ * @param string  locale
+ * @return int
+ */
+	protected static function _pluralCases($locale = null) {
+		$rule = self::_pluralRule($locale);
+		return (int)substr($rule, 9, 1);
+	}
+
+/**
+ * Pluralrule
+ *
+ * What is the plural rule (expressed as a gettext formula) for the requested locale?
+ *
+ * @param string  locale
+ */
+	protected static function _pluralRule($locale = null) {
+		$locale = substr($locale, 0, 2);
+
+		if (array_key_exists($locale, self::$_pluralRules)) {
+			return self::$_pluralRules[$locale];
+		}
+		return self::$_pluralRules['default'];
+	}
+
+/**
  * _recursiveInsert
  *
  * @param mixed $array
  * @param mixed $keys
  * @param mixed $value
- * @return void
  */
 	protected function _recursiveInsert(&$array, $keys, $value) {
 		if (!is_array($array)) {
