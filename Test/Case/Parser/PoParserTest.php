@@ -13,7 +13,7 @@ class PoParserTest extends CakeTestCase {
 			'translations' => array(
 				array(
 					'locale' => 'en',
-					'domain' => 'default',
+					'domain' => 'simple',
 					'category' => 'LC_MESSAGES',
 					'key' => 'foo',
 					'value' => 'bar'
