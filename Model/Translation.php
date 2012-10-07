@@ -1,6 +1,7 @@
 <?php
 App::uses('TranslationsAppModel', 'Translations.Model');
 App::uses('Nodes\L10n', 'Translations.Lib');
+App::uses('PluralRule', 'Translations.Lib');
 
 /**
  * Translation Model
@@ -840,18 +841,7 @@ class Translation extends TranslationsAppModel {
 	protected static function _pluralCase($n, $locale = null) {
 		$rule = self::_pluralRule($locale);
 
-		$split = strpos($rule, 'plural=');
-		$rule = rtrim(substr($rule, $split + 7), ';');
-		$rule = str_replace('n', $n, $rule);
-		$subrules = substr_count($rule, ':');
-		if ($subrules) {
-			$rule = str_replace(':', ':(', $rule) . str_repeat(')', $subrules);
-		}
-		$return = eval("return $rule;");
-		if ($return) {
-			return (int)$return;
-		}
-		return $return;
+		return PluralRule::check($rule, $n);
 	}
 
 /**
