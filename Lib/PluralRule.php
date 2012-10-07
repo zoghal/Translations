@@ -1,7 +1,32 @@
 <?php
 
+/**
+ * Plural Rulez
+ *
+ * Plural rules differ by language - for some languages the rules are quite complex.
+ * They are available online as part of the gettext/translate project, and are referenced
+ * exactly as they appear in the Translation model indexed by language.
+ * This class is responsible for translating the rule expressed as a string (exactly
+ * as it appears in link below) into a php function which returns the plural-case
+ * to be used when evaluating plural translations. In the event of a new plural-case
+ * being added to the Translation model, this class will issue an exception with copy
+ * and paste code for the method to create
+ *
+ * @link http://translate.sourceforge.net/wiki/l10n/pluralforms
+ */
 class PluralRule {
 
+/**
+ * check
+ *
+ * expects a gettext plural rule (string) as an input, runs it through a hash function
+ * to get the name of a method on this clas which implements the same logic - and then
+ * calls that function. In the event the method does not exist it'll throw an exception
+ * the body of which is the method that needs to be implemented (copy paste and reformat).
+ *
+ * @param string $rule
+ * @return string method name to execute
+ */
 	public static function check($rule, $n) {
 		$method = self::getMethod($rule);
 
@@ -14,6 +39,9 @@ class PluralRule {
 
 /**
  * For the given rule, get the test method to check
+ *
+ * @param string $rule
+ * @return string method name to execute
  */
 	public static function getMethod($rule) {
 		$split = strpos($rule, 'plural=');
