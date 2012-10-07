@@ -104,6 +104,23 @@ class Translation extends TranslationsAppModel {
  */
 	protected static $_translations = array();
 
+	public function beforeSave($options = array()) {
+		$fields = array(
+			'references',
+			'history'
+		);
+		foreach($fields as $field) {
+			if (
+				!empty($this->data[$this->alias][$field]) &&
+				is_array($this->data[$this->alias][$field])
+			) {
+				$this->data[$this->alias][$field] =
+					json_encode($this->data[$this->alias][$field]);
+			}
+		}
+		return true;
+	}
+
 /**
  * beforeValidate
  *
@@ -165,6 +182,14 @@ class Translation extends TranslationsAppModel {
 	public static function config($settings = array()) {
 		if (empty($settings) && !empty(self::$_config['configured'])) {
 			return self::$_config;
+		}
+
+		if (!Configure::read('Config.language')) {
+			Configure::write('Config.language', 'en');
+		}
+
+		if (!Configure::read('Config.defaultLanguage')) {
+			Configure::write('Config.defaultLanguage', Configure::read('Config.language'));
 		}
 
 		if (defined('CORE_TEST_CASES')) {
@@ -583,9 +608,16 @@ class Translation extends TranslationsAppModel {
 			if (!self::$_model) {
 				self::_loadModel();
 			}
-			$update = compact('domain', 'locale', 'category', 'key', 'plural_case');
+			$update = array_intersect_key(
+				$options,
+				array_flip(array('domain', 'locale', 'category', 'key', 'plural_case'))
+			);
 			self::$_model->create();
 			self::$_model->id = self::$_model->field('id', $update);
+			$update += array_intersect_key(
+				$options,
+				array_flip(array('comments', 'references'))
+			);
 			return self::$_model->save($update + array('value' => $value));
 		}
 		return false;
