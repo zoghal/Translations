@@ -45,6 +45,19 @@ abstract class Parser {
 			if (!strpos($key, '.')) {
 				$key = str_replace('_', '.', Inflector::underscore($key));
 			}
+
+			if (is_array($value)) {
+				foreach($value as $case => $val) {
+					$return[] = $defaults + array(
+						'key' => $key,
+						'value' => $val,
+						'plural_case' => $case
+					);
+					$count++;
+				}
+				continue;
+			}
+
 			$return[] = $defaults + compact('key', 'value');
 			$count++;
 		}
