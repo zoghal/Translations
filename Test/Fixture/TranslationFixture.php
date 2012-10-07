@@ -17,9 +17,11 @@ class TranslationFixture extends CakeTestFixture {
 		'category' => array('type' => 'string', 'null' => true, 'default' => 'LC_MESSAGES', 'length' => 50, 'collate' => 'utf8_general_ci', 'charset' => 'utf8'),
 		'key' => array('type' => 'string', 'null' => false, 'default' => null, 'collate' => 'utf8_general_ci', 'charset' => 'utf8'),
 		'value' => array('type' => 'text', 'null' => true, 'default' => null, 'collate' => 'utf8_general_ci', 'charset' => 'utf8'),
-		'has_plural' => array('type' => 'integer', 'null' => true, 'default' => null, 'length' => 1),
-		'singular_key' => array('type' => 'string', 'null' => false, 'default' => null, 'collate' => 'utf8_general_ci', 'charset' => 'utf8'),
+		'is_active' => array('type' => 'integer', 'null' => true, 'default' => 1, 'length' => 1),
 		'plural_case' => array('type' => 'integer', 'null' => true, 'default' => null, 'length' => 2),
+		'comments' => array('type' => 'text', 'null' => true, 'default' => null, 'collate' => 'utf8_general_ci', 'charset' => 'utf8'),
+		'references' => array('type' => 'text', 'null' => true, 'default' => null, 'collate' => 'utf8_general_ci', 'charset' => 'utf8'),
+		'history' => array('type' => 'text', 'null' => true, 'default' => null, 'collate' => 'utf8_general_ci', 'charset' => 'utf8'),
 		'indexes' => array(
 			'PRIMARY' => array('column' => 'id', 'unique' => 1)
 		),
