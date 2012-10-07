@@ -577,10 +577,15 @@ class Translation extends TranslationsAppModel {
 		);
 		extract($options);
 
-		self::$_translations[$domain][$locale][$category][$key] = $value;
+		if (isset($options['plural_case'])) {
+			$plural_case = $options['plural_case'];
+			self::$_translations[$domain][$locale][$category][$key][$plural_case] = $value;
+		} else {
+			self::$_translations[$domain][$locale][$category][$key] = $value;
+		}
 
 		if (self::$_config['useTable']) {
-			$update = compact('domain', 'locale', 'category', 'key');
+			$update = compact('domain', 'locale', 'category', 'key', 'plural_case');
 			self::$_model->create();
 			self::$_model->id = self::$_model->field('id', $update);
 			return self::$_model->save($update + array('value' => $value));
