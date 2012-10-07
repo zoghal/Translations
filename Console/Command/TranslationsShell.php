@@ -87,7 +87,7 @@ class TranslationsShell extends AppShell {
 		));
 
 		if (!empty($this->_settings['purge'])) {
-			$this->_purge($existing, $ids);
+			$this->_purge($existing, $ids, $conditions);
 		}
 
 		foreach ($return['translations'] as $translation) {
@@ -135,7 +135,7 @@ class TranslationsShell extends AppShell {
  *
  * Delete translation entries which do not exist in the import file
  */
-	protected function _purge($existing, $importIds) {
+	protected function _purge($existing, $importIds, $conditions) {
 		foreach($existing as $id => $value) {
 			if (in_array($id, $importIds)) {
 				continue;
