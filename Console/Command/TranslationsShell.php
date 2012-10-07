@@ -38,8 +38,17 @@ class TranslationsShell extends AppShell {
 			->addOption('category', array(
 				'help' => 'the category to import/export, defaults to "LC_MESSAGES"'
 			))
+			->addOption('overwrite', array(
+				'help' => 'Overwrite existing translations - or just create new ones? defaults to false'
+			))
+			->addOption('purge', array(
+				'help' => 'Delete translations that are not in the import file? defaults to false'
+			))
 			->addSubcommand('import', array(
-				'help' => 'Load translations from file',
+				'help' => 'Load translations from a file or url',
+			))
+			->addSubcommand('export', array(
+				'help' => 'Dump translations to a file',
 			));
 	}
 
@@ -47,10 +56,10 @@ class TranslationsShell extends AppShell {
  * import
  *
  * Load translations in a recognised format.
- * Currently supports:
- * 	php   - a file containing $translations => array( key => value)
- * 	json  -
- * 	plist - not tested
+ *
+ * If the option purge is set, existing translations that aren't in the import
+ * are deleted. a single deleteAll query isn't used because.. the field key
+ * doesn't get escaped correctly
  *
  * @throws \Exception if the file specified doesn't exist
  */
@@ -60,11 +69,36 @@ class TranslationsShell extends AppShell {
 			$this->_settings[$key] = $val;
 		}
 
+		$this->Translation = ClassRegistry::init('Translations.Translation');
+
 		$return = Translation::parse($file, $this->_settings);
+		$this->_updateSettings($return['translations']);
 
 		$this->out(sprintf('Found %d translations', $return['count']));
+		$ids = Hash::extract($return['translations'], '{n}.key');
+		$conditions = array(
+			'locale' => $this->_settings['locale'],
+			'domain' => $this->_settings['domain'],
+			'category' => $this->_settings['category'],
+		);
+		$existing = $this->Translation->find('list', array(
+			'conditions' => $conditions,
+			'fields' => array('key', 'value'),
+		));
+
+		if (!empty($this->_settings['purge'])) {
+			$this->_purge($existing, $ids);
+		}
+
 		foreach ($return['translations'] as $translation) {
-			$this->out(sprintf('Processing %s', $translation['key']));
+			if (empty($this->_settings['overwrite'])) {
+				if (array_key_exists($translation['key'], $existing)) {
+					$this->out(sprintf('Skipping "%s"', $translation['key']));
+					continue;
+				}
+			}
+
+			$this->out(sprintf('Processing "%s"', $translation['key']));
 			Translation::update($translation['key'], $translation['value'], $translation);
 		}
 		$this->out('Done');
@@ -96,4 +130,36 @@ class TranslationsShell extends AppShell {
 		$this->out('Done');
 	}
 
+/**
+ * Purge
+ *
+ * Delete translation entries which do not exist in the import file
+ */
+	protected function _purge($existing, $importIds) {
+		foreach($existing as $id => $value) {
+			if (in_array($id, $importIds)) {
+				continue;
+			}
+			$this->out("Deleting translation $id");
+			$this->Translation->id = $this->Translation->field('id', $conditions + array('key' => $id));
+			$this->Translation->saveField('is_active', false);
+		}
+	}
+
+/**
+ * Update settings
+ *
+ * the translations may not match the parameters specified in the cli arguments,
+ * This is most relevant for po and pot files. So - update settings to match the results
+ * So that subsequent checks are for the same locale, domain and category.
+ */
+	protected function _updateSettings($translations) {
+		if (!$translations) {
+			return;
+		}
+		$translation = current($translations);
+		$this->_settings['locale'] = $translation['locale'];
+		$this->_settings['domain'] = $translation['domain'];
+		$this->_settings['category'] = $translation['category'];
+	}
 }
