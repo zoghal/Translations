@@ -6,12 +6,15 @@ class PoParser extends Parser {
 /**
  * parse
  *
+ * Force the domain to the filename
+ *
  * @param string $file
  * @param array $defaults
  * @return array
  */
 	public static function parse($file, $defaults = array()) {
-		$defaults += Translation::config();
+		$filename = preg_replace('@\.pot?$@', '', basename($file));
+		$defaults = array('domain' => $filename) + $defaults + Translation::config();
 		$file = fopen($file, 'r');
 		$isHeader = true;
 		$type = 0;
