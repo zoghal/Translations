@@ -3,6 +3,10 @@ App::uses('Translation', 'Translations.Model');
 
 class TestTranslation extends Translation {
 
+	public static function getPluralRules() {
+		return self::$_pluralRules;
+	}
+
 	public static function pluralCase($n, $locale = null) {
 		return self::_pluralCase($n, $locale);
 	}
@@ -763,5 +767,12 @@ class TranslationTest extends CakeTestCase {
 		$options['count'] = 10;
 		$result = Translation::translate('1 message', $options);
 		$this->assertSame('ends in 5,6,7,8,9,0 message', $result);
+	}
+
+	public function testAllPluralRulesHandled() {
+		$pluralRules = TestTranslation::getPluralRules();
+		foreach($pluralRules as $rule) {
+			PluralRule::check($rule, 1);
+		}
 	}
 }
