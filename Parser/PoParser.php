@@ -66,7 +66,7 @@ class PoParser extends Parser {
 					'domain' => $defaults['domain'],
 					'category' => $defaults['category'],
 					'key' => $msgid,
-					'value' => stripcslashes($regs[1])
+					'value' => stripcslashes($regs[1]) ?: $msgid
 				) + array_filter(array(
 					'comments' => $comments,
 					'extractedComments' => $extractedComments,
@@ -84,7 +84,7 @@ class PoParser extends Parser {
 					'domain' => $defaults['domain'],
 					'category' => $defaults['category'],
 					'key' => $msgid,
-					'value' => ''
+					'value' => $msgid
 				) + array_filter(array(
 					'comments' => $comments,
 					'extractedComments' => $extractedComments,
@@ -110,7 +110,7 @@ class PoParser extends Parser {
 						'domain' => $defaults['domain'],
 						'category' => $defaults['category'],
 						'key' => $msgid_plural,
-						'value' => '',
+						'value' => $msgid_plural,
 						'single_key' => $msgid,
 						'plural_case' => $regs[1]
 					) + array_filter(array(
@@ -134,7 +134,7 @@ class PoParser extends Parser {
 					'domain' => $defaults['domain'],
 					'category' => $defaults['category'],
 					'key' => $msgid,
-					'value' => '',
+					'value' => $msgid,
 				) + array_filter(array(
 					'comments' => $comments,
 					'extractedComments' => $extractedComments,
@@ -148,7 +148,7 @@ class PoParser extends Parser {
 					'domain' => $defaults['domain'],
 					'category' => $defaults['category'],
 					'key' => $msgid_plural,
-					'value' => '',
+					'value' => $msgid_plural,
 					'single_key' => $msgid,
 					'plural_case' => $regs[1]
 				) + array_filter(array(

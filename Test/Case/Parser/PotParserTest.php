@@ -13,10 +13,10 @@ class PotParserTest extends CakeTestCase {
 			'translations' => array(
 				array(
 					'locale' => 'en',
-					'domain' => 'default',
+					'domain' => 'simple',
 					'category' => 'LC_MESSAGES',
 					'key' => 'foo',
-					'value' => ''
+					'value' => 'foo'
 				)
 			)
 		);
@@ -30,10 +30,10 @@ class PotParserTest extends CakeTestCase {
 		$next = $result['translations'][0];
 		$expected = array(
 			'locale' => 'en',
-			'domain' => 'default',
+			'domain' => 'cake',
 			'category' => 'LC_MESSAGES',
 			'key' => 'Error',
-			'value' => '',
+			'value' => 'Error',
 			'references' => array(
 				'View/Errors/error400.ctp:21',
 				'View/Errors/error500.ctp:21',
@@ -44,10 +44,10 @@ class PotParserTest extends CakeTestCase {
 		$next = $result['translations'][1];
 		$expected = array(
 			'locale' => 'en',
-			'domain' => 'default',
+			'domain' => 'cake',
 			'category' => 'LC_MESSAGES',
 			'key' => 'The requested address %s was not found on this server.',
-			'value' => '',
+			'value' => 'The requested address %s was not found on this server.',
 			'references' => array(
 				'View/Errors/error400.ctp:23',
 			)
