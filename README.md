@@ -83,6 +83,4 @@ is disabled by default
 
 ##TODO
 
- * Add config so that it's possible to have a wysiwyg editor on certain fields in the backend
- * Add config so that it's possible to have validation when adding/editing certain fields in the backend
  * For Cake 3.0 - make this compatible with the proposed translations engine API (not yet defined)
