@@ -249,8 +249,8 @@ class TranslateBehaviorTest extends CakeTestCase {
 
 		$expected = array(
 			'1' => 'Glorious technicolor',
-			'2' => 'description for: 2',
-			'3' => 'description for: 3',
+			'2' => 'description',
+			'3' => 'description',
 		);
 		$result = $this->Tag->find('list', array('fields' => array('id', 'description')));
 		$this->assertSame($expected, $result);
