@@ -12,6 +12,7 @@ class TranslateBehaviorTest extends CakeTestCase {
  */
 	public $fixtures = array(
 		'core.tag',
+		'plugin.translations.translation'
 	);
 
 /**
@@ -115,7 +116,7 @@ class TranslateBehaviorTest extends CakeTestCase {
 			'Tag.2.tag' => 'tag2',
 			'Tag.3.tag' => 'tag3',
 		);
-		$translations = Translation::forLocale();
+		$translations = Translation::forLocale(null, array('section' => 'Tag', 'nested' => false));
 		$this->assertSame($expected, $translations);
 	}
 
@@ -155,7 +156,30 @@ class TranslateBehaviorTest extends CakeTestCase {
 			'Tag.2.tag' => 'tag2',
 			'Tag.3.tag' => 'tag3',
 		);
-		$translations = Translation::forLocale();
+		$translations = Translation::forLocale(null, array('section' => 'Tag', 'nested' => false));
+		$this->assertSame($expected, $translations);
+	}
+
+/**
+ * testAutoPopulate
+ *
+ * @return void
+ */
+	public function testAutoPopulate() {
+		$expected = array(
+			1 => 'tag1',
+			'tag2',
+			'tag3'
+		);
+
+		$this->Tag->find('all');
+
+		$expected = array(
+			'Tag.1.tag' => 'tag1',
+			'Tag.2.tag' => 'tag2',
+			'Tag.3.tag' => 'tag3',
+		);
+		$translations = Translation::forLocale(null, array('section' => 'Tag', 'nested' => false));
 		$this->assertSame($expected, $translations);
 	}
 }
