@@ -118,4 +118,44 @@ class TranslateBehaviorTest extends CakeTestCase {
 		$translations = Translation::forLocale();
 		$this->assertSame($expected, $translations);
 	}
+
+/**
+ * testSaveAll
+ *
+ * Updating a translated field should not update the db record - but instead update the translation record
+ *
+ * @return void
+ */
+	public function testSaveAll() {
+		$expected = array(
+			1 => 'tag1',
+			'tag2',
+			'tag3'
+		);
+
+		$this->Tag->saveAll(array(
+			'Tag' => array(
+				'id' => 1,
+				'tag' => 'Updated'
+			)
+		));
+
+		$this->Tag->Behaviors->disable('Translate');
+		$result = $this->Tag->find('list');
+		$this->assertSame($expected, $result);
+
+		$expected[1] = 'Updated';
+
+		$this->Tag->Behaviors->enable('Translate');
+		$result = $this->Tag->find('list');
+		$this->assertSame($expected, $result);
+
+		$expected = array(
+			'Tag.1.tag' => 'Updated',
+			'Tag.2.tag' => 'tag2',
+			'Tag.3.tag' => 'tag3',
+		);
+		$translations = Translation::forLocale();
+		$this->assertSame($expected, $translations);
+	}
 }

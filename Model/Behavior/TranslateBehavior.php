@@ -147,7 +147,7 @@ class TranslateBehavior extends ModelBehavior {
 	public function afterSave(Model $Model, $created) {
 		if ($this->_pendingTranslations) {
 			foreach ($this->_pendingTranslations as $locale => $translations) {
-				$params = compact('locale');
+				$params = array('locale' => $locale, 'autoPopulate' => true);
 
 				foreach ($translations as $key => $value) {
 					if (strpos($key, '{') !== false) {
@@ -156,6 +156,7 @@ class TranslateBehavior extends ModelBehavior {
 						}
 						$key = String::insert($key, array('id' => $Model->id), array('before' => '{', 'after'  => '}'));
 					}
+
 					Translation::update($key, $value, $params);
 				}
 			}
