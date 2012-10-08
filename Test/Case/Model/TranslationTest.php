@@ -1,6 +1,25 @@
 <?php
 App::uses('Translation', 'Translations.Model');
 
+class TestTranslation extends Translation {
+
+	public static function getPluralRules() {
+		return self::$_pluralRules;
+	}
+
+	public static function pluralCase($n, $locale = null) {
+		return self::_pluralCase($n, $locale);
+	}
+
+	public static function pluralCases($locale = null) {
+		return self::_pluralCases($locale);
+	}
+
+	public static function pluralRule($locale = null) {
+		return self::_pluralRule($locale);
+	}
+}
+
 /**
  * Translation Test Case
  *
@@ -231,7 +250,8 @@ class TranslationTest extends CakeTestCase {
 		));
 
 		$all = $this->Translation->find('all', array(
-			'fields' => array('locale', 'domain', 'category', 'key', 'value')
+			'conditions' => array('is_active' => 1),
+			'fields' => array('locale', 'domain', 'category', 'key', 'value'),
 		));
 
 		$expected = array(
@@ -523,7 +543,8 @@ class TranslationTest extends CakeTestCase {
 		$result = Translation::locales();
 		$expected = array(
 			'en' => 'English',
-			'no' => 'Norwegian'
+			'no' => 'Norwegian',
+			'ru' => 'Russian'
 		);
 		$this->assertSame($expected, $result);
 	}
@@ -548,5 +569,211 @@ class TranslationTest extends CakeTestCase {
 		$result = $this->Translation->createLocale('dk', $settings);
 		$expected = $this->Translation->forLocale('no', $settings);
 		$this->assertSame($expected, $result);
+	}
+
+/**
+ * Check en plural rules
+ *
+ * It's either a plural form - or false (singular)
+ */
+	public function testPluralCase() {
+		$result = TestTranslation::pluralCase(0, 'en');
+		$this->assertSame(1, $result);
+
+		$result = TestTranslation::pluralCase(1, 'en');
+		$this->assertSame(false, $result);
+
+		$result = TestTranslation::pluralCase(2, 'en');
+		$this->assertSame(1, $result);
+	}
+
+/**
+ * Check russian plural rules
+ *
+ * In russian it's:
+ *	Numbers ending in 1
+ *	Numbers ending in 2,3,4
+ *	Numbers ending in 5,6,7,8,9,0
+ */
+	public function testPluralCaseRussian() {
+		$result = TestTranslation::pluralCase(0, 'ru');
+		$this->assertSame(2, $result);
+
+		$result = TestTranslation::pluralCase(1, 'ru');
+		$this->assertSame(0, $result);
+
+		$result = TestTranslation::pluralCase(2, 'ru');
+		$this->assertSame(1, $result);
+
+		$result = TestTranslation::pluralCase(3, 'ru');
+		$this->assertSame(1, $result);
+
+		$result = TestTranslation::pluralCase(4, 'ru');
+		$this->assertSame(1, $result);
+
+		$result = TestTranslation::pluralCase(5, 'ru');
+		$this->assertSame(2, $result);
+
+		$result = TestTranslation::pluralCase(6, 'ru');
+		$this->assertSame(2, $result);
+
+		$result = TestTranslation::pluralCase(7, 'ru');
+		$this->assertSame(2, $result);
+
+		$result = TestTranslation::pluralCase(8, 'ru');
+		$this->assertSame(2, $result);
+
+		$result = TestTranslation::pluralCase(9, 'ru');
+		$this->assertSame(2, $result);
+
+		$result = TestTranslation::pluralCase(10, 'ru');
+		$this->assertSame(2, $result);
+	}
+
+/**
+ * Check arabic plural rules
+ *
+ * @TODO These are complex, need to check with some source that they are correct
+ */
+	public function testPluralCaseArabic() {
+		$result = TestTranslation::pluralCase(0, 'ar');
+		$this->assertSame(0, $result);
+
+		$result = TestTranslation::pluralCase(1, 'ar');
+		$this->assertSame(1, $result);
+
+		$result = TestTranslation::pluralCase(2, 'ar');
+		$this->assertSame(2, $result);
+
+		$result = TestTranslation::pluralCase(3, 'ar');
+		$this->assertSame(3, $result);
+
+		$result = TestTranslation::pluralCase(10, 'ar');
+		$this->assertSame(3, $result);
+
+		$result = TestTranslation::pluralCase(11, 'ar');
+		$this->assertSame(4, $result);
+
+		$result = TestTranslation::pluralCase(99, 'ar');
+		$this->assertSame(4, $result);
+
+		$result = TestTranslation::pluralCase(100, 'ar');
+		$this->assertSame(5, $result);
+
+		$result = TestTranslation::pluralCase(102, 'ar');
+		$this->assertSame(5, $result);
+
+		$result = TestTranslation::pluralCase(103, 'ar');
+		$this->assertSame(3, $result);
+	}
+
+	public function testPluralCases() {
+		$result = TestTranslation::pluralCases('ar');
+		$this->assertSame(6, $result);
+
+		$result = TestTranslation::pluralCases('en');
+		$this->assertSame(2, $result);
+
+		$result = TestTranslation::pluralCases('en_GB');
+		$this->assertSame(2, $result);
+
+		$result = TestTranslation::pluralCases('fr');
+		$this->assertSame(2, $result);
+
+		$result = TestTranslation::pluralCases('fr_XX');
+		$this->assertSame(2, $result);
+
+		$result = TestTranslation::pluralCases('ja');
+		$this->assertSame(1, $result);
+
+		$result = TestTranslation::pluralCases('ru');
+		$this->assertSame(3, $result);
+
+		$result = TestTranslation::pluralCases('xx');
+		$this->assertSame(2, $result);
+	}
+
+	public function testPluralRule() {
+		$result = TestTranslation::pluralRule('ar');
+		$this->assertSame('nplurals=6; plural= n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 && n%100<=10 ? 3 : n%100>=11 ? 4 : 5;', $result);
+
+		$result = TestTranslation::pluralRule('en');
+		$this->assertSame('nplurals=2; plural=(n != 1)', $result);
+
+		$result = TestTranslation::pluralRule('en_GB');
+		$this->assertSame('nplurals=2; plural=(n != 1)', $result);
+
+		$result = TestTranslation::pluralRule('fr');
+		$this->assertSame('nplurals=2; plural=(n > 1)', $result);
+
+		$result = TestTranslation::pluralRule('fr_XX');
+		$this->assertSame('nplurals=2; plural=(n > 1)', $result);
+
+		$result = TestTranslation::pluralRule('ja');
+		$this->assertSame('nplurals=1; plural=0', $result);
+
+		$result = TestTranslation::pluralRule('ru');
+		$this->assertSame('nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2)', $result);
+
+		$result = TestTranslation::pluralRule('xx');
+		$this->assertSame('nplurals=2; plural=(n != 1)', $result);
+	}
+
+	public function testPluralTranslation() {
+		$options = array(
+			'plural' => '{number} messages',
+			'locale' => 'ru'
+		);
+
+		$options['count'] = 0;
+		$result = Translation::translate('1 message', $options);
+		$this->assertSame('ends in 5,6,7,8,9,0 message', $result);
+
+		$options['count'] = 1;
+		$result = Translation::translate('1 message', $options);
+		$this->assertSame('It\'s one message', $result);
+
+		$options['count'] = 2;
+		$result = Translation::translate('1 message', $options);
+		$this->assertSame('ends in 2,3,4 message', $result);
+
+		$options['count'] = 3;
+		$result = Translation::translate('1 message', $options);
+		$this->assertSame('ends in 2,3,4 message', $result);
+
+		$options['count'] = 4;
+		$result = Translation::translate('1 message', $options);
+		$this->assertSame('ends in 2,3,4 message', $result);
+
+		$options['count'] = 5;
+		$result = Translation::translate('1 message', $options);
+		$this->assertSame('ends in 5,6,7,8,9,0 message', $result);
+
+		$options['count'] = 6;
+		$result = Translation::translate('1 message', $options);
+		$this->assertSame('ends in 5,6,7,8,9,0 message', $result);
+
+		$options['count'] = 7;
+		$result = Translation::translate('1 message', $options);
+		$this->assertSame('ends in 5,6,7,8,9,0 message', $result);
+
+		$options['count'] = 8;
+		$result = Translation::translate('1 message', $options);
+		$this->assertSame('ends in 5,6,7,8,9,0 message', $result);
+
+		$options['count'] = 9;
+		$result = Translation::translate('1 message', $options);
+		$this->assertSame('ends in 5,6,7,8,9,0 message', $result);
+
+		$options['count'] = 10;
+		$result = Translation::translate('1 message', $options);
+		$this->assertSame('ends in 5,6,7,8,9,0 message', $result);
+	}
+
+	public function testAllPluralRulesHandled() {
+		$pluralRules = TestTranslation::getPluralRules();
+		foreach($pluralRules as $rule) {
+			PluralRule::check($rule, 1);
+		}
 	}
 }

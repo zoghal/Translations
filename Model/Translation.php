@@ -1,6 +1,7 @@
 <?php
 App::uses('TranslationsAppModel', 'Translations.Model');
 App::uses('Nodes\L10n', 'Translations.Lib');
+App::uses('PluralRule', 'Translations.Lib');
 
 /**
  * Translation Model
@@ -68,7 +69,29 @@ class Translation extends TranslationsAppModel {
  */
 	protected static $_model;
 
+/**
+ * Placeholder for an array of all locales
+ */
 	protected static $_locales;
+
+/**
+ * Plural rules
+ *
+ * Incomplete list of gettext plural rules, it's incomplete because we don't need
+ * to define rules for languages we'll never use.
+ *
+ * @link http://translate.sourceforge.net/wiki/l10n/pluralforms
+ */
+	protected static $_pluralRules = array(
+		'default' => 'nplurals=2; plural=(n != 1)',
+		'ar' => 'nplurals=6; plural= n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 && n%100<=10 ? 3 : n%100>=11 ? 4 : 5;',
+		'be' => 'nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2)',
+		'fr' => 'nplurals=2; plural=(n > 1)',
+		'ja' => 'nplurals=1; plural=0',
+		'pl' => 'nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2)',
+		'ru' => 'nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2)',
+		'zh' => 'nplurals=1; plural=0'
+	);
 
 /**
  * Indexed array or all translations
@@ -80,6 +103,23 @@ class Translation extends TranslationsAppModel {
  *				<translation key>
  */
 	protected static $_translations = array();
+
+	public function beforeSave($options = array()) {
+		$fields = array(
+			'references',
+			'history'
+		);
+		foreach($fields as $field) {
+			if (
+				!empty($this->data[$this->alias][$field]) &&
+				is_array($this->data[$this->alias][$field])
+			) {
+				$this->data[$this->alias][$field] =
+					json_encode($this->data[$this->alias][$field]);
+			}
+		}
+		return true;
+	}
 
 /**
  * beforeValidate
@@ -121,6 +161,7 @@ class Translation extends TranslationsAppModel {
 
 		return parent::beforeValidate($options);
 	}
+
 /**
  * categories
  *
@@ -141,6 +182,14 @@ class Translation extends TranslationsAppModel {
 	public static function config($settings = array()) {
 		if (empty($settings) && !empty(self::$_config['configured'])) {
 			return self::$_config;
+		}
+
+		if (!Configure::read('Config.language')) {
+			Configure::write('Config.language', 'en');
+		}
+
+		if (!Configure::read('Config.defaultLanguage')) {
+			Configure::write('Config.defaultLanguage', Configure::read('Config.language'));
 		}
 
 		if (defined('CORE_TEST_CASES')) {
@@ -357,14 +406,8 @@ class Translation extends TranslationsAppModel {
 		if (!$return) {
 			return false;
 		}
-		foreach ($return['translations'] as $domain => $locales) {
-			foreach ($locales as $locale => $categories) {
-				foreach ($categories as $category => $translations) {
-					foreach ($translations as $key => $val) {
-						Translation::update($key, $val, compact('domain', 'locale', 'category'));
-					}
-				}
-			}
+		foreach ($return['translations'] as $translation) {
+			Translation::update($translation['key'], $translation['value'], $translation);
 		}
 		return $return;
 	}
@@ -407,7 +450,7 @@ class Translation extends TranslationsAppModel {
 				$file = TMP . time() . '.json';
 				file_put_contents($file, $content);
 			} else {
-				$content = file_get_contents($data['resource']);
+				$content = file_get_contents($file);
 			}
 
 			if (!file_exists($file)) {
@@ -486,34 +529,54 @@ class Translation extends TranslationsAppModel {
 			'category' => self::$_config['category'],
 			'count' => null,
 			'locale' => !empty($_SESSION['Config']['language']) ? $_SESSION['Config']['language'] : Configure::read('Config.language'),
-			'autoPopulate' => is_null(self::$_config['autoPopulate']) ? Configure::read() : self::$_config['autoPopulate']
+			'autoPopulate' => false
 		);
 
 		$domain = $options['domain'];
 		$locale = $options['locale'];
 		$category = $options['category'];
 
+		$pluralCase = false;
+		if (isset($options['count']) && (int)$options['count'] !== 1) {
+			$pluralCase = self::_pluralCase($options['count'], $options['locale']);
+		}
+
+		if ($pluralCase !== false) {
+			$options['pluralCase'] = $pluralCase;
+			$key = $options['plural'];
+		} else {
+			$key = $singular;
+		}
+
 		if (is_numeric($category)) {
 			$category = self::$_categories[$category];
 			$options['category'] = $category;
 		}
 
-		if (self::hasTranslation($singular, $options)) {
-			return self::$_translations[$domain][$locale][$category][$singular];
+		if (self::hasTranslation($key, $options)) {
+			if ($pluralCase && is_array(self::$_translations[$domain][$locale][$category][$key])) {
+				return self::$_translations[$domain][$locale][$category][$key][$pluralCase];
+			}
+			return self::$_translations[$domain][$locale][$category][$key];
 		}
 
 		if ($options['autoPopulate']) {
-			self::$_translations[$domain][$locale][$category][$singular] = $singular;
+			if (!is_null($pluralCase)) {
+				self::$_translations[$domain][$locale][$category][$key][$pluralCase] = $key;
+			} else {
+				self::$_translations[$domain][$locale][$category][$key] = $key;
+			}
 			self::$_model->create();
 			self::$_model->save(array(
 				'domain' => $options['domain'],
 				'category' => $options['category'],
 				'locale' => Configure::read('Config.defaultLanguage'),
-				'key' => $singular,
-				'value' => $singular
+				'key' => $key,
+				'value' => $key,
+				'plural_case' => $pluralCase
 			));
 		}
-		return $singular;
+		return $key;
 	}
 
 /**
@@ -534,12 +597,27 @@ class Translation extends TranslationsAppModel {
 		);
 		extract($options);
 
-		self::$_translations[$domain][$locale][$category][$key] = $value;
+		if (isset($options['plural_case'])) {
+			$plural_case = $options['plural_case'];
+			self::$_translations[$domain][$locale][$category][$key][$plural_case] = $value;
+		} else {
+			self::$_translations[$domain][$locale][$category][$key] = $value;
+		}
 
 		if (self::$_config['useTable']) {
-			$update = compact('domain', 'locale', 'category', 'key');
+			if (!self::$_model) {
+				self::_loadModel();
+			}
+			$update = array_intersect_key(
+				$options,
+				array_flip(array('domain', 'locale', 'category', 'key', 'plural_case'))
+			);
 			self::$_model->create();
 			self::$_model->id = self::$_model->field('id', $update);
+			$update += array_intersect_key(
+				$options,
+				array_flip(array('comments', 'references'))
+			);
 			return self::$_model->save($update + array('value' => $value));
 		}
 		return false;
@@ -581,7 +659,14 @@ class Translation extends TranslationsAppModel {
 		}
 
 		if (array_key_exists($key, self::$_translations[$domain][$locale][$category])) {
-			return true;
+			if (isset($options['pluralCase'])) {
+				return array_key_exists(
+					$options['pluralCase'],
+					self::$_translations[$domain][$locale][$category][$key]
+				);
+			} else {
+				return true;
+			}
 		}
 		return false;
 	}
@@ -709,11 +794,21 @@ class Translation extends TranslationsAppModel {
 			$conditions['key LIKE'] = $settings['section'] . '%';
 		}
 
-		$data = $this->find('list', array(
-			'fields' => array('key', 'value'),
+		$all = $this->find('all', array(
+			'fields' => array('key', 'value', 'plural_case'),
 			'conditions' => $conditions,
 			'order' => array('key' => 'ASC')
 		));
+
+		$data = array();
+		foreach($all as $row) {
+			$row = current($row);
+			if (is_null($row['plural_case'])) {
+				$data[$row['key']] = $row['value'];
+			} else {
+				$data[$row['key']][$row['plural_case']] = $row['value'];
+			}
+		}
 
 		if (!$settings['section']) {
 			ksort($data);
@@ -763,12 +858,61 @@ class Translation extends TranslationsAppModel {
 	}
 
 /**
+  * Plural case
+ *
+ * Which plural form should be used
+ *
+ * Gettext formulas are eval-able, substitute n in the formula, and treat as a php expression
+ *
+ * @param string  locale
+ * @return int
+ */
+	protected static function _pluralCase($n, $locale = null) {
+		$rule = self::_pluralRule($locale);
+
+		return PluralRule::check($rule, $n);
+	}
+
+/**
+ * Plural cases
+ *
+ * How many plural forms afer there for the given locale?
+ * Assume the rule is welformed, and written as:
+ *
+ *	npurals=x
+ *
+ * Where x is the number of plural cases that exist for this locale
+ *
+ * @param string  locale
+ * @return int
+ */
+	protected static function _pluralCases($locale = null) {
+		$rule = self::_pluralRule($locale);
+		return (int)substr($rule, 9, 1);
+	}
+
+/**
+ * Pluralrule
+ *
+ * What is the plural rule (expressed as a gettext formula) for the requested locale?
+ *
+ * @param string  locale
+ */
+	protected static function _pluralRule($locale = null) {
+		$locale = substr($locale, 0, 2);
+
+		if (array_key_exists($locale, self::$_pluralRules)) {
+			return self::$_pluralRules[$locale];
+		}
+		return self::$_pluralRules['default'];
+	}
+
+/**
  * _recursiveInsert
  *
  * @param mixed $array
  * @param mixed $keys
  * @param mixed $value
- * @return void
  */
 	protected function _recursiveInsert(&$array, $keys, $value) {
 		if (!is_array($array)) {

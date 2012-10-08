@@ -52,6 +52,40 @@ class OverrideI18nTest extends CakeTestCase {
 	}
 
 /**
+ * testSubstitutionPlural
+ *
+ * @return void
+ */
+	public function testSubstitutionPlural() {
+		$return = __n('single', 'plural {number}', 1);
+		$this->assertSame('single', $return);
+
+		$return = __n('single', 'plural {number}', 0);
+		$this->assertSame('plural 0', $return);
+
+		$return = __n('single', 'plural {number}', 2);
+		$this->assertSame('plural 2', $return);
+
+		$return = __n('single %s', 'plural %d %s', 1, 'blue');
+		$this->assertSame('single blue', $return);
+
+		$return = __n('single %s', 'plural %d %s', 0, 'blue');
+		$this->assertSame('plural 0 blue', $return);
+
+		$return = __n('single %s', 'plural %d %s', 2, 'blue');
+		$this->assertSame('plural 2 blue', $return);
+
+		$return = __n('single {color}', 'plural {number} {color}', 1, array('color' => 'blue'));
+		$this->assertSame('single blue', $return);
+
+		$return = __n('single {color}', 'plural {number} {color}', 0, array('color' => 'blue'));
+		$this->assertSame('plural 0 blue', $return);
+
+		$return = __n('single {color}', 'plural {number} {color}', 2, array('color' => 'blue'));
+		$this->assertSame('plural 2 blue', $return);
+	}
+
+/**
  * testSubstitutionDomain
  *
  * @return void
@@ -80,5 +114,39 @@ class OverrideI18nTest extends CakeTestCase {
 
 		$return = __d('testing', 'Multiple {replace} {markers}', 'something', 'else');
 		$this->assertSame('Multiple {replace} {markers}', $return, 'When using named markers, if multiple args are passed they should be ignored (as it\'s ambiguous)');
+	}
+
+/**
+ * testSubstitutionPluralDomain
+ *
+ * @return void
+ */
+	public function testSubstitutionPluralDomain() {
+		$return = __dn('testing', 'single', 'plural {number}', 1);
+		$this->assertSame('single', $return);
+
+		$return = __dn('testing', 'single', 'plural {number}', 0);
+		$this->assertSame('plural 0', $return);
+
+		$return = __dn('testing', 'single', 'plural {number}', 2);
+		$this->assertSame('plural 2', $return);
+
+		$return = __dn('testing', 'single %s', 'plural %d %s', 1, 'blue');
+		$this->assertSame('single blue', $return);
+
+		$return = __dn('testing', 'single %s', 'plural %d %s', 0, 'blue');
+		$this->assertSame('plural 0 blue', $return);
+
+		$return = __dn('testing', 'single %s', 'plural %d %s', 2, 'blue');
+		$this->assertSame('plural 2 blue', $return);
+
+		$return = __dn('testing', 'single {color}', 'plural {number} {color}', 1, array('color' => 'blue'));
+		$this->assertSame('single blue', $return);
+
+		$return = __dn('testing', 'single {color}', 'plural {number} {color}', 0, array('color' => 'blue'));
+		$this->assertSame('plural 0 blue', $return);
+
+		$return = __dn('testing', 'single {color}', 'plural {number} {color}', 2, array('color' => 'blue'));
+		$this->assertSame('plural 2 blue', $return);
 	}
 }
