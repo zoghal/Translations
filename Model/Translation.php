@@ -554,10 +554,14 @@ class Translation extends TranslationsAppModel {
 		}
 
 		if (self::hasTranslation($key, $options)) {
-			if ($pluralCase && is_array(self::$_translations[$domain][$locale][$category][$key])) {
-				return self::$_translations[$domain][$locale][$category][$key][$pluralCase];
+			$return = self::$_translations[$domain][$locale][$category][$key];
+			if (is_array($return)) {
+				if ($pluralCase !== false && isset($return[$pluralCase])) {
+					return $return[$pluralCase];
+				}
+				return current($return);
 			}
-			return self::$_translations[$domain][$locale][$category][$key];
+			return $return;
 		}
 
 		if ($options['autoPopulate']) {
