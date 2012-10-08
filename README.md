@@ -74,12 +74,13 @@ The plugin as a whole can be configured via the `Translation::config` function:
 		'useDbConfig' => 'default',
 		'useTable' => 'translations',
 		'cacheConfig' => 'default',
-		'autoPopulate' => null
+		'autoPopulate' => false
    ));
 
-Missing entries are automatically added on first use in development mode - so you can just add the markers
-into your code as appropriate, and then update via the admin interface. In production mode, this functionality
-is disabled by default
+If you want missing entries to automatically be created it's necessary to set `autoPopulate` to true.
+The advantage to doing that is that entries get created as you create them in your code, the (potentially
+significant) disadvantage is that entries which you don't trigger during development won't be available
+in the backend for translating - and may need creating manually.
 
 ##TODO
 

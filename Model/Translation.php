@@ -529,7 +529,7 @@ class Translation extends TranslationsAppModel {
 			'category' => self::$_config['category'],
 			'count' => null,
 			'locale' => !empty($_SESSION['Config']['language']) ? $_SESSION['Config']['language'] : Configure::read('Config.language'),
-			'autoPopulate' => is_null(self::$_config['autoPopulate']) ? Configure::read() : self::$_config['autoPopulate']
+			'autoPopulate' => false
 		);
 
 		$domain = $options['domain'];
