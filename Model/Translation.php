@@ -612,9 +612,9 @@ class Translation extends TranslationsAppModel {
 			if (!self::$_model) {
 				self::_loadModel();
 			}
-			$update = array_intersect_key(
+			$update = compact('key') + array_intersect_key(
 				$options,
-				array_flip(array('domain', 'locale', 'category', 'key', 'plural_case'))
+				array_flip(array('domain', 'locale', 'category', 'plural_case'))
 			);
 			self::$_model->create();
 			self::$_model->id = self::$_model->field('id', $update);
