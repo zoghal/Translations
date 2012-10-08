@@ -1,5 +1,7 @@
 <?php
-class JsonParser {
+App::uses('Parser', 'Translations.Parser');
+
+class JsonParser extends Parser {
 
 /**
  * parse
@@ -17,11 +19,13 @@ class JsonParser {
  * @return array
  */
 	public static function parse($file, $defaults = array()) {
-		extract($defaults);
-
 		$translations = json_decode(file_get_contents($file), true);
+
 		if (isset($translations['translations']) && is_array($translations['translations'])) {
-			extract($translations);
+			$defaults += $translations;
+			unset($defaults['translations']);
+
+			$translations = $translations['translations'];
 		} else {
 			if (isset($translations['data']) && is_array($translations['data'])) {
 				$translations = $translations['data'];
@@ -31,20 +35,7 @@ class JsonParser {
 			}
 		}
 
-		$count = 0;
-		$return = array();
-		foreach ($translations as $key => $val) {
-			if (!strpos($key, '.')) {
-				$key = str_replace('_', '.', Inflector::underscore($key));
-			}
-			$return[$domain][$locale][$category][$key] = $val;
-			$count++;
-		}
-
-		return array(
-			'count' => $count,
-			'translations' => $return
-		);
+		return self::_parseArray($translations, $defaults);
 	}
 
 /**
