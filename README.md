@@ -67,7 +67,7 @@ You can change language at any time:
 
 The plugin as a whole can be configured via the `Translation::config` function:
 
-   Translation::config(array(
+	Translation::config(array(
 		'locale' => 'en',
 		'domain' => 'default',
 		'category' => 'LC_MESSAGES',
@@ -75,7 +75,7 @@ The plugin as a whole can be configured via the `Translation::config` function:
 		'useTable' => 'translations',
 		'cacheConfig' => 'default',
 		'autoPopulate' => false
-   ));
+	));
 
 If you want missing entries to automatically be created it's necessary to set `autoPopulate` to true.
 The advantage to doing that is that entries get created as you create them in your code, the (potentially
