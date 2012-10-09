@@ -21,7 +21,7 @@ class TranslateBehavior extends ModelBehavior {
  * @var array
  */
 	protected $_defaultSettings = array(
-		'domain' => 'default',
+		'domain' => 'data',
 		'fields' => array()
 	);
 
