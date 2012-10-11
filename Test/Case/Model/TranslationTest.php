@@ -423,7 +423,7 @@ class TranslationTest extends CakeTestCase {
 		$this->assertSame($noBefore, $noAfter, 'The result of a cache-miss (1st call) and cache-hit (2nd call) should not differ');
 	}
 
-	public function testForLoaleReadsConfig() {
+	public function testForLocaleReadsConfig() {
 		Configure::write('Config.language', 'no');
 		$result = $this->Translation->forLocale();
 
@@ -438,16 +438,16 @@ class TranslationTest extends CakeTestCase {
 			'key_one' => 'Verdi En',
 			'key_two' => 'Verdi To',
 			'nested' => array (
-				   'key' => array (
-					   'one' => 'Dyp Verdi En',
-					   'two' => 'Dyp Verdi To'
-				   )
+				'key' => array (
+					'one' => 'Dyp Verdi En',
+					'two' => 'Dyp Verdi To'
+				)
 			),
 			'numerical' => array (
-				   'key' => array (
-					   'Tall Verdi En',
-					   'Tall Verdi To'
-				   )
+				'key' => array (
+					'Tall Verdi En',
+					'Tall Verdi To'
+				)
 			),
 			'super' => array(
 				'duper' => array(
@@ -466,6 +466,58 @@ class TranslationTest extends CakeTestCase {
 		);
 
 		$this->assertSame($expected, $result);
+	}
+
+	public function testHasTranslation() {
+		$class = $this->getMockClass('Translation', array('forLocale'));
+
+		$class::staticExpects($this->once())
+			->method('forLocale')
+			->will($this->returnValue(array('Foo' => 'bar')));
+
+		$result = $class::hasTranslation('Foo', array('domain' => 'enigma', 'nested' => false));
+		$this->assertTrue($result);
+	}
+
+	public function testHasTranslationMissing() {
+		$class = $this->getMockClass('Translation', array('forLocale'));
+
+		$class::staticExpects($this->once())
+			->method('forLocale')
+			->will($this->returnValue(array('Foo' => 'bar')));
+
+		$result = $class::hasTranslation('Not Foo', array('domain' => 'enigma', 'nested' => false));
+		$this->assertFalse($result);
+	}
+
+	public function testHasTranslationEmptyDomain() {
+		$class = $this->getMockClass('Translation', array('forLocale'));
+
+		$class::staticExpects($this->once())
+			->method('forLocale')
+			->will($this->returnValue(array()));
+
+		$result = $class::hasTranslation('Foo', array('domain' => 'enigma', 'nested' => false));
+		$this->assertFalse($result);
+	}
+
+/**
+ * testHasTranslationEmptyDomainInRequestCache
+ *
+ * There should only be one call to forLocale
+ *
+ * @return void
+ */
+	public function testHasTranslationEmptyDomainInRequestCache() {
+		$class = $this->getMockClass('Translation', array('forLocale'));
+
+		$class::staticExpects($this->once())
+			->method('forLocale')
+			->will($this->returnValue(array()));
+
+		$result = $class::hasTranslation('Foo', array('domain' => 'enigma', 'nested' => false));
+		$result = $class::hasTranslation('Foo', array('domain' => 'enigma', 'nested' => false));
+		$this->assertFalse($result);
 	}
 
 	public function testTranslate() {
