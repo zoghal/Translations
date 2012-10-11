@@ -322,16 +322,16 @@ class TranslationTest extends CakeTestCase {
 			'key_one' => 'Value One',
 			'key_two' => 'Value Two',
 			'nested' => array (
-				   'key' => array (
-					   'one' => 'Nested Value One',
-					   'two' => 'Nested Value Two'
-				   )
+				'key' => array (
+					'one' => 'Nested Value One',
+					'two' => 'Nested Value Two'
+				)
 			),
 			'numerical' => array (
-				   'key' => array (
-					   'Numerical Value One',
-					   'Numerical Value Two'
-				   )
+				'key' => array (
+					'Numerical Value One',
+					'Numerical Value Two'
+				)
 			),
 			'super' => array(
 				'duper' => array(
@@ -423,7 +423,7 @@ class TranslationTest extends CakeTestCase {
 		$this->assertSame($noBefore, $noAfter, 'The result of a cache-miss (1st call) and cache-hit (2nd call) should not differ');
 	}
 
-	public function testForSettingLanguageConfig() {
+	public function testForLoaleReadsConfig() {
 		Configure::write('Config.language', 'no');
 		$result = $this->Translation->forLocale();
 
@@ -468,7 +468,7 @@ class TranslationTest extends CakeTestCase {
 		$this->assertSame($expected, $result);
 	}
 
-	public function testForDefaultTranslate() {
+	public function testTranslate() {
 		$result = Translation::translate('key_one');
 		$expected = 'Value One';
 		$this->assertSame($expected, $result);
@@ -482,7 +482,7 @@ class TranslationTest extends CakeTestCase {
 		$this->assertSame($expected, $result);
 	}
 
-	public function testForChangedLocaleTranslate() {
+	public function testTranslateReadsConfig() {
 		Configure::write('Config.language', 'no');
 		$result = Translation::translate('key_two');
 		$expected = 'Verdi To';
@@ -497,7 +497,14 @@ class TranslationTest extends CakeTestCase {
 		$this->assertSame($expected, $result);
 	}
 
-	public function testForChangingLocale() {
+/**
+ * testTranslateReadsConfigDynamic
+ *
+ * Changing the config setting should directly affect results from translate
+ *
+ * @return void
+ */
+	public function testTranslateReadsConfigDynamic() {
 		$result = Translation::translate('key_one');
 		$expected = 'Value One';
 		$this->assertSame($expected, $result);
@@ -514,14 +521,14 @@ class TranslationTest extends CakeTestCase {
 	}
 
 /**
- * testForMissingLocale
+ * testTranslateMissingLocale
  *
  * If there is no language specific translations - it should use use the inheritance.
  * Config.defaultLangauge is always added as a top level fallback
  *
  * @return void
  */
-	public function testForMissingLocale() {
+	public function testTranslateMissingLocale() {
 		Configure::write('Config.language', 'de');
 		$result = Translation::translate('key_one');
 		$expected = 'Value One';
@@ -533,7 +540,7 @@ class TranslationTest extends CakeTestCase {
 		$this->assertSame($expected, $result);
 	}
 
-	public function testForMissingTranslation() {
+	public function testTranslateMissingTranslation() {
 		$result = Translation::translate('non-existant key');
 		$expected = 'non-existant key';
 		$this->assertSame($expected, $result);
@@ -549,19 +556,19 @@ class TranslationTest extends CakeTestCase {
 		$this->assertSame($expected, $result);
 	}
 
-	public function testForCreateLocale() {
+	public function testCreateLocale() {
 		$result = $this->Translation->createLocale('dk');
 		$expected = $this->Translation->forLocale();
 		$this->assertSame($expected, $result);
 	}
 
-	public function testForCreateLocaleBasedOn() {
+	public function testCreateLocaleBasedOn() {
 		$result = $this->Translation->createLocale('dk', 'no');
 		$expected = $this->Translation->forLocale('no');
 		$this->assertSame($expected, $result);
 	}
 
-	public function testForCreateLocaleSettings() {
+	public function testCreateLocaleSettings() {
 		$settings = array(
 			'basedOn' => 'no',
 			'nested' => false
