@@ -289,7 +289,7 @@ class TranslationTest extends CakeTestCase {
 	}
 
 	public function testForLocaleFlat() {
-		$result = $this->Translation->forLocale('en', array('nested' => false));
+		$result = Translation::forLocale('en', array('nested' => false));
 
 		$expected = array(
 			'...a...b...c...' => 'Dotted key',
@@ -309,7 +309,7 @@ class TranslationTest extends CakeTestCase {
 	}
 
 	public function testForLocaleNested() {
-		$result = $this->Translation->forLocale();
+		$result = Translation::forLocale();
 
 		$expected = array(
 			'...a...b...c...' => 'Dotted key',
@@ -353,7 +353,7 @@ class TranslationTest extends CakeTestCase {
 	}
 
 	public function testForLocaleSection() {
-		$result = $this->Translation->forLocale('en', array('section' => 'key'));
+		$result = Translation::forLocale('en', array('section' => 'key'));
 
 		$expected = array(
 			'with' => array(
@@ -386,8 +386,8 @@ class TranslationTest extends CakeTestCase {
 			->method('_forLocale')
 			->will($this->returnValue(array('foo' => 'bar')));
 
-		$this->Translation->forLocale('en', array('nested' => false));
-		$result = $this->Translation->forLocale('en', array('nested' => false));
+		Translation::forLocale('en', array('nested' => false));
+		$result = Translation::forLocale('en', array('nested' => false));
 
 		$expected = array(
 			'foo' => 'bar'
@@ -402,8 +402,8 @@ class TranslationTest extends CakeTestCase {
 			'cacheConfig' => 'default',
 		));
 
-		$enBefore = $this->Translation->forLocale('en', array('nested' => false));
-		$noBefore = $this->Translation->forLocale('no', array('nested' => false));
+		$enBefore = Translation::forLocale('en', array('nested' => false));
+		$noBefore = Translation::forLocale('no', array('nested' => false));
 
 		$ts = Cache::read('translations-ts', 'default');
 		$this->assertTrue((bool)$ts, 'The timestamp should have been set to a value');
@@ -416,8 +416,8 @@ class TranslationTest extends CakeTestCase {
 		$this->assertSame($enBefore, $enCached, 'The cached result should exactly match the returned value');
 		$this->assertSame($noBefore, $noCached, 'The cached result should exactly match the returned value');
 
-		$enAfter = $this->Translation->forLocale('en', array('nested' => false));
-		$noAfter = $this->Translation->forLocale('no', array('nested' => false));
+		$enAfter = Translation::forLocale('en', array('nested' => false));
+		$noAfter = Translation::forLocale('no', array('nested' => false));
 
 		$this->assertSame($enBefore, $enAfter, 'The result of a cache-miss (1st call) and cache-hit (2nd call) should not differ');
 		$this->assertSame($noBefore, $noAfter, 'The result of a cache-miss (1st call) and cache-hit (2nd call) should not differ');
@@ -425,7 +425,7 @@ class TranslationTest extends CakeTestCase {
 
 	public function testForLocaleReadsConfig() {
 		Configure::write('Config.language', 'no');
-		$result = $this->Translation->forLocale();
+		$result = Translation::forLocale();
 
 		$expected = array(
 			'...a...b...c...' => 'Prikkete nøkkel',
@@ -610,13 +610,13 @@ class TranslationTest extends CakeTestCase {
 
 	public function testCreateLocale() {
 		$result = $this->Translation->createLocale('dk');
-		$expected = $this->Translation->forLocale();
+		$expected = Translation::forLocale();
 		$this->assertSame($expected, $result);
 	}
 
 	public function testCreateLocaleBasedOn() {
 		$result = $this->Translation->createLocale('dk', 'no');
-		$expected = $this->Translation->forLocale('no');
+		$expected = Translation::forLocale('no');
 		$this->assertSame($expected, $result);
 	}
 
@@ -626,7 +626,7 @@ class TranslationTest extends CakeTestCase {
 			'nested' => false
 		);
 		$result = $this->Translation->createLocale('dk', $settings);
-		$expected = $this->Translation->forLocale('no', $settings);
+		$expected = Translation::forLocale('no', $settings);
 		$this->assertSame($expected, $result);
 	}
 
