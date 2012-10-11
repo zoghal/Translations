@@ -18,6 +18,7 @@ class TestTranslation extends Translation {
 	public static function pluralRule($locale = null) {
 		return self::_pluralRule($locale);
 	}
+
 }
 
 /**
@@ -831,7 +832,7 @@ class TranslationTest extends CakeTestCase {
 
 	public function testAllPluralRulesHandled() {
 		$pluralRules = TestTranslation::getPluralRules();
-		foreach($pluralRules as $rule) {
+		foreach ($pluralRules as $rule) {
 			PluralRule::check($rule, 1);
 		}
 	}
