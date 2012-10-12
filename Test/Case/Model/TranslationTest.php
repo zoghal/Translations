@@ -27,6 +27,69 @@ class TestTranslation extends Translation {
  */
 class TranslationTest extends CakeTestCase {
 
+	public function testAutoLanguage() {
+		$serverBackup = $_SERVER;
+		$_SERVER['HTTP_ACCEPT_LANGUAGE'] = 'fr,es,en';
+
+		$class = $this->getMockClass('Translation', array('locales'));
+
+		$class::staticExpects($this->once())
+			->method('locales')
+			->will($this->returnValue(array('en' => 'en')));
+
+		$return = $class::autoDetectLocale();
+		$this->assertEquals('en', $return);
+
+		$_SERVER = $serverBackup;
+	}
+
+	public function testAutoLanguageLocale() {
+		$serverBackup = $_SERVER;
+		$_SERVER['HTTP_ACCEPT_LANGUAGE'] = 'fr,es,en_GB';
+
+		$class = $this->getMockClass('Translation', array('locales'));
+
+		$class::staticExpects($this->once())
+			->method('locales')
+			->will($this->returnValue(array('en' => 'en')));
+
+		$return = $class::autoDetectLocale();
+		$this->assertEquals('en', $return);
+
+		$_SERVER = $serverBackup;
+	}
+
+	public function testAutoLanguageNotDefault() {
+		$serverBackup = $_SERVER;
+		$_SERVER['HTTP_ACCEPT_LANGUAGE'] = 'dk,es,en';
+
+		$class = $this->getMockClass('Translation', array('locales'));
+
+		$class::staticExpects($this->once())
+			->method('locales')
+			->will($this->returnValue(array('en' => 'en', 'dk' => 'dk')));
+
+		$return = $class::autoDetectLocale();
+		$this->assertEquals('dk', $return);
+
+		$_SERVER = $serverBackup;
+	}
+
+	public function testAutoLanguageNotDefaultLocale() {
+		$serverBackup = $_SERVER;
+		$_SERVER['HTTP_ACCEPT_LANGUAGE'] = 'dk_DK,es,en';
+
+		$class = $this->getMockClass('Translation', array('locales'));
+
+		$class::staticExpects($this->once())
+			->method('locales')
+			->will($this->returnValue(array('en' => 'en', 'dk' => 'dk')));
+
+		$return = $class::autoDetectLocale();
+		$this->assertEquals('dk', $return);
+
+		$_SERVER = $serverBackup;
+	}
 /**
  * Fixtures
  *
