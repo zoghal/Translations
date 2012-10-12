@@ -2,6 +2,7 @@
 App::uses('TranslationsAppModel', 'Translations.Model');
 App::uses('Nodes\L10n', 'Translations.Lib');
 App::uses('PluralRule', 'Translations.Lib');
+App::uses('CakeRequest', 'Network');
 
 /**
  * Translation Model
@@ -104,12 +105,50 @@ class Translation extends TranslationsAppModel {
  */
 	protected static $_translations = array();
 
+/**
+ * autoDetectLocale
+ *
+ * Based on the request accept-language header - set the language
+ *
+ * @return string matched language
+ */
+	public static function autoDetectLocale() {
+		$locales = static::locales();
+		$candidates = CakeRequest::acceptLanguage();
+
+		$match = false;
+		foreach ($candidates as $langKey) {
+			$permutations = array();
+			if (strlen($langKey) === 5) {
+				$permutations[] = substr($langKey, 0, 2) . '_' . strtoupper(substr($langKey, -2, 2));
+			}
+			$permutations[] = substr($langKey, 0, 2);
+			foreach ($permutations as $langKey) {
+				if (!empty($locales[$langKey])) {
+					$match = $langKey;
+					break 2;
+				}
+				if (!empty($locales[$langKey])) {
+					$match = $langKey;
+					break 2;
+				}
+			}
+
+		}
+
+		if ($match) {
+			Configure::write('Config.language', $match);
+		}
+
+		return $match;
+	}
+
 	public function beforeSave($options = array()) {
 		$fields = array(
 			'references',
 			'history'
 		);
-		foreach($fields as $field) {
+		foreach ($fields as $field) {
 			if (
 				!empty($this->data[$this->alias][$field]) &&
 				is_array($this->data[$this->alias][$field])
@@ -702,7 +741,7 @@ class Translation extends TranslationsAppModel {
 		$settings['addDefaults'] = $settings['addDefaults'] ? 'defaults' : 'nodefaults';
 
 		$return = array();
-		foreach(array('locale', 'domain', 'category', 'nested', 'addDefaults', 'section') as $key) {
+		foreach (array('locale', 'domain', 'category', 'nested', 'addDefaults', 'section') as $key) {
 			if ($key === 'section' && !$settings[$key]) {
 				continue;
 			}
@@ -811,7 +850,7 @@ class Translation extends TranslationsAppModel {
 		));
 
 		$data = array();
-		foreach($all as $row) {
+		foreach ($all as $row) {
 			$row = current($row);
 			if (is_null($row['plural_case'])) {
 				$data[$row['key']] = $row['value'];
@@ -868,7 +907,7 @@ class Translation extends TranslationsAppModel {
 	}
 
 /**
-  * Plural case
+ * Plural case
  *
  * Which plural form should be used
  *
