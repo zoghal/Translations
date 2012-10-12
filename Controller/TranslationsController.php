@@ -13,6 +13,7 @@ class TranslationsController extends TranslationsAppController {
 
 	public $paginate = array(
 		'order' => 'key ASC',
+		'paramType' => 'querystring'
 	);
 
 /**
