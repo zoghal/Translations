@@ -104,9 +104,12 @@ class TranslateBehavior extends ModelBehavior {
 		$settings = array(
 			'modelAlias' => $Model->alias,
 			'modelName' => $Model->name,
+			'domain' => $this->settings[$Model->alias]['domain']
 		);
+
 		$iterator = new TranslateInjector($results, $this->settings[$Model->alias]['fields'], $settings);
 		$results = iterator_to_array($iterator);
+
 		return $results;
 	}
 
