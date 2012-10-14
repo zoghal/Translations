@@ -166,12 +166,6 @@ class TranslateBehaviorTest extends CakeTestCase {
  * @return void
  */
 	public function testAutoPopulate() {
-		$expected = array(
-			1 => 'tag1',
-			'tag2',
-			'tag3'
-		);
-
 		$this->Tag->find('all');
 
 		$expected = array(
@@ -181,5 +175,84 @@ class TranslateBehaviorTest extends CakeTestCase {
 		);
 		$translations = Translation::forLocale(null, array('section' => 'Tag', 'nested' => false));
 		$this->assertSame($expected, $translations);
+	}
+
+/**
+ * testAutoPopulateVirtualField
+ *
+ * @return void
+ */
+	public function testAutoPopulateVirtualField() {
+		$this->Tag->virtualFields = array(
+			'description' => 'CONCAT("description for: ", Tag.id)'
+		);
+		$this->Tag->Behaviors->attach('Translations.Translate', array('fields' => 'description'));
+
+		$this->Tag->find('all');
+
+		$expected = array(
+			'Tag.1.description' => 'description for: 1',
+			'Tag.2.description' => 'description for: 2',
+			'Tag.3.description' => 'description for: 3',
+		);
+		$translations = Translation::forLocale(null, array('section' => 'Tag', 'nested' => false));
+		$this->assertSame($expected, $translations);
+	}
+
+/**
+ * testAutoPopulateVirtualFieldFixedString
+ *
+ * @return void
+ */
+	public function testAutoPopulateVirtualFieldFixedString() {
+		$this->Tag->virtualFields = array(
+			'description' => '"description"'
+		);
+		$this->Tag->Behaviors->attach('Translations.Translate', array('fields' => 'description'));
+
+		$this->Tag->find('all');
+
+		$expected = array(
+			'Tag.1.description' => 'description',
+			'Tag.2.description' => 'description',
+			'Tag.3.description' => 'description',
+		);
+		$translations = Translation::forLocale(null, array('section' => 'Tag', 'nested' => false));
+		$this->assertSame($expected, $translations);
+	}
+
+/**
+ * testUpdateVirtualField
+ *
+ * @return void
+ */
+	public function testUpdateVirtualField() {
+		$this->Tag->virtualFields = array(
+			'description' => '"description"'
+		);
+		$this->Tag->Behaviors->attach('Translations.Translate', array('fields' => 'description'));
+
+		$this->Tag->find('all');
+
+		$this->Tag->id = 1;
+		$this->Tag->save(array(
+			'description' => 'Glorious technicolor'
+		));
+
+		$expected = array(
+			'Tag.1.description' => 'Glorious technicolor',
+			'Tag.2.description' => 'description',
+			'Tag.3.description' => 'description',
+		);
+		$translations = Translation::forLocale(null, array('section' => 'Tag', 'nested' => false));
+		$this->assertSame($expected, $translations);
+
+		$expected = array(
+			'1' => 'Glorious technicolor',
+			'2' => 'description',
+			'3' => 'description',
+		);
+		$result = $this->Tag->find('list', array('fields' => array('id', 'description')));
+		$this->assertSame($expected, $result);
 	}
 }
