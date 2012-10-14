@@ -61,8 +61,8 @@ class TranslateBehaviorTest extends CakeTestCase {
  * @return void
  */
 	public function testReadTranslation() {
-		Translation::update('Tag.1.tag', 'Foo');
-		Translation::update('Tag.3.tag', 'Zum');
+		Translation::update('Tag.1.tag', 'Foo', array('domain' => 'data'));
+		Translation::update('Tag.3.tag', 'Zum', array('domain' => 'data'));
 		$expected = array(
 			1 => 'Foo',
 			'tag2',
@@ -72,7 +72,7 @@ class TranslateBehaviorTest extends CakeTestCase {
 		$result = $this->Tag->find('list');
 		$this->assertSame($expected, $result);
 
-		Translation::update('Tag.2.tag', 'Bar');
+		Translation::update('Tag.2.tag', 'Bar', array('domain' => 'data'));
 
 		$expected = array(
 			1 => 'Foo',
@@ -116,7 +116,11 @@ class TranslateBehaviorTest extends CakeTestCase {
 			'Tag.2.tag' => 'tag2',
 			'Tag.3.tag' => 'tag3',
 		);
-		$translations = Translation::forLocale(null, array('section' => 'Tag', 'nested' => false));
+		$translations = Translation::forLocale(null, array(
+			'domain' => 'data',
+			'section' => 'Tag',
+			'nested' => false
+		));
 		$this->assertSame($expected, $translations);
 	}
 
@@ -156,7 +160,11 @@ class TranslateBehaviorTest extends CakeTestCase {
 			'Tag.2.tag' => 'tag2',
 			'Tag.3.tag' => 'tag3',
 		);
-		$translations = Translation::forLocale(null, array('section' => 'Tag', 'nested' => false));
+		$translations = Translation::forLocale(null, array(
+			'domain' => 'data',
+			'section' => 'Tag',
+			'nested' => false
+		));
 		$this->assertSame($expected, $translations);
 	}
 
@@ -173,7 +181,11 @@ class TranslateBehaviorTest extends CakeTestCase {
 			'Tag.2.tag' => 'tag2',
 			'Tag.3.tag' => 'tag3',
 		);
-		$translations = Translation::forLocale(null, array('section' => 'Tag', 'nested' => false));
+		$translations = Translation::forLocale(null, array(
+			'domain' => 'data',
+			'section' => 'Tag',
+			'nested' => false
+		));
 		$this->assertSame($expected, $translations);
 	}
 
@@ -195,7 +207,11 @@ class TranslateBehaviorTest extends CakeTestCase {
 			'Tag.2.description' => 'description for: 2',
 			'Tag.3.description' => 'description for: 3',
 		);
-		$translations = Translation::forLocale(null, array('section' => 'Tag', 'nested' => false));
+		$translations = Translation::forLocale(null, array(
+			'domain' => 'data',
+			'section' => 'Tag',
+			'nested' => false
+		));
 		$this->assertSame($expected, $translations);
 	}
 
@@ -217,7 +233,11 @@ class TranslateBehaviorTest extends CakeTestCase {
 			'Tag.2.description' => 'description',
 			'Tag.3.description' => 'description',
 		);
-		$translations = Translation::forLocale(null, array('section' => 'Tag', 'nested' => false));
+		$translations = Translation::forLocale(null, array(
+			'domain' => 'data',
+			'section' => 'Tag',
+			'nested' => false
+		));
 		$this->assertSame($expected, $translations);
 	}
 
@@ -244,7 +264,11 @@ class TranslateBehaviorTest extends CakeTestCase {
 			'Tag.2.description' => 'description',
 			'Tag.3.description' => 'description',
 		);
-		$translations = Translation::forLocale(null, array('section' => 'Tag', 'nested' => false));
+		$translations = Translation::forLocale(null, array(
+			'domain' => 'data',
+			'section' => 'Tag',
+			'nested' => false
+		));
 		$this->assertSame($expected, $translations);
 
 		$expected = array(
