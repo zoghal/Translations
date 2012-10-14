@@ -150,7 +150,11 @@ class TranslateBehavior extends ModelBehavior {
 	public function afterSave(Model $Model, $created) {
 		if ($this->_pendingTranslations) {
 			foreach ($this->_pendingTranslations as $locale => $translations) {
-				$params = array('locale' => $locale, 'autoPopulate' => true);
+				$params = array(
+					'domain' => $this->settings[$Model->alias]['domain'],
+					'locale' => $locale,
+					'autoPopulate' => true
+				);
 
 				foreach ($translations as $key => $value) {
 					if (strpos($key, '{') !== false) {
