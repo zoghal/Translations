@@ -104,9 +104,12 @@ class TranslateBehavior extends ModelBehavior {
 		$settings = array(
 			'modelAlias' => $Model->alias,
 			'modelName' => $Model->name,
+			'domain' => $this->settings[$Model->alias]['domain']
 		);
+
 		$iterator = new TranslateInjector($results, $this->settings[$Model->alias]['fields'], $settings);
 		$results = iterator_to_array($iterator);
+
 		return $results;
 	}
 
@@ -147,7 +150,11 @@ class TranslateBehavior extends ModelBehavior {
 	public function afterSave(Model $Model, $created) {
 		if ($this->_pendingTranslations) {
 			foreach ($this->_pendingTranslations as $locale => $translations) {
-				$params = array('locale' => $locale, 'autoPopulate' => true);
+				$params = array(
+					'domain' => $this->settings[$Model->alias]['domain'],
+					'locale' => $locale,
+					'autoPopulate' => true
+				);
 
 				foreach ($translations as $key => $value) {
 					if (strpos($key, '{') !== false) {

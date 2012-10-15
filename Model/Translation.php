@@ -537,7 +537,7 @@ class Translation extends TranslationsAppModel {
 
 		if ($all) {
 			return static::$_locales;
-		} else {
+		} elseif (static::$_config['useTable']) {
 			// Get current locales
 			$currentLocales = static::$_model->find('all', $options['query']);
 
