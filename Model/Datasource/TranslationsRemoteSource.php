@@ -50,8 +50,7 @@ class TranslationsRemoteSource extends DboSource {
 		$t = microtime(true);
 
 		if (!isset($this->methodCache[$url])) {
-			$curl = new \Nodes\Curl($url);
-			$this->_result = $curl->get()->getResponseBody();
+			$this->_result = $this->_curl($url);
 			$this->methodCache[$url] = $this->_result;
 		} else {
 			$this->_result = $this->methodCache[$url];
@@ -131,5 +130,16 @@ class TranslationsRemoteSource extends DboSource {
  */
 	public function listSources($data = null) {
 		return true;
+	}
+
+/**
+ * _curl
+ *
+ * @param mixed $url
+ * @return mixed
+ */
+	protected function _curl($url) {
+		$curl = new \Nodes\Curl($url);
+		return $curl->get()->getResponseBody();
 	}
 }
