@@ -42,12 +42,12 @@ abstract class Parser {
 		$count = 0;
 		$return = array();
 		foreach ($translations as $key => $value) {
-			if (!strpos($key, '.')) {
+			if (preg_match('/^[a-z]+([A-Z][a-z]+)+$/', $key)) {
 				$key = str_replace('_', '.', Inflector::underscore($key));
 			}
 
 			if (is_array($value)) {
-				foreach($value as $case => $val) {
+				foreach ($value as $case => $val) {
 					$return[] = $defaults + array(
 						'key' => $key,
 						'value' => $val,
