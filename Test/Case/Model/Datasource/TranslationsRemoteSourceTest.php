@@ -109,4 +109,68 @@ class TranslationsRemoteSourceTest extends CakeTestCase {
 		$return = $this->ds->read($this->model, $queryData);
 		$this->assertSame($expected, $return);
 	}
+
+/**
+ * testReadCached
+ *
+ * There should only be one call the api, even if there are multiple request issued during the request
+ *
+ * @return void
+ */
+	public function testReadCached() {
+		$result = array(
+			'success' => true,
+			'data' => array(
+				'Translation' => array(
+					'foo' => 'bar'
+				)
+			)
+		);
+
+		$queryData = array(
+			'conditions' => array(
+				'locale' => 'en',
+				'domain' => 'default',
+				'category' => 'LC_MESSAGES'
+			),
+			'fields' => null
+		);
+
+		$this->ds
+			->expects($this->once())
+			->method('_curl')
+			->with('http://somedomain.com/en/default/LC_MESSAGES')
+			->will($this->returnValue($result));
+
+		$expected = array(
+			array(
+				'Translation' => array(
+					'key' => 'foo',
+					'value' => 'bar',
+					'plural_case' => null,
+					'locale' => 'en',
+					'domain' => 'default',
+					'category' => 'LC_MESSAGES'
+				)
+			)
+		);
+		$return = $this->ds->read($this->model, $queryData);
+		$this->assertSame($expected, $return);
+
+		$expected = array(
+			array(
+				'Translation' => array(
+					'key' => 'foo',
+					'value' => 'bar',
+					'plural_case' => null,
+					'locale' => 'en',
+					'domain' => 'default',
+					'category' => 'LC_MESSAGES'
+				)
+			)
+		);
+		$return = $this->ds->read($this->model, $queryData);
+		$this->assertSame($expected, $return);
+
+	}
 }
