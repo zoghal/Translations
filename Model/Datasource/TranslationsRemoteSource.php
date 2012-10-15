@@ -48,8 +48,14 @@ class TranslationsRemoteSource extends DboSource {
 		$options += array('log' => $this->fullDebug);
 
 		$t = microtime(true);
-		$curl = new \Nodes\Curl($url);
-		$this->_result = $curl->get()->getResponseBody();
+
+		if (!isset($this->methodCache[$url])) {
+			$curl = new \Nodes\Curl($url);
+			$this->_result = $curl->get()->getResponseBody();
+			$this->methodCache[$url] = $this->_result;
+		} else {
+			$this->_result = $this->methodCache[$url];
+		}
 
 		if ($options['log']) {
 			$this->took = round((microtime(true) - $t) * 1000, 0);
@@ -81,6 +87,10 @@ class TranslationsRemoteSource extends DboSource {
 
 		if (!$result) {
 			return $result;
+		}
+
+		if ($queryData['fields'] === 'COUNT(*) AS count') {
+			return count(current($result));
 		}
 
 		$defaults = array_intersect_key($queryData['conditions'] + $config, array_flip(array('domain', 'category', 'locale')));
