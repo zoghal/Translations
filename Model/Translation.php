@@ -64,7 +64,8 @@ class Translation extends TranslationsAppModel {
 		'cacheConfig' => 'default',
 		'autoPopulate' => null,
 		'supportedDomains' => array(),
-		'supportedCategories' => array()
+		'supportedCategories' => array(),
+		'supportedLocales' => array(),
 	);
 
 /**
@@ -211,6 +212,12 @@ class Translation extends TranslationsAppModel {
  * @return array
  */
 	public static function categories() {
+		static::config();
+
+		if (!empty(static::$_config['supportedCategories'])) {
+			return static::$_config['supportedCategories'];
+		}
+
 		return array_combine(static::$_categories, static::$_categories);
 	}
 
@@ -315,6 +322,12 @@ class Translation extends TranslationsAppModel {
  * @return array
  */
 	public static function domains() {
+		static::config();
+
+		if (!empty(static::$_config['supportedDomains'])) {
+			return static::$_config['supportedDomains'];
+		}
+
 		if (!static::$_model) {
 			static::_loadModel();
 		}
@@ -518,6 +531,10 @@ class Translation extends TranslationsAppModel {
  */
 	public static function locales($all = false, $options = array()) {
 		static::config();
+
+		if (!empty(static::$_config['supportedLocales'])) {
+			return static::$_config['supportedLocales'];
+		}
 
 		// Setup options
 		$defaults = array(
