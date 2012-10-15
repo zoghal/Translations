@@ -83,6 +83,8 @@ class TranslationsRemoteSource extends DboSource {
 			return $result;
 		}
 
+		$defaults = array_intersect_key($queryData['conditions'] + $config, array_flip(array('domain', 'category', 'locale')));
+
 		$return = array();
 		foreach (current($result) as $key => $value) {
 			if (is_array($value)) {
@@ -92,7 +94,7 @@ class TranslationsRemoteSource extends DboSource {
 							'key' => $key,
 							'value' => $val,
 							'plural_case' => $case
-						)
+						) + $defaults
 					);
 				}
 			} else {
@@ -100,8 +102,8 @@ class TranslationsRemoteSource extends DboSource {
 					$model->alias => array(
 						'key' => $key,
 						'value' => $value,
-						'plural_case' => 0
-					)
+						'plural_case' => null
+					) + $defaults
 				);
 			}
 		}
