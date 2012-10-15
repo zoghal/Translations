@@ -62,7 +62,9 @@ class Translation extends TranslationsAppModel {
 		'useDbConfig' => 'default',
 		'useTable' => 'translations',
 		'cacheConfig' => 'default',
-		'autoPopulate' => null
+		'autoPopulate' => null,
+		'supportedDomains' => array(),
+		'supportedCategories' => array()
 	);
 
 /**
@@ -348,7 +350,11 @@ class Translation extends TranslationsAppModel {
 			}
 		}
 
-		if (!static::$_config['useTable']) {
+		if (
+			static::$_config['supportedDomains'] && !in_array($settings['domain'], static::$_config['supportedDomains']) ||
+			static::$_config['supportedCategories'] && !in_array($settings['category'], static::$_config['supportedCategories']) ||
+			!static::$_config['useTable']
+		) {
 			if (isset(static::$_translations[$settings['domain']][$settings['locale']][$settings['category']])) {
 				return static::$_translations[$settings['domain']][$settings['locale']][$settings['category']];
 			}
