@@ -37,7 +37,8 @@
   <!-- First clone CakePHP into build/cakephp -->
   <exec executable="git">
    <arg value="clone"/>
-   <arg value="-b 2.3"/>
+   <arg value="-b"/>
+   <arg value="2.3"/>
    <arg value="git://github.com/cakephp/cakephp.git"/>
    <arg value="${basedir}/build/cakephp/"/>
   </exec>
