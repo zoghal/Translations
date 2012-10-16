@@ -20,9 +20,17 @@ class ExtractShell extends AppShell {
  * @return void
  */
 	public function main() {
-		$this->ExtractPhp->execute();
-		$this->ExtractJs->execute();
+		$this->php();
+		$this->js();
 		$this->hr();
+	}
+
+	public function php() {
+		$this->ExtractPhp->execute();
+	}
+
+	public function js() {
+		$this->ExtractJs->execute();
 	}
 
 /**
@@ -37,6 +45,9 @@ class ExtractShell extends AppShell {
 		)->addSubcommand('php', array(
 			'help' => 'Extract translations from php source files',
 			'parser' => $this->ExtractPhp->getOptionParser()
+		))->addSubcommand('js', array(
+			'help' => 'Extract translations from js source files',
+			'parser' => $this->ExtractJs->getOptionParser()
 		));
 
 		return $parser;
