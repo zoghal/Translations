@@ -13,6 +13,8 @@ class TranslationsRemoteSourceTest extends CakeTestCase {
 				array('host' => 'http://somedomain.com/:locale/:domain/:category')
 			)
 		);
+		$class = get_class($this->ds);
+		$class::$methodCache = array();
 	}
 
 	public function testRead() {

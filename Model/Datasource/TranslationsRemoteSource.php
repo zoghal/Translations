@@ -78,7 +78,7 @@ class TranslationsRemoteSource extends DboSource {
  * @param mixed $recursive
  * @return void
  */
-	public function read(Model $model, $queryData = array(), $recursive = NULL) {
+	public function read(Model $model, $queryData = array(), $recursive = null) {
 		$class = get_class($model);
 		$config = $class::config();
 
