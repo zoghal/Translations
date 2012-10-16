@@ -2,6 +2,9 @@
 
 App::uses('AppShell', 'Console/Command');
 
+/**
+ * ExtractShell
+ */
 class ExtractShell extends AppShell {
 
 /**
@@ -25,10 +28,20 @@ class ExtractShell extends AppShell {
 		$this->hr();
 	}
 
+/**
+ * Extract from php files
+ *
+ * @return void
+ */
 	public function php() {
 		$this->ExtractPhp->execute();
 	}
 
+/**
+ * Extract from js files
+ *
+ * @return void
+ */
 	public function js() {
 		$this->ExtractJs->execute();
 	}

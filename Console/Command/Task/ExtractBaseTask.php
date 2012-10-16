@@ -1,8 +1,18 @@
 <?php
 App::uses('ExtractTask', 'Console/Command/Task');
 
+/**
+ * ExtractBaseTask
+ */
 class ExtractBaseTask extends ExtractTask {
 
+/**
+ * execute
+ *
+ * Overriden so all the interactive options take defaults
+ *
+ * @return void
+ */
 	public function execute() {
 		$this->_getPaths();
 
@@ -45,6 +55,11 @@ class ExtractBaseTask extends ExtractTask {
 
 /**
  * Write the files that need to be stored
+ *
+ * Overriden to:
+ * * be noneinteractive
+ * * create Locale dirs if they don't exist
+ * * advise the uer what files are being created
  *
  * @return void
  */

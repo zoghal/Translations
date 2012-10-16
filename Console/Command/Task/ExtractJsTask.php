@@ -1,8 +1,18 @@
 <?php
 App::uses('ExtractBaseTask', 'Translations.Console/Command/Task');
 
+/**
+ * ExtractJsTask
+ */
 class ExtractJsTask extends ExtractBaseTask {
 
+/**
+ * execute
+ *
+ * Setup options to only look for un-minified js files
+ *
+ * @return void
+ */
 	public function execute() {
 		$this->_getPaths();
 
@@ -48,7 +58,10 @@ class ExtractJsTask extends ExtractBaseTask {
 	}
 
 /**
- * Method to interact with the User and get path selections.
+ * Look in the webroot of the app or plugin
+ *
+ * If it's the app this will capture any symlinked assets - which is good/fine since that means
+ * we can put standard translations in them and they'll be in our apps as we use them
  *
  * @return void
  */
@@ -61,7 +74,7 @@ class ExtractJsTask extends ExtractBaseTask {
 	}
 
 /**
- * Search files that may contain translatable strings
+ * Only look for js files
  *
  * @return void
  */
