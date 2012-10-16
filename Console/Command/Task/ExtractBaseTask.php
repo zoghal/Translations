@@ -18,7 +18,7 @@ class ExtractBaseTask extends ExtractTask {
 		}
 
 		if (!isset($this->params['output'] )) {
-			$this->params['output'] = $this->_paths[0] . 'Locale';
+			$this->params['output'] = $this->_paths[0] . 'Locale' . DS;
 		}
 
 		$this->params['merge'] = false;
@@ -40,6 +40,31 @@ class ExtractBaseTask extends ExtractTask {
 			$this->_paths[] = CakePlugin::path($this->params['plugin']);
 		} else {
 			$this->_paths[] = APP;
+		}
+	}
+
+/**
+ * Write the files that need to be stored
+ *
+ * @return void
+ */
+	protected function _writeFiles() {
+		$this->hr();
+
+		foreach ($this->_storage as $domain => $sentences) {
+			$output = $this->_writeHeader();
+			foreach ($sentences as $sentence => $header) {
+				$output .= $header . $sentence;
+			}
+
+			new Folder($this->_output, true);
+
+			$filename = $domain . '.pot';
+			$File = new File($this->_output . $filename);
+
+			$this->out('Writing ' . $File->path);
+			$File->write($output);
+			$File->close();
 		}
 	}
 }
