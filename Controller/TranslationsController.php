@@ -13,6 +13,7 @@ class TranslationsController extends TranslationsAppController {
 
 	public $paginate = array(
 		'order' => 'key ASC',
+		'paramType' => 'querystring'
 	);
 
 /**
@@ -201,7 +202,7 @@ class TranslationsController extends TranslationsAppController {
 		if ($this->data) {
 			$options = $this->data['Translation'];
 			if ($this->Translation->import($this->data['Translation']['import'], $options)) {
-				$this->Session->setFlash('Translations imported successfully' . $string, 'success');
+				$this->Session->setFlash('Translations imported successfully', 'success');
 				$this->redirect(array(
 					'action' => 'index',
 					$this->data['Translation']['locale'],

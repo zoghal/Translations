@@ -1,12 +1,95 @@
 <?php
 App::uses('Translation', 'Translations.Model');
 
+class TestTranslation extends Translation {
+
+	public static function getPluralRules() {
+		return self::$_pluralRules;
+	}
+
+	public static function pluralCase($n, $locale = null) {
+		return self::_pluralCase($n, $locale);
+	}
+
+	public static function pluralCases($locale = null) {
+		return self::_pluralCases($locale);
+	}
+
+	public static function pluralRule($locale = null) {
+		return self::_pluralRule($locale);
+	}
+
+}
+
 /**
  * Translation Test Case
  *
  */
 class TranslationTest extends CakeTestCase {
 
+	public function testAutoLanguage() {
+		$serverBackup = $_SERVER;
+		$_SERVER['HTTP_ACCEPT_LANGUAGE'] = 'fr,es,en';
+
+		$class = $this->getMockClass('Translation', array('locales'));
+
+		$class::staticExpects($this->once())
+			->method('locales')
+			->will($this->returnValue(array('en' => 'en')));
+
+		$return = $class::autoDetectLocale();
+		$this->assertEquals('en', $return);
+
+		$_SERVER = $serverBackup;
+	}
+
+	public function testAutoLanguageLocale() {
+		$serverBackup = $_SERVER;
+		$_SERVER['HTTP_ACCEPT_LANGUAGE'] = 'fr,es,en_GB';
+
+		$class = $this->getMockClass('Translation', array('locales'));
+
+		$class::staticExpects($this->once())
+			->method('locales')
+			->will($this->returnValue(array('en' => 'en')));
+
+		$return = $class::autoDetectLocale();
+		$this->assertEquals('en', $return);
+
+		$_SERVER = $serverBackup;
+	}
+
+	public function testAutoLanguageNotDefault() {
+		$serverBackup = $_SERVER;
+		$_SERVER['HTTP_ACCEPT_LANGUAGE'] = 'dk,es,en';
+
+		$class = $this->getMockClass('Translation', array('locales'));
+
+		$class::staticExpects($this->once())
+			->method('locales')
+			->will($this->returnValue(array('en' => 'en', 'dk' => 'dk')));
+
+		$return = $class::autoDetectLocale();
+		$this->assertEquals('dk', $return);
+
+		$_SERVER = $serverBackup;
+	}
+
+	public function testAutoLanguageNotDefaultLocale() {
+		$serverBackup = $_SERVER;
+		$_SERVER['HTTP_ACCEPT_LANGUAGE'] = 'dk_DK,es,en';
+
+		$class = $this->getMockClass('Translation', array('locales'));
+
+		$class::staticExpects($this->once())
+			->method('locales')
+			->will($this->returnValue(array('en' => 'en', 'dk' => 'dk')));
+
+		$return = $class::autoDetectLocale();
+		$this->assertEquals('dk', $return);
+
+		$_SERVER = $serverBackup;
+	}
 /**
  * Fixtures
  *
@@ -231,7 +314,8 @@ class TranslationTest extends CakeTestCase {
 		));
 
 		$all = $this->Translation->find('all', array(
-			'fields' => array('locale', 'domain', 'category', 'key', 'value')
+			'conditions' => array('is_active' => 1),
+			'fields' => array('locale', 'domain', 'category', 'key', 'value'),
 		));
 
 		$expected = array(
@@ -269,7 +353,7 @@ class TranslationTest extends CakeTestCase {
 	}
 
 	public function testForLocaleFlat() {
-		$result = $this->Translation->forLocale('en', array('nested' => false));
+		$result = Translation::forLocale('en', array('nested' => false));
 
 		$expected = array(
 			'...a...b...c...' => 'Dotted key',
@@ -289,7 +373,7 @@ class TranslationTest extends CakeTestCase {
 	}
 
 	public function testForLocaleNested() {
-		$result = $this->Translation->forLocale();
+		$result = Translation::forLocale();
 
 		$expected = array(
 			'...a...b...c...' => 'Dotted key',
@@ -302,16 +386,16 @@ class TranslationTest extends CakeTestCase {
 			'key_one' => 'Value One',
 			'key_two' => 'Value Two',
 			'nested' => array (
-				   'key' => array (
-					   'one' => 'Nested Value One',
-					   'two' => 'Nested Value Two'
-				   )
+				'key' => array (
+					'one' => 'Nested Value One',
+					'two' => 'Nested Value Two'
+				)
 			),
 			'numerical' => array (
-				   'key' => array (
-					   'Numerical Value One',
-					   'Numerical Value Two'
-				   )
+				'key' => array (
+					'Numerical Value One',
+					'Numerical Value Two'
+				)
 			),
 			'super' => array(
 				'duper' => array(
@@ -333,7 +417,7 @@ class TranslationTest extends CakeTestCase {
 	}
 
 	public function testForLocaleSection() {
-		$result = $this->Translation->forLocale('en', array('section' => 'key'));
+		$result = Translation::forLocale('en', array('section' => 'key'));
 
 		$expected = array(
 			'with' => array(
@@ -366,8 +450,8 @@ class TranslationTest extends CakeTestCase {
 			->method('_forLocale')
 			->will($this->returnValue(array('foo' => 'bar')));
 
-		$this->Translation->forLocale('en', array('nested' => false));
-		$result = $this->Translation->forLocale('en', array('nested' => false));
+		Translation::forLocale('en', array('nested' => false));
+		$result = Translation::forLocale('en', array('nested' => false));
 
 		$expected = array(
 			'foo' => 'bar'
@@ -382,8 +466,8 @@ class TranslationTest extends CakeTestCase {
 			'cacheConfig' => 'default',
 		));
 
-		$enBefore = $this->Translation->forLocale('en', array('nested' => false));
-		$noBefore = $this->Translation->forLocale('no', array('nested' => false));
+		$enBefore = Translation::forLocale('en', array('nested' => false));
+		$noBefore = Translation::forLocale('no', array('nested' => false));
 
 		$ts = Cache::read('translations-ts', 'default');
 		$this->assertTrue((bool)$ts, 'The timestamp should have been set to a value');
@@ -396,16 +480,16 @@ class TranslationTest extends CakeTestCase {
 		$this->assertSame($enBefore, $enCached, 'The cached result should exactly match the returned value');
 		$this->assertSame($noBefore, $noCached, 'The cached result should exactly match the returned value');
 
-		$enAfter = $this->Translation->forLocale('en', array('nested' => false));
-		$noAfter = $this->Translation->forLocale('no', array('nested' => false));
+		$enAfter = Translation::forLocale('en', array('nested' => false));
+		$noAfter = Translation::forLocale('no', array('nested' => false));
 
 		$this->assertSame($enBefore, $enAfter, 'The result of a cache-miss (1st call) and cache-hit (2nd call) should not differ');
 		$this->assertSame($noBefore, $noAfter, 'The result of a cache-miss (1st call) and cache-hit (2nd call) should not differ');
 	}
 
-	public function testForSettingLanguageConfig() {
+	public function testForLocaleReadsConfig() {
 		Configure::write('Config.language', 'no');
-		$result = $this->Translation->forLocale();
+		$result = Translation::forLocale();
 
 		$expected = array(
 			'...a...b...c...' => 'Prikkete nøkkel',
@@ -418,16 +502,16 @@ class TranslationTest extends CakeTestCase {
 			'key_one' => 'Verdi En',
 			'key_two' => 'Verdi To',
 			'nested' => array (
-				   'key' => array (
-					   'one' => 'Dyp Verdi En',
-					   'two' => 'Dyp Verdi To'
-				   )
+				'key' => array (
+					'one' => 'Dyp Verdi En',
+					'two' => 'Dyp Verdi To'
+				)
 			),
 			'numerical' => array (
-				   'key' => array (
-					   'Tall Verdi En',
-					   'Tall Verdi To'
-				   )
+				'key' => array (
+					'Tall Verdi En',
+					'Tall Verdi To'
+				)
 			),
 			'super' => array(
 				'duper' => array(
@@ -448,7 +532,59 @@ class TranslationTest extends CakeTestCase {
 		$this->assertSame($expected, $result);
 	}
 
-	public function testForDefaultTranslate() {
+	public function testHasTranslation() {
+		$class = $this->getMockClass('Translation', array('forLocale'));
+
+		$class::staticExpects($this->once())
+			->method('forLocale')
+			->will($this->returnValue(array('Foo' => 'bar')));
+
+		$result = $class::hasTranslation('Foo', array('domain' => 'enigma', 'nested' => false));
+		$this->assertTrue($result);
+	}
+
+	public function testHasTranslationMissing() {
+		$class = $this->getMockClass('Translation', array('forLocale'));
+
+		$class::staticExpects($this->once())
+			->method('forLocale')
+			->will($this->returnValue(array('Foo' => 'bar')));
+
+		$result = $class::hasTranslation('Not Foo', array('domain' => 'enigma', 'nested' => false));
+		$this->assertFalse($result);
+	}
+
+	public function testHasTranslationEmptyDomain() {
+		$class = $this->getMockClass('Translation', array('forLocale'));
+
+		$class::staticExpects($this->once())
+			->method('forLocale')
+			->will($this->returnValue(array()));
+
+		$result = $class::hasTranslation('Foo', array('domain' => 'enigma', 'nested' => false));
+		$this->assertFalse($result);
+	}
+
+/**
+ * testHasTranslationEmptyDomainInRequestCache
+ *
+ * There should only be one call to forLocale
+ *
+ * @return void
+ */
+	public function testHasTranslationEmptyDomainInRequestCache() {
+		$class = $this->getMockClass('Translation', array('forLocale'));
+
+		$class::staticExpects($this->once())
+			->method('forLocale')
+			->will($this->returnValue(array()));
+
+		$result = $class::hasTranslation('Foo', array('domain' => 'enigma', 'nested' => false));
+		$result = $class::hasTranslation('Foo', array('domain' => 'enigma', 'nested' => false));
+		$this->assertFalse($result);
+	}
+
+	public function testTranslate() {
 		$result = Translation::translate('key_one');
 		$expected = 'Value One';
 		$this->assertSame($expected, $result);
@@ -462,7 +598,7 @@ class TranslationTest extends CakeTestCase {
 		$this->assertSame($expected, $result);
 	}
 
-	public function testForChangedLocaleTranslate() {
+	public function testTranslateReadsConfig() {
 		Configure::write('Config.language', 'no');
 		$result = Translation::translate('key_two');
 		$expected = 'Verdi To';
@@ -477,7 +613,14 @@ class TranslationTest extends CakeTestCase {
 		$this->assertSame($expected, $result);
 	}
 
-	public function testForChangingLocale() {
+/**
+ * testTranslateReadsConfigDynamic
+ *
+ * Changing the config setting should directly affect results from translate
+ *
+ * @return void
+ */
+	public function testTranslateReadsConfigDynamic() {
 		$result = Translation::translate('key_one');
 		$expected = 'Value One';
 		$this->assertSame($expected, $result);
@@ -494,14 +637,14 @@ class TranslationTest extends CakeTestCase {
 	}
 
 /**
- * testForMissingLocale
+ * testTranslateMissingLocale
  *
  * If there is no language specific translations - it should use use the inheritance.
  * Config.defaultLangauge is always added as a top level fallback
  *
  * @return void
  */
-	public function testForMissingLocale() {
+	public function testTranslateMissingLocale() {
 		Configure::write('Config.language', 'de');
 		$result = Translation::translate('key_one');
 		$expected = 'Value One';
@@ -513,7 +656,7 @@ class TranslationTest extends CakeTestCase {
 		$this->assertSame($expected, $result);
 	}
 
-	public function testForMissingTranslation() {
+	public function testTranslateMissingTranslation() {
 		$result = Translation::translate('non-existant key');
 		$expected = 'non-existant key';
 		$this->assertSame($expected, $result);
@@ -523,30 +666,237 @@ class TranslationTest extends CakeTestCase {
 		$result = Translation::locales();
 		$expected = array(
 			'en' => 'English',
-			'no' => 'Norwegian'
+			'no' => 'Norwegian',
+			'ru' => 'Russian'
 		);
 		$this->assertSame($expected, $result);
 	}
 
-	public function testForCreateLocale() {
+	public function testCreateLocale() {
 		$result = $this->Translation->createLocale('dk');
-		$expected = $this->Translation->forLocale();
+		$expected = Translation::forLocale();
 		$this->assertSame($expected, $result);
 	}
 
-	public function testForCreateLocaleBasedOn() {
+	public function testCreateLocaleBasedOn() {
 		$result = $this->Translation->createLocale('dk', 'no');
-		$expected = $this->Translation->forLocale('no');
+		$expected = Translation::forLocale('no');
 		$this->assertSame($expected, $result);
 	}
 
-	public function testForCreateLocaleSettings() {
+	public function testCreateLocaleSettings() {
 		$settings = array(
 			'basedOn' => 'no',
 			'nested' => false
 		);
 		$result = $this->Translation->createLocale('dk', $settings);
-		$expected = $this->Translation->forLocale('no', $settings);
+		$expected = Translation::forLocale('no', $settings);
 		$this->assertSame($expected, $result);
+	}
+
+/**
+ * Check en plural rules
+ *
+ * It's either a plural form - or false (singular)
+ */
+	public function testPluralCase() {
+		$result = TestTranslation::pluralCase(0, 'en');
+		$this->assertSame(1, $result);
+
+		$result = TestTranslation::pluralCase(1, 'en');
+		$this->assertSame(false, $result);
+
+		$result = TestTranslation::pluralCase(2, 'en');
+		$this->assertSame(1, $result);
+	}
+
+/**
+ * Check russian plural rules
+ *
+ * In russian it's:
+ *	Numbers ending in 1
+ *	Numbers ending in 2,3,4
+ *	Numbers ending in 5,6,7,8,9,0
+ */
+	public function testPluralCaseRussian() {
+		$result = TestTranslation::pluralCase(0, 'ru');
+		$this->assertSame(2, $result);
+
+		$result = TestTranslation::pluralCase(1, 'ru');
+		$this->assertSame(0, $result);
+
+		$result = TestTranslation::pluralCase(2, 'ru');
+		$this->assertSame(1, $result);
+
+		$result = TestTranslation::pluralCase(3, 'ru');
+		$this->assertSame(1, $result);
+
+		$result = TestTranslation::pluralCase(4, 'ru');
+		$this->assertSame(1, $result);
+
+		$result = TestTranslation::pluralCase(5, 'ru');
+		$this->assertSame(2, $result);
+
+		$result = TestTranslation::pluralCase(6, 'ru');
+		$this->assertSame(2, $result);
+
+		$result = TestTranslation::pluralCase(7, 'ru');
+		$this->assertSame(2, $result);
+
+		$result = TestTranslation::pluralCase(8, 'ru');
+		$this->assertSame(2, $result);
+
+		$result = TestTranslation::pluralCase(9, 'ru');
+		$this->assertSame(2, $result);
+
+		$result = TestTranslation::pluralCase(10, 'ru');
+		$this->assertSame(2, $result);
+	}
+
+/**
+ * Check arabic plural rules
+ *
+ * @TODO These are complex, need to check with some source that they are correct
+ */
+	public function testPluralCaseArabic() {
+		$result = TestTranslation::pluralCase(0, 'ar');
+		$this->assertSame(0, $result);
+
+		$result = TestTranslation::pluralCase(1, 'ar');
+		$this->assertSame(1, $result);
+
+		$result = TestTranslation::pluralCase(2, 'ar');
+		$this->assertSame(2, $result);
+
+		$result = TestTranslation::pluralCase(3, 'ar');
+		$this->assertSame(3, $result);
+
+		$result = TestTranslation::pluralCase(10, 'ar');
+		$this->assertSame(3, $result);
+
+		$result = TestTranslation::pluralCase(11, 'ar');
+		$this->assertSame(4, $result);
+
+		$result = TestTranslation::pluralCase(99, 'ar');
+		$this->assertSame(4, $result);
+
+		$result = TestTranslation::pluralCase(100, 'ar');
+		$this->assertSame(5, $result);
+
+		$result = TestTranslation::pluralCase(102, 'ar');
+		$this->assertSame(5, $result);
+
+		$result = TestTranslation::pluralCase(103, 'ar');
+		$this->assertSame(3, $result);
+	}
+
+	public function testPluralCases() {
+		$result = TestTranslation::pluralCases('ar');
+		$this->assertSame(6, $result);
+
+		$result = TestTranslation::pluralCases('en');
+		$this->assertSame(2, $result);
+
+		$result = TestTranslation::pluralCases('en_GB');
+		$this->assertSame(2, $result);
+
+		$result = TestTranslation::pluralCases('fr');
+		$this->assertSame(2, $result);
+
+		$result = TestTranslation::pluralCases('fr_XX');
+		$this->assertSame(2, $result);
+
+		$result = TestTranslation::pluralCases('ja');
+		$this->assertSame(1, $result);
+
+		$result = TestTranslation::pluralCases('ru');
+		$this->assertSame(3, $result);
+
+		$result = TestTranslation::pluralCases('xx');
+		$this->assertSame(2, $result);
+	}
+
+	public function testPluralRule() {
+		$result = TestTranslation::pluralRule('ar');
+		$this->assertSame('nplurals=6; plural= n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 && n%100<=10 ? 3 : n%100>=11 ? 4 : 5;', $result);
+
+		$result = TestTranslation::pluralRule('en');
+		$this->assertSame('nplurals=2; plural=(n != 1)', $result);
+
+		$result = TestTranslation::pluralRule('en_GB');
+		$this->assertSame('nplurals=2; plural=(n != 1)', $result);
+
+		$result = TestTranslation::pluralRule('fr');
+		$this->assertSame('nplurals=2; plural=(n > 1)', $result);
+
+		$result = TestTranslation::pluralRule('fr_XX');
+		$this->assertSame('nplurals=2; plural=(n > 1)', $result);
+
+		$result = TestTranslation::pluralRule('ja');
+		$this->assertSame('nplurals=1; plural=0', $result);
+
+		$result = TestTranslation::pluralRule('ru');
+		$this->assertSame('nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2)', $result);
+
+		$result = TestTranslation::pluralRule('xx');
+		$this->assertSame('nplurals=2; plural=(n != 1)', $result);
+	}
+
+	public function testPluralTranslation() {
+		$options = array(
+			'plural' => '{number} messages',
+			'locale' => 'ru'
+		);
+
+		$options['count'] = 0;
+		$result = Translation::translate('1 message', $options);
+		$this->assertSame('ends in 5,6,7,8,9,0 message', $result);
+
+		$options['count'] = 1;
+		$result = Translation::translate('1 message', $options);
+		$this->assertSame('It\'s one message', $result);
+
+		$options['count'] = 2;
+		$result = Translation::translate('1 message', $options);
+		$this->assertSame('ends in 2,3,4 message', $result);
+
+		$options['count'] = 3;
+		$result = Translation::translate('1 message', $options);
+		$this->assertSame('ends in 2,3,4 message', $result);
+
+		$options['count'] = 4;
+		$result = Translation::translate('1 message', $options);
+		$this->assertSame('ends in 2,3,4 message', $result);
+
+		$options['count'] = 5;
+		$result = Translation::translate('1 message', $options);
+		$this->assertSame('ends in 5,6,7,8,9,0 message', $result);
+
+		$options['count'] = 6;
+		$result = Translation::translate('1 message', $options);
+		$this->assertSame('ends in 5,6,7,8,9,0 message', $result);
+
+		$options['count'] = 7;
+		$result = Translation::translate('1 message', $options);
+		$this->assertSame('ends in 5,6,7,8,9,0 message', $result);
+
+		$options['count'] = 8;
+		$result = Translation::translate('1 message', $options);
+		$this->assertSame('ends in 5,6,7,8,9,0 message', $result);
+
+		$options['count'] = 9;
+		$result = Translation::translate('1 message', $options);
+		$this->assertSame('ends in 5,6,7,8,9,0 message', $result);
+
+		$options['count'] = 10;
+		$result = Translation::translate('1 message', $options);
+		$this->assertSame('ends in 5,6,7,8,9,0 message', $result);
+	}
+
+	public function testAllPluralRulesHandled() {
+		$pluralRules = TestTranslation::getPluralRules();
+		foreach ($pluralRules as $rule) {
+			PluralRule::check($rule, 1);
+		}
 	}
 }
