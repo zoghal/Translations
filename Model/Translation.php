@@ -62,7 +62,10 @@ class Translation extends TranslationsAppModel {
 		'useDbConfig' => 'default',
 		'useTable' => 'translations',
 		'cacheConfig' => 'default',
-		'autoPopulate' => null
+		'autoPopulate' => null,
+		'supportedDomains' => array(),
+		'supportedCategories' => array(),
+		'supportedLocales' => array(),
 	);
 
 /**
@@ -209,6 +212,12 @@ class Translation extends TranslationsAppModel {
  * @return array
  */
 	public static function categories() {
+		static::config();
+
+		if (!empty(static::$_config['supportedCategories'])) {
+			return static::$_config['supportedCategories'];
+		}
+
 		return array_combine(static::$_categories, static::$_categories);
 	}
 
@@ -313,6 +322,12 @@ class Translation extends TranslationsAppModel {
  * @return array
  */
 	public static function domains() {
+		static::config();
+
+		if (!empty(static::$_config['supportedDomains'])) {
+			return static::$_config['supportedDomains'];
+		}
+
 		if (!static::$_model) {
 			static::_loadModel();
 		}
@@ -348,7 +363,11 @@ class Translation extends TranslationsAppModel {
 			}
 		}
 
-		if (!static::$_config['useTable']) {
+		if (
+			static::$_config['supportedDomains'] && !in_array($settings['domain'], static::$_config['supportedDomains']) ||
+			static::$_config['supportedCategories'] && !in_array($settings['category'], static::$_config['supportedCategories']) ||
+			!static::$_config['useTable']
+		) {
 			if (isset(static::$_translations[$settings['domain']][$settings['locale']][$settings['category']])) {
 				return static::$_translations[$settings['domain']][$settings['locale']][$settings['category']];
 			}
@@ -512,6 +531,10 @@ class Translation extends TranslationsAppModel {
  */
 	public static function locales($all = false, $options = array()) {
 		static::config();
+
+		if (!empty(static::$_config['supportedLocales'])) {
+			return static::$_config['supportedLocales'];
+		}
 
 		// Setup options
 		$defaults = array(
