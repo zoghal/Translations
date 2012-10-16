@@ -2,7 +2,10 @@
 App::uses('AppShell', 'Console/Command');
 App::uses('Translation', 'Translations.Model');
 
-class TranslationsShell extends AppShell {
+/**
+ * ImportShell
+ */
+class ImportShell extends AppShell {
 
 /**
  * _settings
@@ -14,6 +17,7 @@ class TranslationsShell extends AppShell {
 		'locale' => 'en',
 		'category' => 'LC_MESSAGES'
 	);
+
 /**
  * Gets the option parser instance and configures it.
  * By overriding this method you can configure the ConsoleOptionParser before returning it.
@@ -30,25 +34,19 @@ class TranslationsShell extends AppShell {
 				'required' => true
 			))
 			->addOption('locale', array(
-				'help' => 'the locale to import/export, defaults to "en"'
+				'help' => 'the locale to import, defaults to "en"'
 			))
 			->addOption('domain', array(
-				'help' => 'the domain to import/export, defaults to "default"'
+				'help' => 'the domain to import, defaults to "default"'
 			))
 			->addOption('category', array(
-				'help' => 'the category to import/export, defaults to "LC_MESSAGES"'
+				'help' => 'the category to import, defaults to "LC_MESSAGES"'
 			))
 			->addOption('overwrite', array(
 				'help' => 'Overwrite existing translations - or just create new ones? defaults to false'
 			))
 			->addOption('purge', array(
 				'help' => 'Delete translations that are not in the import file? defaults to false'
-			))
-			->addSubcommand('import', array(
-				'help' => 'Load translations from a file or url',
-			))
-			->addSubcommand('export', array(
-				'help' => 'Dump translations to a file',
 			));
 	}
 
@@ -63,7 +61,7 @@ class TranslationsShell extends AppShell {
  *
  * @throws \Exception if the file specified doesn't exist
  */
-	public function import() {
+	public function main() {
 		$file = $this->args[0];
 		foreach ($this->params as $key => $val) {
 			$this->_settings[$key] = $val;
@@ -100,32 +98,6 @@ class TranslationsShell extends AppShell {
 
 			$this->out(sprintf('Processing "%s"', $translation['key']));
 			Translation::update($translation['key'], $translation['value'], $translation);
-		}
-		$this->out('Done');
-	}
-
-/**
- * export
- *
- * Export translations to the specified path
- * Currently supports:
- * 	php
- * 	json
- *
- * @throws \Exception if the file specified is not writable
- */
-	public function export() {
-		$file = $this->args[0];
-		foreach ($this->params as $key => $val) {
-			$this->_settings[$key] = $val;
-		}
-
-		$return = Translation::export($file, $this->_settings);
-
-		if ($return['success']) {
-			$this->out(sprintf('Wrote %d translations', $return['count']));
-		} else {
-			$this->out(sprintf('Error creating %s', $file));
 		}
 		$this->out('Done');
 	}
