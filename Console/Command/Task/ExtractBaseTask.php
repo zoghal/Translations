@@ -21,7 +21,7 @@ class ExtractBaseTask extends ExtractTask {
 			$this->params['output'] = $this->_paths[0] . 'Locale' . DS;
 		}
 
-		$this->params['merge'] = false;
+		$this->params['merge'] = 'no';
 
 		$this->params['overwrite'] = true;
 
