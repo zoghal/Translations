@@ -493,7 +493,9 @@ class Translation extends TranslationsAppModel {
 				return false;
 			}
 			$info = pathinfo($file['name']);
-			$file = $file['tmp_name'];
+			$tmpName = $file['tmp_name'];
+			$file = TMP . $file['name'];
+			move_uploaded_file($tmpName, $file);
 		} else {
 			if (false !== strstr($file, 'http://') || false !== strstr($file, 'https://')) {
 				$ch = curl_init();
@@ -519,6 +521,7 @@ class Translation extends TranslationsAppModel {
 
 		$parserClass = ucfirst($info['extension']) . 'Parser';
 		App::uses($parserClass, 'Translations.Parser');
+
 		return $parserClass::parse($file, $settings);
 	}
 
