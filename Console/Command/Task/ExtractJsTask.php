@@ -8,6 +8,9 @@ class ExtractJsTask extends ExtractBaseTask {
 
 		$this->params['output'] = dirname($this->_paths[0]) . DS . 'Locale';
 
+		$this->_exclude[] = DS . '_';
+		$this->_exclude[] = '.min.js';
+
 		parent::execute();
 	}
 
