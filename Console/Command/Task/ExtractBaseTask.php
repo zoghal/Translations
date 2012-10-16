@@ -14,7 +14,7 @@ class ExtractBaseTask extends ExtractTask {
 
 		$pluginPaths = App::path('plugins');
 		if ($this->_isExtractingApp()) {
-			$this->_exclude = $pluginPaths;
+			$this->_exclude = array_merge($this->_exclude, $pluginPaths);
 		}
 
 		if (!isset($this->params['output'] )) {
