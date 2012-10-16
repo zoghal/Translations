@@ -4,7 +4,12 @@ App::uses('Translation', 'Translations.Model');
 
 class ExtractPhpTask extends ExtractBaseTask {
 
+	protected $_defaultDomain = 'default';
+
 	public function execute() {
+		$config = Translation::config();
+		$this->_defaultDomain = $config['domain'];
+
 		$this->params['ignore-model-validation'] = false;
 
 		$this->_exclude[] = 'Test';
@@ -25,9 +30,8 @@ class ExtractPhpTask extends ExtractBaseTask {
  * @return void
  */
 	protected function _store($domain, $header, $sentence) {
-		$config = Translation::config();
 		if ($domain === 'default') {
-			$domain = $config['domain'];
+			$domain = $this->_defaultDomain;
 		}
 
 		parent::_store($domain, $header, $sentence);
