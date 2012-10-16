@@ -49,11 +49,11 @@ class TranslationsRemoteSource extends DboSource {
 
 		$t = microtime(true);
 
-		if (!isset($this->methodCache[$url])) {
+		if (!isset(static::$methodCache[$url])) {
 			$this->_result = $this->_curl($url);
-			$this->methodCache[$url] = $this->_result;
+			static::$methodCache[$url] = $this->_result;
 		} else {
-			$this->_result = $this->methodCache[$url];
+			$this->_result = static::$methodCache[$url];
 		}
 
 		if ($options['log']) {
@@ -75,9 +75,10 @@ class TranslationsRemoteSource extends DboSource {
  *
  * @param Model $model
  * @param array $queryData
+ * @param mixed $recursive
  * @return void
  */
-	public function read(Model $model, $queryData = array()) {
+	public function read(Model $model, $queryData = array(), $recursive = NULL) {
 		$class = get_class($model);
 		$config = $class::config();
 
