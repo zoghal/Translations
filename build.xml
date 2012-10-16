@@ -9,7 +9,7 @@
 
  <!-- Change unit test category tests to Translations plugin -->
  <property name="phpunit.category" value="Translations"/>
- 
+
  <!-- Change unit test file -->
  <property name="phpunit.file" value="AllTranslations"/>
 
@@ -37,10 +37,12 @@
   <!-- First clone CakePHP into build/cakephp -->
   <exec executable="git">
    <arg value="clone"/>
+   <arg value="-b"/>
+   <arg value="2.3"/>
    <arg value="git://github.com/cakephp/cakephp.git"/>
    <arg value="${basedir}/build/cakephp/"/>
   </exec>
-  
+
   <!-- Then add Common submodule -->
   <exec executable="git" dir="${basedir}/build/cakephp">
    <arg value="submodule"/>
@@ -79,6 +81,26 @@ Cache::config('default', array('engine' => 'File'));
 CakePlugin::load('Common', array('bootstrap' => true));
 CakePlugin::load('Shared', array('bootstrap' => true));
 CakePlugin::load('Translations', array('bootstrap' => true));
+</echo>
+
+<!-- Rewrite cake.php so that it loads the translations override file -->
+  <echo file="${basedir}/app/Console/cake.php">&lt;?php
+include_once dirname(__DIR__) . '/Plugin/Translations/Config/override_i18n.php';
+
+$ds = DIRECTORY_SEPARATOR;
+$dispatcher = 'Cake' . $ds . 'Console' . $ds . 'ShellDispatcher.php';
+
+if (function_exists('ini_set')) {
+    $root = dirname(dirname(dirname(__FILE__)));
+    ini_set('include_path', $root . $ds . 'lib' . PATH_SEPARATOR . ini_get('include_path'));
+}
+
+if (!include ($dispatcher)) {
+    trigger_error('Could not locate CakePHP core files.', E_USER_ERROR);
+}
+unset($paths, $path, $dispatcher, $root, $ds);
+
+return ShellDispatcher::run($argv);
 </echo>
 
   <!-- Call the normal build system -->
