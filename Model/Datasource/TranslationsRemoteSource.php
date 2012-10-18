@@ -140,7 +140,7 @@ class TranslationsRemoteSource extends DboSource {
  * @return mixed
  */
 	protected function _curl($url) {
-		$curl = new \Nodes\Curl($url);
+		$curl = new \Nodes\Curl($url, array(CURLOPT_CONNECTTIMEOUT => 4));
 		return $curl->get()->getResponseBody();
 	}
 }
