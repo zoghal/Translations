@@ -16,7 +16,7 @@ class PlistParserTest extends CakeTestCase {
 					'domain' => 'default',
 					'category' => 'LC_MESSAGES',
 					'key' => 'foo',
-					'value' => 'bar'
+					'value' => 'foo value'
 				)
 			)
 		);
