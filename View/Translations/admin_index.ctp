@@ -13,7 +13,7 @@ $this->set('row_actions', $row_actions);
 
 echo $this->element('Shared.Crud/index', array(
 	'model' => 'Translation',
-	'title' => 'Translations List',
+	'title' => $locales[$locale],
 	'columns' => array(
 		'key',
 		'value' => array(
