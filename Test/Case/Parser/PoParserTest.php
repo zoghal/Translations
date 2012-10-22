@@ -28,8 +28,15 @@ class PoParserTest extends CakeTestCase {
 		$result = PoParser::parse($path);
 
 		$expected = array(
-			'count' => 2,
+			'count' => 3,
 			'translations' => array(
+				array(
+					'locale' => 'en',
+					'domain' => 'plural',
+					'category' => 'LC_MESSAGES',
+					'key' => '%d post',
+					'value' => '1 post',
+				),
 				array(
 					'locale' => 'en',
 					'domain' => 'plural',

@@ -102,6 +102,22 @@ class PoParser extends Parser {
 			} elseif (preg_match("/^\"(.*)\"$/i", $line, $regs) && $type == 6 && $msgid) {
 				$type = 6;
 			} elseif (preg_match("/msgstr\[(\d+)\]\s+\"(.+)\"$/i", $line, $regs) && ($type == 6 || $type == 7) && $msgid) {
+				if (!$regs[1]) {
+					$translations[$msgid] = array(
+						'locale' => $defaults['locale'],
+						'domain' => $defaults['domain'],
+						'category' => $defaults['category'],
+						'key' => $msgid,
+						'value' => $regs[2] ?: $msgid
+					) + array_filter(array(
+						'comments' => $comments,
+						'extractedComments' => $extractedComments,
+						'references' => $references,
+						'flags' => $flags,
+						'previous' => $previous,
+					));
+				}
+
 				$translations[$msgid . '[' . $regs[1] . ']'] = array(
 					'locale' => $defaults['locale'],
 					'domain' => $defaults['domain'],
