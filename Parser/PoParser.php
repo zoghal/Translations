@@ -118,7 +118,8 @@ class PoParser extends Parser {
 					));
 				}
 
-				$translations[$msgid . '[' . $regs[1] . ']'] = array(
+				$key = sprintf('%s[%d]', $msgid, $regs[1]);
+				$translations[$key] = array(
 					'locale' => $defaults['locale'],
 					'domain' => $defaults['domain'],
 					'category' => $defaults['category'],
