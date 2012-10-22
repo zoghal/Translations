@@ -109,7 +109,7 @@ class PoParser extends Parser {
 					'key' => $msgid_plural,
 					'value' => $regs[2] ?: $msgid_plural,
 					'single_key' => $msgid,
-					'plural_case' => $regs[1]
+					'plural_case' => (int)$regs[1]
 				) + array_filter(array(
 					'comments' => $comments,
 					'extractedComments' => $extractedComments,
@@ -147,7 +147,7 @@ class PoParser extends Parser {
 					'key' => $msgid_plural,
 					'value' => $msgid_plural,
 					'single_key' => $msgid,
-					'plural_case' => $regs[1]
+					'plural_case' => (int)$regs[1]
 				) + array_filter(array(
 					'comments' => $comments,
 					'extractedComments' => $extractedComments,
