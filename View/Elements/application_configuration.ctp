@@ -8,24 +8,20 @@
 			<label class="control-label"><?php echo __('Available Localizations'); ?></label>
 		</div>
 		<div class="controls">
-			<ul class="locales">
-				<?php
-				foreach (Translation::locales(false) as $locale) {
-					echo '<li>' . $locale . '</li>';
-				} ?>
-			</ul>
+			<?php
+			foreach (Translation::locales(false) as $key => $locale) {
+					echo $this->Html->link(
+						$locale,
+						array(
+							'application_id' => $this->request->data['Application']['slug'],
+							'admin' => true,
+							'plugin' => 'translations',
+							'controller' => 'translations',
+							$key
+						),
+						array('class' => 'btn')
+					) . '<br>';
+			} ?>
 		</div>
-	</div>
-	<div class="controls">
-		<?php echo $this->Html->link(
-			__('Manage Translations'),
-			array(
-				'application_id' => $this->request->data['Application']['slug'],
-				'admin' => true,
-				'plugin' => 'translations',
-				'controller' => 'translations'
-			),
-			array('class' => 'btn')
-		); ?>
 	</div>
 </fieldset>
