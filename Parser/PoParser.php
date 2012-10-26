@@ -102,17 +102,13 @@ class PoParser extends Parser {
 			} elseif (preg_match("/^\"(.*)\"$/i", $line, $regs) && $type == 6 && $msgid) {
 				$type = 6;
 			} elseif (preg_match("/msgstr\[(\d+)\]\s+\"(.+)\"$/i", $line, $regs) && ($type == 6 || $type == 7) && $msgid) {
-				$plural = 'msgstr_' . $regs[1];
-
-				if ($regs[1] == '0') {
+				if (!$regs[1]) {
 					$translations[$msgid] = array(
 						'locale' => $defaults['locale'],
 						'domain' => $defaults['domain'],
 						'category' => $defaults['category'],
-						'key' => $msgid_plural,
-						'value' => $msgid_plural,
-						'single_key' => $msgid,
-						'plural_case' => $regs[1]
+						'key' => $msgid,
+						'value' => $regs[2] ?: $msgid
 					) + array_filter(array(
 						'comments' => $comments,
 						'extractedComments' => $extractedComments,
@@ -121,10 +117,28 @@ class PoParser extends Parser {
 						'previous' => $previous,
 					));
 				}
-				$translations[$msgid][$plural] = stripcslashes($regs[2]);
+
+				$key = sprintf('%s[%d]', $msgid, $regs[1]);
+				$translations[$key] = array(
+					'locale' => $defaults['locale'],
+					'domain' => $defaults['domain'],
+					'category' => $defaults['category'],
+					'key' => $msgid_plural,
+					'value' => $regs[2] ?: $msgid_plural,
+					'single_key' => $msgid,
+					'plural_case' => (int)$regs[1]
+				) + array_filter(array(
+					'comments' => $comments,
+					'extractedComments' => $extractedComments,
+					'references' => $references,
+					'flags' => $flags,
+					'previous' => $previous,
+				));
 
 				$isHeader = false;
-				$comments = $extractedComments = $references = $flags = $previous =array();
+				if ($regs[1]) { // @todo temporary fix, only clear these variables for the not-0-case plural
+					$comments = $extractedComments = $references = $flags = $previous = array();
+				}
 				$type = 7;
 			} elseif (preg_match("/msgstr\[(\d+)\]\s+\"\"$/i", $line, $regs) && ($type == 6 || $type == 7) && $msgid) {
 				$plural = 'msgstr_' . $regs[1];
@@ -150,7 +164,7 @@ class PoParser extends Parser {
 					'key' => $msgid_plural,
 					'value' => $msgid_plural,
 					'single_key' => $msgid,
-					'plural_case' => $regs[1]
+					'plural_case' => (int)$regs[1]
 				) + array_filter(array(
 					'comments' => $comments,
 					'extractedComments' => $extractedComments,
@@ -179,7 +193,7 @@ class PoParser extends Parser {
 
 		fclose($file);
 
-		foreach($return as &$val) {
+		foreach ($return as &$val) {
 			if (is_string($val)) {
 				$val = trim($val);
 			}

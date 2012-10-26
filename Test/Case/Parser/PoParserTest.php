@@ -16,7 +16,44 @@ class PoParserTest extends CakeTestCase {
 					'domain' => 'simple',
 					'category' => 'LC_MESSAGES',
 					'key' => 'foo',
-					'value' => 'bar'
+					'value' => 'foo value'
+				)
+			)
+		);
+		$this->assertSame($expected, $result);
+	}
+
+	public function testParsePlural() {
+		$path = CakePlugin::path('Translations') . 'Test/Files/plural.po';
+		$result = PoParser::parse($path);
+
+		$expected = array(
+			'count' => 3,
+			'translations' => array(
+				array(
+					'locale' => 'en',
+					'domain' => 'plural',
+					'category' => 'LC_MESSAGES',
+					'key' => '%d post',
+					'value' => '1 post',
+				),
+				array(
+					'locale' => 'en',
+					'domain' => 'plural',
+					'category' => 'LC_MESSAGES',
+					'key' => '%d posts',
+					'value' => '1 post',
+					'single_key' => '%d post',
+					'plural_case' => 0
+				),
+				array(
+					'locale' => 'en',
+					'domain' => 'plural',
+					'category' => 'LC_MESSAGES',
+					'key' => '%d posts',
+					'value' => '%d many posts',
+					'single_key' => '%d post',
+					'plural_case' => 1
 				)
 			)
 		);
