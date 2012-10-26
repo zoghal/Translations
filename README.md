@@ -28,7 +28,9 @@ Then add the following to your `app/Config/bootstrap.php` file
 
 	CakePlugin::load('Translations', array('bootstrap' => true));
 
-If you want this plugin to take over all translations from cake - you MUST include `Config/override_i18n.php`
+If you want this plugin to take over all translations from cake - you MUST use CakePHP 2.3+ 
+and you MUST include `Config/override_i18n.php` BEFORE loading Cakephp. To do this add the
+following code to the beginning of each of these files:
 
     include_once dirname(__DIR__) . '/Plugin/Translations/Config/override_i18n.php';
 

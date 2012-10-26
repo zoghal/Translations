@@ -3,6 +3,6 @@
 <plist version="1.0">
 <dict>
 	<key>foo</key>
-	<string>bar</string>
+	<string>foo value</string>
 </dict>
 </plist>
