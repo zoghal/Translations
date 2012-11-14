@@ -28,7 +28,11 @@ Then add the following to your `app/Config/bootstrap.php` file
 
 	CakePlugin::load('Translations', array('bootstrap' => true));
 
-If you want this plugin to take over all translations from cake - you MUST include `Config/override_i18n.php`
+If you want this plugin to take over all translations from cake - you MUST use CakePHP 2.3+ 
+and you MUST include `Config/override_i18n.php` BEFORE loading Cakephp. To do this add the
+following code to the beginning of each of these files:
+
+    include_once dirname(__DIR__) . '/Plugin/Translations/Config/override_i18n.php';
 
  * 	In your app/webroot/index.php
  * 	In your app/webroot/test.php
@@ -65,25 +69,21 @@ You can change language at any time:
 
 The plugin as a whole can be configured via the `Translation::config` function:
 
-   Translation::config(array(
+	Translation::config(array(
 		'locale' => 'en',
 		'domain' => 'default',
 		'category' => 'LC_MESSAGES',
 		'useDbConfig' => 'default',
 		'useTable' => 'translations',
 		'cacheConfig' => 'default',
-		'autoPopulate' => null
-   ));
+		'autoPopulate' => false
+	));
 
-Missing entries are automatically added on first use in development mode - so you can just add the markers
-into your code as appropriate, and then update via the admin interface. In production mode, this functionality
-is disabled by default
+If you want missing entries to automatically be created it's necessary to set `autoPopulate` to true.
+The advantage to doing that is that entries get created as you create them in your code, the (potentially
+significant) disadvantage is that entries which you don't trigger during development won't be available
+in the backend for translating - and may need creating manually.
 
 ##TODO
 
- * all plural rule checks (__n and associated functions will always use the singular form)
- * Make it possible to import translation definitions without overwriting existing translations
- * Po file parser - so that cake's own i18n shell can be used to generate a po file, which can then be imported directly
- * Add config so that it's possible to have a wysiwyg editor on certain fields in the backend
- * Add config so that it's possible to have validation when adding/editing certain fields in the backend
  * For Cake 3.0 - make this compatible with the proposed translations engine API (not yet defined)

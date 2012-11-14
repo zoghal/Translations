@@ -1,10 +1,10 @@
 <?php
 $sections = array();
-if (count($this->request['pass']) == 1) {
+if (count($this->request['pass']) < 4) {
 	$split = true;
 } else {
 	$split = false;
- 	$sections['all']['title'] = $this->Html->link("Back to all {$this->request['pass'][0]} translations", array($this->request['pass'][0]));
+ 	$sections['all']['title'] = $this->Html->link(__("Back to all %s translations", $locale), array($locale));
 }
 
 foreach ($default as $key => $string) {
@@ -13,7 +13,13 @@ foreach ($default as $key => $string) {
 		'placeholder' => $string,
 		'value' => !empty($toEdit[$key]) ? $toEdit[$key] : "",
 		'type' => 'textarea',
-		'rows' => 2
+		'rows' => 3,
+		'cols' => 20,
+		'style' => 'width:600px', // All textareas are 258px wide? wtfns
+		'data-locale' => $locale,
+		'data-domain' => $domain,
+		'data-key' => $key,
+		'before' => '<div class="pull-right"><button class="saveOne btn btn-primary disabled">' . __('Save') . '</button></div>'
 	);
 
 	if ($split) {
@@ -34,11 +40,11 @@ foreach ($default as $key => $string) {
 }
 if (count($sections) > 1) {
 	foreach ($sections as $name => &$section) {
-		$section['columns'][$name] = function($view, $column, $model, $baseUrl) {
+		$section['columns'][$name] = function($view, $column, $model, $baseUrl) use($locale, $domain, $category) {
 			?>
 			<div class="form-actions">
 				<button type="submit" class="btn btn-primary"><?php echo __d('common', 'Save changes');?></button>
-				<?php echo $view->Html->link('View Just this section', array($view->request['pass'][0], $column), array('class' => 'btn')); ?>
+				<?php echo $view->Html->link(__('View Just this section'), array($locale, $domain, $category, $column), array('class' => 'btn')); ?>
 			</div>
 			<?php
 		};
@@ -50,3 +56,5 @@ echo $this->element('Shared.Crud/form', array(
 		'title' => 'Edit translations',
 		'sections' => $sections
 ));
+
+$this->Html->script('/translations/js/admin.js', array('inline' => false));

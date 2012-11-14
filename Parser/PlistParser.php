@@ -1,6 +1,7 @@
 <?php
+App::uses('Parser', 'Translations.Parser');
 
-class PlistParser {
+class PlistParser extends Parser{
 
 /**
  * parse
@@ -11,37 +12,17 @@ class PlistParser {
  * @return array
  */
 	public static function parse($file, $defaults = array()) {
-		extract($defaults);
-
 		$doc = new DomDocument();
 		if (!$doc->load($file)) {
 			throw new \Exception("File could not be loaded");
 		}
-		$return = array(
-			'create' => array(),
-			'update' => array(),
-			'delete' => array(),
-		);
-
 		$array = self::_parsePlist($doc);
+
+		$defaults += Translation::config();
 
 		$parsed = array();
 		self::_flatten($array, $parsed);
-
-		$count = 0;
-		$return = array();
-		foreach ($parsed as $key => $value) {
-			if (!strpos($key, '.')) {
-				$key = str_replace('_', '.', Inflector::underscore($key));
-			}
-			$return[$domain][$locale][$category][$key] = $val;
-			$count++;
-		}
-
-		return array(
-			'count' => $count,
-			'translations' => $return
-		);
+		return self::_parseArray($parsed, $defaults);
 	}
 
 /**
@@ -110,13 +91,12 @@ class PlistParser {
 /**
  * _parseValue
  *
- *
  * @param mixed $valueNode
  * @return void
  */
 	protected static function _parseValue($valueNode) {
 		$valueType = ucfirst($valueNode->nodeName);
-		$transformerName = "_parse$valueType";
+		$transformerName = "_parse{$valueType}Value";
 
 		return self::$transformerName($valueNode);
 	}
@@ -127,7 +107,7 @@ class PlistParser {
  * @param mixed $arrayNode
  * @return array
  */
-	protected static function _parseArray($arrayNode) {
+	protected static function _parseArrayValue($arrayNode) {
 		$array = array();
 
 		for (
@@ -149,7 +129,7 @@ class PlistParser {
  * @param mixed $dateNode
  * @return mixed
  */
-	protected static function _parseDate($dateNode) {
+	protected static function _parseDateValue($dateNode) {
 		return $dateNode->textContent;
 	}
 
@@ -159,7 +139,7 @@ class PlistParser {
  * @param mixed $dictNode
  * @return array
  */
-	protected static function _parseDict($dictNode) {
+	protected static function _parseDictValue($dictNode) {
 		$dict = array();
 
 		// for each child of this node
@@ -194,7 +174,7 @@ class PlistParser {
  * @param mixed $integerNode
  * @return int
  */
-	protected static function _parseInteger($integerNode) {
+	protected static function _parseIntegerValue($integerNode) {
 		return $integerNode->textContent;
 	}
 
@@ -204,7 +184,7 @@ class PlistParser {
  * @param mixed $stringNode
  * @return string
  */
-	protected static function _parseString($stringNode) {
+	protected static function _parseStringValue($stringNode) {
 		return $stringNode->textContent;
 	}
 
@@ -214,7 +194,7 @@ class PlistParser {
  * @param mixed $trueNode
  * @return bool
  */
-	protected static function _parseTrue($trueNode) {
+	protected static function _parseTrueValue($trueNode) {
 		return true;
 	}
 
@@ -224,7 +204,7 @@ class PlistParser {
  * @param mixed $trueNode
  * @return bool
  */
-	protected static function _parseFalse($trueNode) {
+	protected static function _parseFalseValue($trueNode) {
 		return false;
 	}
 }
