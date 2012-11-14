@@ -358,7 +358,7 @@ class Translation extends TranslationsAppModel {
 
 		if (static::$_config['cacheConfig'] && $cacheKey = static::_cacheKey($settings)) {
 			$cached = Cache::read($cacheKey, static::$_config['cacheConfig']);
-			if ($cached !== false) {
+			if (is_array($cached)) {
 				return $cached;
 			}
 		}
@@ -756,7 +756,7 @@ class Translation extends TranslationsAppModel {
  */
 	protected static function _cacheKey($settings) {
 		$ts = Cache::read('translations-ts', static::$_config['cacheConfig']);
-		if (!$ts) {
+		if (!is_numeric($ts)) {
 			$ts = time();
 			if (!Cache::write('translations-ts', $ts, static::$_config['cacheConfig'])) {
 				return false;
