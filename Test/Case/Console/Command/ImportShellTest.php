@@ -1,5 +1,5 @@
 <?php
-App::uses('TranslationsShell', 'Translations.Console/Command');
+App::uses('ImportShell', 'Translations.Console/Command');
 App::uses('ConsoleOutput', 'Console');
 App::uses('ConsoleInput', 'Console');
 
@@ -7,7 +7,7 @@ App::uses('ConsoleInput', 'Console');
  * Test case for Translations
  *
  **/
-class TranslationsShellTest extends CakeTestCase {
+class ImportShellTest extends CakeTestCase {
 
 	public $fixtures = array(
 		'plugin.translations.translation',
@@ -30,7 +30,7 @@ class TranslationsShellTest extends CakeTestCase {
 		$in = $this->getMock('ConsoleInput', array(), array(), '', false);
 
 		$this->Shell = $this->getMock(
-			'TranslationsShell',
+			'ImportShell',
 			array('in', 'out', 'hr', 'err', '_stop'),
 			array($out, $out, $in)
 		);
