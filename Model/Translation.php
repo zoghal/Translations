@@ -459,6 +459,10 @@ class Translation extends TranslationsAppModel {
 			$settings = $return['settings'] + $settings;
 		}
 
+		if (!empty($settings['purge'])) {
+			static::purge($return, $settings);
+		}
+
 		foreach ($return['translations'] as $translation) {
 			static::update($translation['key'], $translation['value'], $translation + $settings);
 		}
