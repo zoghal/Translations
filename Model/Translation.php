@@ -745,6 +745,11 @@ class Translation extends TranslationsAppModel {
 			);
 			static::$_model->create();
 			static::$_model->id = static::$_model->field('id', $update);
+
+			if (!$overwrite && static::$_model->id) {
+				return false;
+			}
+
 			$update += array_intersect_key(
 				$options,
 				array_flip(array('comments', 'references'))
