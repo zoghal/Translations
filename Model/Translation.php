@@ -488,6 +488,9 @@ class Translation extends TranslationsAppModel {
 		);
 
 		if (is_array($file)) {
+			if (!empty($file['translations'])) {
+				return $file;
+			}
 			if (!empty($file['error'])) {
 				return false;
 			}
