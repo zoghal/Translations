@@ -449,17 +449,6 @@ class Translation extends TranslationsAppModel {
 			'category' => static::$_config['category'],
 		);
 
-		if (!empty($settings['reset'])) {
-			if (!static::$_model) {
-				static::_loadModel();
-			}
-			static::$_model->deleteAll(array(
-				'locale' => $settings['locale'],
-				'domain' => $settings['domain'],
-				'category' => $settings['category']
-			));
-		}
-
 		$return = static::parse($file, $settings);
 		if (!$return) {
 			return false;
