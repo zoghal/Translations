@@ -443,18 +443,24 @@ class Translation extends TranslationsAppModel {
  */
 	public static function import($file, $settings = array()) {
 		static::config();
-		$settings = $settings + array(
+		$settings += array(
 			'locale' => Configure::read('Config.language'),
 			'domain' => static::$_config['domain'],
 			'category' => static::$_config['category'],
+			'overwrite' => true,
+			'purge' => false
 		);
 
 		$return = static::parse($file, $settings);
 		if (!$return) {
 			return false;
 		}
+		if (!empty($return['settings'])) {
+			$settings = $return['settings'] + $settings;
+		}
+
 		foreach ($return['translations'] as $translation) {
-			static::update($translation['key'], $translation['value'], $translation);
+			static::update($translation['key'], $translation['value'], $translation + $settings);
 		}
 		return $return;
 	}
