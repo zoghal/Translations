@@ -528,6 +528,60 @@ class Translation extends TranslationsAppModel {
 	}
 
 /**
+ * Purge
+ *
+ * Delete translation entries which do not exist in the import file
+ *
+ * @param mixed $file
+ * @param array $settings
+ * @return array
+ */
+	public static function purge($file, $settings = array()) {
+		$return = static::parse($file, $settings);
+		$keepIds = Hash::extract($return['translations'], '{n}.key');
+
+		$settings += array(
+			'locale' => Configure::read('Config.language'),
+			'domain' => static::$_config['domain'],
+			'category' => static::$_config['category'],
+		);
+
+		extract($settings);
+		static::$_translations[$domain][$locale][$category] = array_intersect_key(
+			static::$_translations[$domain][$locale][$category],
+			array_flip($keepIds)
+		);
+		if (!static::$_config['useTable']) {
+			return true;
+		}
+
+		if (!static::$_model) {
+			static::_loadModel();
+		}
+
+		$conditions = array(
+			'locale' => $settings['locale'],
+			'domain' => $settings['domain'],
+			'category' => $settings['category']
+		);
+		$toRemove = static::$_model->find('list', array(
+			'conditions' => $conditions,
+			'fields' => array('key', 'value'),
+		));
+
+		foreach($toRemove as $id => $value) {
+			if (in_array($id, $keepIds)) {
+				unset($toRemove[$id]);
+				continue;
+			}
+			static::$_model->id = static::$_model->field('id', $conditions + array('key' => $id));
+			static::$_model->saveField('is_active', false);
+		}
+
+		return array_keys($toRemove);
+	}
+
+/**
  * Lists the avaliable locales.
  *
  * @param boolean $all     (optional) Whether to print out all locales
