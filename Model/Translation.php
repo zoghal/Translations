@@ -718,15 +718,21 @@ class Translation extends TranslationsAppModel {
 		$options += array(
 			'domain' => static::$_config['domain'],
 			'category' => static::$_config['category'],
-			'locale' => Configure::read('Config.language')
+			'locale' => Configure::read('Config.language'),
+			'overwrite' => true
 		);
 		extract($options);
 
-		if (isset($options['plural_case'])) {
-			$plural_case = $options['plural_case'];
-			static::$_translations[$domain][$locale][$category][$key][$plural_case] = $value;
+		if (isset($plural_case)) {
+			$exists = isset(static::$_translations[$domain][$locale][$category][$key][$plural_case]);
+			if (!$exists || $overwrite) {
+				static::$_translations[$domain][$locale][$category][$key][$plural_case] = $value;
+			}
 		} else {
-			static::$_translations[$domain][$locale][$category][$key] = $value;
+			$exists = isset(static::$_translations[$domain][$locale][$category][$key]);
+			if (!$exists || $overwrite) {
+				static::$_translations[$domain][$locale][$category][$key] = $value;
+			}
 		}
 
 		if (static::$_config['useTable']) {
