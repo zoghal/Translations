@@ -18,6 +18,10 @@ class PotParserTest extends CakeTestCase {
 					'key' => 'foo',
 					'value' => 'foo'
 				)
+			),
+			'settings' => array(
+				'domain' => 'simple',
+				'overwrite' => false
 			)
 		);
 		$this->assertSame($expected, $result);
@@ -55,6 +59,10 @@ class PotParserTest extends CakeTestCase {
 					'single_key' => '%d post',
 					'plural_case' => 1
 				)
+			),
+			'settings' => array(
+				'domain' => 'plural',
+				'overwrite' => false
 			)
 		);
 		$this->assertSame($expected, $result);
