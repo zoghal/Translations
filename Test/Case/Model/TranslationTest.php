@@ -973,6 +973,26 @@ class TranslationTest extends CakeTestCase {
 		$this->assertSame($expected, $result);
 	}
 
+	public function testImportPoNoOverwrite() {
+		TestTranslation::reset();
+
+		$path = CakePlugin::path('Translations') . 'Test/Files/update1.po';
+		copy($path, TMP . 'update.po');
+		TestTranslation::import(TMP . 'update.po');
+
+		$path = CakePlugin::path('Translations') . 'Test/Files/update2.po';
+		copy($path, TMP . 'update.po');
+		TestTranslation::import(TMP . 'update.po', array('overwrite' => false));
+
+		$expected = array(
+			'foo' => 'should not change',
+			'bar' => 'should get deleted',
+			'zum' => 'should get created'
+		);
+		$result = TestTranslation::forLocale('en', array('domain' => 'update'));
+		$this->assertSame($expected, $result);
+	}
+
 	public function testImportPoPurge() {
 		TestTranslation::reset();
 
@@ -982,7 +1002,7 @@ class TranslationTest extends CakeTestCase {
 
 		$path = CakePlugin::path('Translations') . 'Test/Files/update2.po';
 		copy($path, TMP . 'update.po');
-		TestTranslation::import(TMP . 'update.po', array('purge' => true));
+		TestTranslation::import(TMP . 'update.po', array('overwrite' => false, 'purge' => true));
 
 		$expected = array(
 			'foo' => 'should not change',
