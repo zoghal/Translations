@@ -28,7 +28,7 @@ echo $this->element('Shared.Crud/form', array(
 			'columns' => array(
 				'overwrite' => array(
 					'type' => 'checkbox',
-					'default' => false,
+					'default' => true,
 					'help' => __d('translations', 'Overwrite existing translations - or just create new ones?')
 				),
 				'purge' => array(
