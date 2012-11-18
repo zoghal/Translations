@@ -916,7 +916,7 @@ class TranslationTest extends CakeTestCase {
 			'bar' => 'bar'
 		);
 		$result = TestTranslation::forLocale('en', array('domain' => 'update'));
-		$this->assertSame($expected, $result);
+		$this->assertSame($expected, $result, 'Expected foo and bar to be created');
 	}
 
 	public function testImportPotDoesntClobberExisting() {
@@ -936,7 +936,7 @@ class TranslationTest extends CakeTestCase {
 			'zum' => 'zum'
 		);
 		$result = TestTranslation::forLocale('en', array('domain' => 'update'));
-		$this->assertSame($expected, $result);
+		$this->assertSame($expected, $result, 'Expected only zum to be created');
 	}
 
 	public function testImportPotPurge() {
@@ -955,7 +955,7 @@ class TranslationTest extends CakeTestCase {
 			'zum' => 'zum'
 		);
 		$result = TestTranslation::forLocale('en', array('domain' => 'update'));
-		$this->assertSame($expected, $result);
+		$this->assertSame($expected, $result, 'Expected only bar to be deleted, and zum to be created');
 	}
 
 	public function testImportPo() {
@@ -970,7 +970,7 @@ class TranslationTest extends CakeTestCase {
 			'bar' => 'should get deleted'
 		);
 		$result = TestTranslation::forLocale('en', array('domain' => 'update'));
-		$this->assertSame($expected, $result);
+		$this->assertSame($expected, $result, 'Expected foo and bar to be created');
 	}
 
 	public function testImportPoNoOverwrite() {
@@ -990,7 +990,7 @@ class TranslationTest extends CakeTestCase {
 			'zum' => 'should get created'
 		);
 		$result = TestTranslation::forLocale('en', array('domain' => 'update'));
-		$this->assertSame($expected, $result);
+		$this->assertSame($expected, $result, 'Expected only zum to be created');
 	}
 
 	public function testImportPoPurge() {
@@ -1009,7 +1009,7 @@ class TranslationTest extends CakeTestCase {
 			'zum' => 'should get created'
 		);
 		$result = TestTranslation::forLocale('en', array('domain' => 'update'));
-		$this->assertSame($expected, $result);
+		$this->assertSame($expected, $result, 'Expected only zum to be created, and bar to be deleted');
 	}
 
 }
