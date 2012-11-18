@@ -19,6 +19,10 @@ class TestTranslation extends Translation {
 		return self::_pluralRule($locale);
 	}
 
+	public static function getTranslations() {
+		return self::$_translations;
+	}
+
 }
 
 /**
@@ -899,4 +903,93 @@ class TranslationTest extends CakeTestCase {
 			PluralRule::check($rule, 1);
 		}
 	}
+
+	public function testImportPot() {
+		TestTranslation::reset();
+
+		$path = CakePlugin::path('Translations') . 'Test/Files/update1.pot';
+		copy($path, TMP . 'update.pot');
+		TestTranslation::import(TMP . 'update.pot');
+
+		$expected = array(
+			'foo' => 'foo',
+			'bar' => 'bar'
+		);
+		$result = TestTranslation::forLocale('en', array('domain' => 'update'));
+		$this->assertSame($expected, $result);
+	}
+
+	public function testImportPotDoesntClobberExisting() {
+		TestTranslation::reset();
+
+		$path = CakePlugin::path('Translations') . 'Test/Files/update1.po';
+		copy($path, TMP . 'update.po');
+		TestTranslation::import(TMP . 'update.po');
+
+		$path = CakePlugin::path('Translations') . 'Test/Files/update2.pot';
+		copy($path, TMP . 'update.pot');
+		TestTranslation::import(TMP . 'update.pot');
+
+		$expected = array(
+			'foo' => 'should not change',
+			'bar' => 'should get deleted',
+			'zum' => 'zum'
+		);
+		$result = TestTranslation::forLocale('en', array('domain' => 'update'));
+		$this->assertSame($expected, $result);
+	}
+
+	public function testImportPotPurge() {
+		TestTranslation::reset();
+
+		$path = CakePlugin::path('Translations') . 'Test/Files/update1.po';
+		copy($path, TMP . 'update.po');
+		TestTranslation::import(TMP . 'update.po');
+
+		$path = CakePlugin::path('Translations') . 'Test/Files/update2.pot';
+		copy($path, TMP . 'update.pot');
+		TestTranslation::import(TMP . 'update.pot', array('purge' => true));
+
+		$expected = array(
+			'foo' => 'should not change',
+			'zum' => 'zum'
+		);
+		$result = TestTranslation::forLocale('en', array('domain' => 'update'));
+		$this->assertSame($expected, $result);
+	}
+
+	public function testImportPo() {
+		TestTranslation::reset();
+
+		$path = CakePlugin::path('Translations') . 'Test/Files/update1.po';
+		copy($path, TMP . 'update.po');
+		TestTranslation::import(TMP . 'update.po');
+
+		$expected = array(
+			'foo' => 'should not change',
+			'bar' => 'should get deleted'
+		);
+		$result = TestTranslation::forLocale('en', array('domain' => 'update'));
+		$this->assertSame($expected, $result);
+	}
+
+	public function testImportPoPurge() {
+		TestTranslation::reset();
+
+		$path = CakePlugin::path('Translations') . 'Test/Files/update1.po';
+		copy($path, TMP . 'update.po');
+		TestTranslation::import(TMP . 'update.po');
+
+		$path = CakePlugin::path('Translations') . 'Test/Files/update2.po';
+		copy($path, TMP . 'update.po');
+		TestTranslation::import(TMP . 'update.po', array('purge' => true));
+
+		$expected = array(
+			'foo' => 'should not change',
+			'zum' => 'should get created'
+		);
+		$result = TestTranslation::forLocale('en', array('domain' => 'update'));
+		$this->assertSame($expected, $result);
+	}
+
 }
