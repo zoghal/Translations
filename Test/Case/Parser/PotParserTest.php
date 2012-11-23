@@ -23,6 +23,43 @@ class PotParserTest extends CakeTestCase {
 		$this->assertSame($expected, $result);
 	}
 
+	public function testParsePlural() {
+		$path = CakePlugin::path('Translations') . 'Test/Files/plural.pot';
+		$result = PotParser::parse($path);
+
+		$expected = array(
+			'count' => 3,
+			'translations' => array(
+				array(
+					'locale' => 'en',
+					'domain' => 'plural',
+					'category' => 'LC_MESSAGES',
+					'key' => '%d post',
+					'value' => '%d post'
+				),
+				array(
+					'locale' => 'en',
+					'domain' => 'plural',
+					'category' => 'LC_MESSAGES',
+					'key' => '%d posts',
+					'value' => '%d posts',
+					'single_key' => '%d post',
+					'plural_case' => 0
+				),
+				array(
+					'locale' => 'en',
+					'domain' => 'plural',
+					'category' => 'LC_MESSAGES',
+					'key' => '%d posts',
+					'value' => '%d posts',
+					'single_key' => '%d post',
+					'plural_case' => 1
+				)
+			)
+		);
+		$this->assertSame($expected, $result);
+	}
+
 	public function testParseCake() {
 		$path = CakePlugin::path('Translations') . 'Test/Files/cake.pot';
 		$result = PotParser::parse($path);
