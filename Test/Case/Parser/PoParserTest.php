@@ -18,6 +18,9 @@ class PoParserTest extends CakeTestCase {
 					'key' => 'foo',
 					'value' => 'foo value'
 				)
+			),
+			'settings' => array(
+				'domain' => 'simple'
 			)
 		);
 		$this->assertSame($expected, $result);
@@ -55,6 +58,9 @@ class PoParserTest extends CakeTestCase {
 					'single_key' => '%d post',
 					'plural_case' => 1
 				)
+			),
+			'settings' => array(
+				'domain' => 'plural'
 			)
 		);
 		$this->assertSame($expected, $result);
