@@ -61,3 +61,20 @@ Configure::write('ApplicationConfigurationExtras.translations', array(
 	'modules'   => array('Translations'),
 	'global'    => true
 ));
+
+App::uses('CakeEventManager', 'Event');
+CakeEventManager::instance()->attach(
+	function ($event) {
+		$currentRoute = Router::currentRoute();
+		if (empty($currentRoute->defaults['prefix']) || $currentRoute->defaults['prefix'] !== 'admin') {
+			return;
+		}
+
+		$adminLocale = CakeSession::read('Config.adminLocale');
+		if ($adminLocale) {
+			Configure::write('Config.actualLocale', Configure::read('Config.language'));
+			Configure::write('Config.language', $adminLocale);
+		}
+	},
+	'Controller.initialize'
+);
