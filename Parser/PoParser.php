@@ -20,7 +20,10 @@ class PoParser extends Parser {
 		$type = 0;
 		$return = array(
 			'count' => 0,
-			'translations' => array()
+			'translations' => array(),
+			'settings' => array(
+				'domain' => $filename
+			)
 		);
 		$comments = $extractedComments = $references = $flags = $previous = $translations = array();
 		$msgid = $msgid_plural = "";

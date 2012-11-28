@@ -443,29 +443,28 @@ class Translation extends TranslationsAppModel {
  */
 	public static function import($file, $settings = array()) {
 		static::config();
-		$settings = $settings + array(
+		$settings += array(
 			'locale' => Configure::read('Config.language'),
 			'domain' => static::$_config['domain'],
 			'category' => static::$_config['category'],
+			'overwrite' => true,
+			'purge' => false
 		);
-
-		if (!empty($settings['reset'])) {
-			if (!static::$_model) {
-				static::_loadModel();
-			}
-			static::$_model->deleteAll(array(
-				'locale' => $settings['locale'],
-				'domain' => $settings['domain'],
-				'category' => $settings['category']
-			));
-		}
 
 		$return = static::parse($file, $settings);
 		if (!$return) {
 			return false;
 		}
+		if (!empty($return['settings'])) {
+			$settings = $return['settings'] + $settings;
+		}
+
+		if (!empty($settings['purge'])) {
+			static::purge($return, $settings);
+		}
+
 		foreach ($return['translations'] as $translation) {
-			static::update($translation['key'], $translation['value'], $translation);
+			static::update($translation['key'], $translation['value'], $translation + $settings);
 		}
 		return $return;
 	}
@@ -489,6 +488,9 @@ class Translation extends TranslationsAppModel {
 		);
 
 		if (is_array($file)) {
+			if (!empty($file['translations'])) {
+				return $file;
+			}
 			if (!empty($file['error'])) {
 				return false;
 			}
@@ -523,6 +525,60 @@ class Translation extends TranslationsAppModel {
 		App::uses($parserClass, 'Translations.Parser');
 
 		return $parserClass::parse($file, $settings);
+	}
+
+/**
+ * Purge
+ *
+ * Delete translation entries which do not exist in the import file
+ *
+ * @param mixed $file
+ * @param array $settings
+ * @return array
+ */
+	public static function purge($file, $settings = array()) {
+		$return = static::parse($file, $settings);
+		$keepIds = Hash::extract($return['translations'], '{n}.key');
+
+		$settings += array(
+			'locale' => Configure::read('Config.language'),
+			'domain' => static::$_config['domain'],
+			'category' => static::$_config['category'],
+		);
+
+		extract($settings);
+		static::$_translations[$domain][$locale][$category] = array_intersect_key(
+			static::$_translations[$domain][$locale][$category],
+			array_flip($keepIds)
+		);
+		if (!static::$_config['useTable']) {
+			return true;
+		}
+
+		if (!static::$_model) {
+			static::_loadModel();
+		}
+
+		$conditions = array(
+			'locale' => $settings['locale'],
+			'domain' => $settings['domain'],
+			'category' => $settings['category']
+		);
+		$toRemove = static::$_model->find('list', array(
+			'conditions' => $conditions,
+			'fields' => array('key', 'value'),
+		));
+
+		foreach($toRemove as $id => $value) {
+			if (in_array($id, $keepIds)) {
+				unset($toRemove[$id]);
+				continue;
+			}
+			static::$_model->id = static::$_model->field('id', $conditions + array('key' => $id));
+			static::$_model->saveField('is_active', false);
+		}
+
+		return array_keys($toRemove);
 	}
 
 /**
@@ -662,15 +718,21 @@ class Translation extends TranslationsAppModel {
 		$options += array(
 			'domain' => static::$_config['domain'],
 			'category' => static::$_config['category'],
-			'locale' => Configure::read('Config.language')
+			'locale' => Configure::read('Config.language'),
+			'overwrite' => true
 		);
 		extract($options);
 
-		if (isset($options['plural_case'])) {
-			$plural_case = $options['plural_case'];
-			static::$_translations[$domain][$locale][$category][$key][$plural_case] = $value;
+		if (isset($plural_case)) {
+			$exists = isset(static::$_translations[$domain][$locale][$category][$key][$plural_case]);
+			if (!$exists || $overwrite) {
+				static::$_translations[$domain][$locale][$category][$key][$plural_case] = $value;
+			}
 		} else {
-			static::$_translations[$domain][$locale][$category][$key] = $value;
+			$exists = isset(static::$_translations[$domain][$locale][$category][$key]);
+			if (!$exists || $overwrite) {
+				static::$_translations[$domain][$locale][$category][$key] = $value;
+			}
 		}
 
 		if (static::$_config['useTable']) {
@@ -683,6 +745,11 @@ class Translation extends TranslationsAppModel {
 			);
 			static::$_model->create();
 			static::$_model->id = static::$_model->field('id', $update);
+
+			if (!$overwrite && static::$_model->id) {
+				return false;
+			}
+
 			$update += array_intersect_key(
 				$options,
 				array_flip(array('comments', 'references'))

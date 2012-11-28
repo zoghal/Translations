@@ -41,6 +41,19 @@ class ExtractBaseTask extends ExtractTask {
 	}
 
 /**
+ * Sort translations in a consistent order
+ *
+ * @return void
+ */
+	protected function _buildFiles() {
+		foreach($this->_translations as &$translations) {
+			ksort($translations);
+		}
+
+		parent::_buildFiles();
+	}
+
+/**
  * Method to interact with the User and get path selections.
  *
  * @return void
@@ -51,6 +64,26 @@ class ExtractBaseTask extends ExtractTask {
 		} else {
 			$this->_paths[] = APP;
 		}
+	}
+
+/**
+ * Prepare a file to be stored
+ *
+ * Translations plugin allows you to define a default domain that is not "default".
+ * If the extract task finds a default-domain translation - redefine it as "whatever".
+ * This is important because the filename of a pot file is used as the domain on import.
+ *
+ * @param string $domain
+ * @param string $header
+ * @param string $sentence
+ * @return void
+ */
+	protected function _store($domain, $header, $sentence) {
+		if ($domain === 'default') {
+			$domain = $this->_defaultDomain;
+		}
+
+		parent::_store($domain, $header, $sentence);
 	}
 
 /**

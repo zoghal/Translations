@@ -200,6 +200,11 @@ class TranslationsController extends TranslationsAppController {
  */
 	public function admin_import() {
 		if ($this->data) {
+			if (!empty($this->data['Translation']['import']['error'])) {
+				$this->Translation->invalidate('import', '');
+				$this->Session->setFlash('Import file missing', 'error');
+				return;
+			}
 			$options = $this->data['Translation'];
 			if ($this->Translation->import($this->data['Translation']['import'], $options)) {
 				$this->Session->setFlash('Translations imported successfully', 'success');
