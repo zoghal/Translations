@@ -1,4 +1,5 @@
 <?php
+$this->element('top_actions');
 $sections = array();
 if (count($this->request['pass']) < 4) {
 	$split = true;
