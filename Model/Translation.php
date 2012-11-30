@@ -111,36 +111,45 @@ class Translation extends TranslationsAppModel {
 /**
  * autoDetectLocale
  *
- * Based on the request accept-language header - set the language
+ * If a string or array of cancicates are provided  -loop over them
+ * otherwise get the candiate locales from the accept-language header
  *
+ * Loop over the possible locales, account for regional dialects and
+ * set the currentrequest language to that locale, and return that value
+ *
+ * @param mixed $candidates
  * @return string matched language
  */
-	public static function autoDetectLocale() {
+	public static function autoDetectLocale($candidates = null) {
 		$locales = static::locales();
-		$candidates = CakeRequest::acceptLanguage();
 
-		$match = false;
+		if ($candidates) {
+			if (is_string($candidates)) {
+				$candidates = explode(',', $candidates);
+			}
+		} else {
+			$candidates = CakeRequest::acceptLanguage();
+		}
+
+		$candidates = array_filter($candidates, function($in) { return strpos($in, '0') === false; });
+
+
+		$permutations = array();
 		foreach ($candidates as $langKey) {
-			$permutations = array();
 			if (strlen($langKey) === 5) {
 				$permutations[] = substr($langKey, 0, 2) . '_' . strtoupper(substr($langKey, -2, 2));
 			}
 			$permutations[] = substr($langKey, 0, 2);
-			foreach ($permutations as $langKey) {
-				if (!empty($locales[$langKey])) {
-					$match = $langKey;
-					break 2;
-				}
-				if (!empty($locales[$langKey])) {
-					$match = $langKey;
-					break 2;
-				}
-			}
-
 		}
+		$permutations = array_unique($permutations);
 
-		if ($match) {
-			Configure::write('Config.language', $match);
+		$match = false;
+		foreach($permutations as $langKey) {
+			if (!empty($locales[$langKey])) {
+				Configure::write('Config.language', $langKey);
+				$match = $langKey;
+				break;
+			}
 		}
 
 		return $match;
