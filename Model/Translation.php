@@ -131,8 +131,12 @@ class Translation extends TranslationsAppModel {
 			$candidates = CakeRequest::acceptLanguage();
 		}
 
-		$candidates = array_filter($candidates, function($in) { return strpos($in, '0') === false; });
-
+		$candidates = array_filter(
+			$candidates,
+			function($in) {
+				return strpos($in, 'q=') === false;
+			}
+		);
 
 		$permutations = array();
 		foreach ($candidates as $langKey) {
@@ -144,7 +148,7 @@ class Translation extends TranslationsAppModel {
 		$permutations = array_unique($permutations);
 
 		$match = false;
-		foreach($permutations as $langKey) {
+		foreach ($permutations as $langKey) {
 			if (!empty($locales[$langKey])) {
 				Configure::write('Config.language', $langKey);
 				$match = $langKey;
@@ -484,6 +488,7 @@ class Translation extends TranslationsAppModel {
  * If $file is an upload, derive from the name the type of file that it is.
  * Look for a parser based on the file extension, and return the output
  *
+ * @throws \CakeException if th file doens't exist
  * @param mixed $file
  * @param array $settings
  * @return array
@@ -525,7 +530,7 @@ class Translation extends TranslationsAppModel {
 			}
 
 			if (!file_exists($file)) {
-				throw new \Exception("File doesn't exist");
+				throw new \CakeException("File doesn't exist");
 			}
 			$info = pathinfo($file);
 		}
@@ -578,7 +583,7 @@ class Translation extends TranslationsAppModel {
 			'fields' => array('key', 'value'),
 		));
 
-		foreach($toRemove as $id => $value) {
+		foreach ($toRemove as $id => $value) {
 			if (in_array($id, $keepIds)) {
 				unset($toRemove[$id]);
 				continue;
