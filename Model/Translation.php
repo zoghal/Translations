@@ -341,7 +341,7 @@ class Translation extends TranslationsAppModel {
 			return static::$_config['supportedDomains'];
 		}
 
-		if (!static::$_model && !static::_loadModel()) {
+		if (!static::_loadModel()) {
 			return array();
 		}
 		$domains = Hash::extract(static::$_model->find('all', array(
@@ -379,15 +379,11 @@ class Translation extends TranslationsAppModel {
 		if (
 			static::$_config['supportedDomains'] && !in_array($settings['domain'], static::$_config['supportedDomains']) ||
 			static::$_config['supportedCategories'] && !in_array($settings['category'], static::$_config['supportedCategories']) ||
-			!static::$_config['useTable']
+			!static::_loadModel()
 		) {
 			if (isset(static::$_translations[$settings['domain']][$settings['locale']][$settings['category']])) {
 				return static::$_translations[$settings['domain']][$settings['locale']][$settings['category']];
 			}
-			return array();
-		}
-
-		if (!static::$_model && !static::_loadModel()) {
 			return array();
 		}
 
@@ -565,11 +561,7 @@ class Translation extends TranslationsAppModel {
 			static::$_translations[$domain][$locale][$category],
 			array_flip($keepIds)
 		);
-		if (!static::$_config['useTable']) {
-			return true;
-		}
-
-		if (!static::$_model && !static::_loadModel()) {
+		if (!static::_loadModel()) {
 			return true;
 		}
 
@@ -618,10 +610,6 @@ class Translation extends TranslationsAppModel {
 		);
 		$options = array_merge($defaults, $options);
 
-		if (!static::$_model) {
-			static::_loadModel();
-		}
-
 		// Load languages
 		if (!static::$_locales) {
 			$l10n = new \Nodes\L10n();
@@ -633,7 +621,7 @@ class Translation extends TranslationsAppModel {
 
 		if ($all) {
 			return static::$_locales;
-		} elseif (static::$_config['useTable']) {
+		} elseif (static::_loadModel()) {
 			// Get current locales
 			$currentLocales = static::$_model->find('all', $options['query']);
 
@@ -749,11 +737,7 @@ class Translation extends TranslationsAppModel {
 			}
 		}
 
-		if (static::$_config['useTable']) {
-			if (!static::$_model && !static::_loadModel()) {
-				return false;
-			}
-
+		if (static::_loadModel()) {
 			$update = compact('key') + array_intersect_key(
 				$options,
 				array_flip(array('domain', 'locale', 'category', 'plural_case'))
@@ -910,10 +894,18 @@ class Translation extends TranslationsAppModel {
  * _loadModel
  *
  * Load the model instance, using the configured settings
+ * If configured to not use a table, or attempting to load the model fails - return false
  *
  * @return void
  */
 	protected static function _loadModel() {
+		if (!static::$_config['useTable']) {
+			return false;
+		}
+		if (static::$_model) {
+			return true;
+		}
+
 		try {
 			static::$_model = ClassRegistry::init(array(
 				'class' => 'Translations.Translation',
@@ -925,6 +917,7 @@ class Translation extends TranslationsAppModel {
 			static::$_config['useTable'] = false;
 			return false;
 		}
+
 		return true;
 	}
 
