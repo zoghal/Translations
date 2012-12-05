@@ -341,8 +341,8 @@ class Translation extends TranslationsAppModel {
 			return static::$_config['supportedDomains'];
 		}
 
-		if (!static::$_model) {
-			static::_loadModel();
+		if (!static::$_model && !static::_loadModel()) {
+			return array();
 		}
 		$domains = Hash::extract(static::$_model->find('all', array(
 			'fields' => array('DISTINCT domain as val')
@@ -387,8 +387,8 @@ class Translation extends TranslationsAppModel {
 			return array();
 		}
 
-		if (!static::$_model) {
-			static::_loadModel();
+		if (!static::$_model && !static::_loadModel()) {
+			return array();
 		}
 
 		$return = static::$_model->_forLocale($settings);
@@ -569,8 +569,8 @@ class Translation extends TranslationsAppModel {
 			return true;
 		}
 
-		if (!static::$_model) {
-			static::_loadModel();
+		if (!static::$_model && !static::_loadModel()) {
+			return true;
 		}
 
 		$conditions = array(
@@ -750,9 +750,10 @@ class Translation extends TranslationsAppModel {
 		}
 
 		if (static::$_config['useTable']) {
-			if (!static::$_model) {
-				static::_loadModel();
+			if (!static::$_model && !static::_loadModel()) {
+				return false;
 			}
+
 			$update = compact('key') + array_intersect_key(
 				$options,
 				array_flip(array('domain', 'locale', 'category', 'plural_case'))
@@ -804,10 +805,6 @@ class Translation extends TranslationsAppModel {
 		$domain = $options['domain'];
 		$category = $options['category'];
 		$locale = $options['locale'];
-
-		if (!static::$_model) {
-			static::_loadModel();
-		}
 
 		if (!isset(static::$_translations[$domain][$locale][$category])) {
 			$options['nested'] = false;
@@ -917,11 +914,18 @@ class Translation extends TranslationsAppModel {
  * @return void
  */
 	protected static function _loadModel() {
-		static::$_model = ClassRegistry::init(array(
-			'class' => 'Translations.Translation',
-			'table' => static::$_config['useTable'],
-			'ds' => static::$_config['useDbConfig'],
-		));
+		try {
+			static::$_model = ClassRegistry::init(array(
+				'class' => 'Translations.Translation',
+				'table' => static::$_config['useTable'],
+				'ds' => static::$_config['useDbConfig'],
+			));
+			static::$_model->setSource(static::$_config['useTable']);
+		} catch (Exception $e) {
+			static::$_config['useTable'] = false;
+			return false;
+		}
+		return true;
 	}
 
 /**
