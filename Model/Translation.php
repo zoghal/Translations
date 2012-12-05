@@ -131,8 +131,12 @@ class Translation extends TranslationsAppModel {
 			$candidates = CakeRequest::acceptLanguage();
 		}
 
-		$candidates = array_filter($candidates, function($in) { return strpos($in, '0') === false; });
-
+		$candidates = array_filter(
+			$candidates,
+			function($in) {
+				return strpos($in, 'q=') === false;
+			}
+		);
 
 		$permutations = array();
 		foreach ($candidates as $langKey) {
@@ -144,7 +148,7 @@ class Translation extends TranslationsAppModel {
 		$permutations = array_unique($permutations);
 
 		$match = false;
-		foreach($permutations as $langKey) {
+		foreach ($permutations as $langKey) {
 			if (!empty($locales[$langKey])) {
 				Configure::write('Config.language', $langKey);
 				$match = $langKey;
@@ -337,8 +341,8 @@ class Translation extends TranslationsAppModel {
 			return static::$_config['supportedDomains'];
 		}
 
-		if (!static::$_model) {
-			static::_loadModel();
+		if (!static::_loadModel()) {
+			return array();
 		}
 		$domains = Hash::extract(static::$_model->find('all', array(
 			'fields' => array('DISTINCT domain as val')
@@ -375,16 +379,12 @@ class Translation extends TranslationsAppModel {
 		if (
 			static::$_config['supportedDomains'] && !in_array($settings['domain'], static::$_config['supportedDomains']) ||
 			static::$_config['supportedCategories'] && !in_array($settings['category'], static::$_config['supportedCategories']) ||
-			!static::$_config['useTable']
+			!static::_loadModel()
 		) {
 			if (isset(static::$_translations[$settings['domain']][$settings['locale']][$settings['category']])) {
 				return static::$_translations[$settings['domain']][$settings['locale']][$settings['category']];
 			}
 			return array();
-		}
-
-		if (!static::$_model) {
-			static::_loadModel();
 		}
 
 		$return = static::$_model->_forLocale($settings);
@@ -484,6 +484,7 @@ class Translation extends TranslationsAppModel {
  * If $file is an upload, derive from the name the type of file that it is.
  * Look for a parser based on the file extension, and return the output
  *
+ * @throws \CakeException if th file doens't exist
  * @param mixed $file
  * @param array $settings
  * @return array
@@ -525,7 +526,7 @@ class Translation extends TranslationsAppModel {
 			}
 
 			if (!file_exists($file)) {
-				throw new \Exception("File doesn't exist");
+				throw new \CakeException("File doesn't exist");
 			}
 			$info = pathinfo($file);
 		}
@@ -560,12 +561,8 @@ class Translation extends TranslationsAppModel {
 			static::$_translations[$domain][$locale][$category],
 			array_flip($keepIds)
 		);
-		if (!static::$_config['useTable']) {
+		if (!static::_loadModel()) {
 			return true;
-		}
-
-		if (!static::$_model) {
-			static::_loadModel();
 		}
 
 		$conditions = array(
@@ -578,7 +575,7 @@ class Translation extends TranslationsAppModel {
 			'fields' => array('key', 'value'),
 		));
 
-		foreach($toRemove as $id => $value) {
+		foreach ($toRemove as $id => $value) {
 			if (in_array($id, $keepIds)) {
 				unset($toRemove[$id]);
 				continue;
@@ -613,10 +610,6 @@ class Translation extends TranslationsAppModel {
 		);
 		$options = array_merge($defaults, $options);
 
-		if (!static::$_model) {
-			static::_loadModel();
-		}
-
 		// Load languages
 		if (!static::$_locales) {
 			$l10n = new \Nodes\L10n();
@@ -628,7 +621,7 @@ class Translation extends TranslationsAppModel {
 
 		if ($all) {
 			return static::$_locales;
-		} elseif (static::$_config['useTable']) {
+		} elseif (static::_loadModel()) {
 			// Get current locales
 			$currentLocales = static::$_model->find('all', $options['query']);
 
@@ -744,10 +737,7 @@ class Translation extends TranslationsAppModel {
 			}
 		}
 
-		if (static::$_config['useTable']) {
-			if (!static::$_model) {
-				static::_loadModel();
-			}
+		if (static::_loadModel()) {
 			$update = compact('key') + array_intersect_key(
 				$options,
 				array_flip(array('domain', 'locale', 'category', 'plural_case'))
@@ -799,10 +789,6 @@ class Translation extends TranslationsAppModel {
 		$domain = $options['domain'];
 		$category = $options['category'];
 		$locale = $options['locale'];
-
-		if (!static::$_model) {
-			static::_loadModel();
-		}
 
 		if (!isset(static::$_translations[$domain][$locale][$category])) {
 			$options['nested'] = false;
@@ -908,15 +894,31 @@ class Translation extends TranslationsAppModel {
  * _loadModel
  *
  * Load the model instance, using the configured settings
+ * If configured to not use a table, or attempting to load the model fails - return false
  *
  * @return void
  */
 	protected static function _loadModel() {
-		static::$_model = ClassRegistry::init(array(
-			'class' => 'Translations.Translation',
-			'table' => static::$_config['useTable'],
-			'ds' => static::$_config['useDbConfig'],
-		));
+		if (!static::$_config['useTable']) {
+			return false;
+		}
+		if (static::$_model) {
+			return true;
+		}
+
+		try {
+			static::$_model = ClassRegistry::init(array(
+				'class' => 'Translations.Translation',
+				'table' => static::$_config['useTable'],
+				'ds' => static::$_config['useDbConfig'],
+			));
+			static::$_model->setSource(static::$_config['useTable']);
+		} catch (Exception $e) {
+			static::$_config['useTable'] = false;
+			return false;
+		}
+
+		return true;
 	}
 
 /**
