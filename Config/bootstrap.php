@@ -82,6 +82,13 @@ CakeEventManager::instance()->attach(
 
 		CakeEventManager::instance()->attach(
 			function ($event) {
+				$event->subject->Html->script('/translations/js/admin.js', array('inline' => false));
+			},
+			'View.beforeLayout'
+		);
+
+		CakeEventManager::instance()->attach(
+			function ($event) {
 				$content = $event->subject->Blocks->get('content');
 				$languageSwitch = $event->subject->element('Translations.language_switch');
 				if (!$languageSwitch) {
