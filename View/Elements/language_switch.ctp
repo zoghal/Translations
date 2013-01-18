@@ -8,18 +8,4 @@ echo $this->Form->select('locale', $locales, array(
 	'value' => Configure::read('Config.language'),
 	'class' => 'btn'
 ));
-$this->Html->scriptBlock(
-	"
-	(function($) {
-		$('#localeChange').change(function() {
-			$.post($(this).data('ping-url'), { locale: $(this).val() }, function() {
-				document.location = $(this).data('index-url') + '/' + $(this).val();
-			});
-		});
-	 }(jQuery));
-	",
-	array(
-		'inline' => false,
-		'safe' => false
-	)
-);
+
