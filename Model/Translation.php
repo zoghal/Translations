@@ -639,7 +639,7 @@ class Translation extends TranslationsAppModel {
 					$return[$locale] = static::$_locales[$locale];
 				}
 			}
-		} elseif (static::$_config['useTable']) {
+		} elseif (static::_loadModel()) {
 			$localesUsed = static::$_model->find('all', $options['query']);
 			foreach ($localesUsed as $locale) {
 				$return[$locale['Translation']['locale']] = static::$_locales[$locale['Translation']['locale']];
