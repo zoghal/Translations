@@ -625,9 +625,7 @@ class Translation extends TranslationsAppModel {
 
 		if ($restrictTo === true) {
 			return static::$_locales;
-		}
-
-		if (!$restrictTo) {
+		} elseif (!$restrictTo) {
 			$restrictTo = Configure::read('Application.locales');
 		}
 
@@ -636,19 +634,16 @@ class Translation extends TranslationsAppModel {
 			if (is_string($restrictTo)) {
 				$restrictTo = explode(',', $restrictTo);
 			}
-
 			foreach ($restrictTo as $locale) {
 				if (isset(static::$_locales[$locale])) {
 					$return[$locale] = static::$_locales[$locale];
 				}
 			}
-
 		} elseif (static::$_config['useTable']) {
 			$localesUsed = static::$_model->find('all', $options['query']);
 			foreach ($localesUsed as $locale) {
 				$return[$locale['Translation']['locale']] = static::$_locales[$locale['Translation']['locale']];
 			}
-
 		}
 
 		return $return;
