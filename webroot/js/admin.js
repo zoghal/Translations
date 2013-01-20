@@ -109,8 +109,13 @@ var Nodes = (function (app, $) {
 
 	function setupLanguageSwitch() {
 		$('#localeChange').change(function() {
-			$.post($(this).data('ping-url'), { locale: $(this).val() }, function() {
-				document.location = $(this).data('index-url') + '/' + $(this).val();
+			$.ajax({
+				url: $('#localeChange').data('ping-url'),
+				type: 'POST',
+				data: { locale: $(this).val() },
+				complete: function() {
+					document.location.reload(true);
+				}
 			});
 		});
 	}
