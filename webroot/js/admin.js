@@ -100,11 +100,31 @@ var Nodes = (function (app, $) {
 		});
 	}
 
-	Translations.init = function() {
+	function setupEditLocale() {
 		bindTextAreas();
 		bindSaveOne();
 		bindSaveAll();
 		warnUnsavedChanges();
+	}
+
+	function setupLanguageSwitch() {
+		$('#localeChange').change(function() {
+			$.ajax({
+				url: $('#localeChange').data('ping-url'),
+				type: 'POST',
+				data: { locale: $(this).val() },
+				complete: function() {
+					document.location.reload(true);
+				}
+			});
+		});
+	}
+
+	Translations.init = function() {
+		if (Nodes.config('Request.controller') === 'translations' && Nodes.config('Request.action') === 'admin_edit_locale') {
+			setupEditLocale();
+		}
+		setupLanguageSwitch();
 	}
 
 	app.Translations = Translations;

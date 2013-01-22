@@ -590,11 +590,15 @@ class Translation extends TranslationsAppModel {
 /**
  * Lists the avaliable locales.
  *
- * @param boolean $all     (optional) Whether to print out all locales
+ * @param mixed   $restrictTo (optional)
+ *                    false show all used locales (default)
+ *                    true  show all locales
+ *                    array return only these locales
+ *                    string comma seperated list of locales
  * @param array   $options (optional) List of options
  * @return array
  */
-	public static function locales($all = false, $options = array()) {
+	public static function locales($restrictTo = false, $options = array()) {
 		static::config();
 
 		if (!empty(static::$_config['supportedLocales'])) {
@@ -619,19 +623,30 @@ class Translation extends TranslationsAppModel {
 			}, $locales);
 		}
 
-		if ($all) {
+		if ($restrictTo === true) {
 			return static::$_locales;
-		} elseif (static::_loadModel()) {
-			// Get current locales
-			$currentLocales = static::$_model->find('all', $options['query']);
-
-			$locales = array();
-			foreach ($currentLocales as $locale) {
-				$locales[$locale['Translation']['locale']] = static::$_locales[$locale['Translation']['locale']];
-			}
-
-			return $locales;
+		} elseif (!$restrictTo) {
+			$restrictTo = Configure::read('Application.locales');
 		}
+
+		$return = array();
+		if ($restrictTo) {
+			if (is_string($restrictTo)) {
+				$restrictTo = explode(',', $restrictTo);
+			}
+			foreach ($restrictTo as $locale) {
+				if (isset(static::$_locales[$locale])) {
+					$return[$locale] = static::$_locales[$locale];
+				}
+			}
+		} elseif (static::_loadModel()) {
+			$localesUsed = static::$_model->find('all', $options['query']);
+			foreach ($localesUsed as $locale) {
+				$return[$locale['Translation']['locale']] = static::$_locales[$locale['Translation']['locale']];
+			}
+		}
+
+		return $return;
 	}
 
 /**
