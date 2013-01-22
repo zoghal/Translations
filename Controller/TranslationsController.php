@@ -31,14 +31,34 @@ class TranslationsController extends TranslationsAppController {
 		}
 		$this->Api->allowPublic('flat');
 		$this->Api->allowPublic('nested');
+
 		parent::beforeFilter();
+	}
+
+/**
+ * admin_set_locale
+ *
+ * Set a session variable so that it's possible to change the langauge used for the admin screens
+ *
+ * @param mixed $locale
+ * @return void
+ */
+	public function admin_set_locale($locale = null) {
+		if ($this->request->data) {
+			$this->Session->write('Config.adminLocale', $this->request->data['locale']);
+		}
+
+		if ($this->request->is('api')) {
+			$this->render('view');
+			return;
+		}
+		$this->redirect($this->referer(array('action' => 'index')));
 	}
 
 /**
  * admin_update_translation
  *
  * Called by the js-based backend edit form
-
  * See webroot/js/admin.js
  *
  * @return void
