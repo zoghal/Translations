@@ -124,6 +124,7 @@ class TranslateBehavior extends ModelBehavior {
  */
 	public function beforeSave(Model $Model, $options = array()) {
 		$locale = Configure::read('Config.language');
+		$defaultLocale = Configure::read('Config.defaultLanguage');
 
 		foreach ($this->settings[$Model->alias]['fields'] as $field) {
 			list($alias, $field) = explode('.', $field);
@@ -131,7 +132,9 @@ class TranslateBehavior extends ModelBehavior {
 			if (isset($Model->data[$Model->alias][$field])) {
 				$key = sprintf('%s.%s.%s', $Model->name, ($Model->id ?: '{id}'), $field);
 				$value = $Model->data[$Model->alias][$field];
-				unset($Model->data[$Model->alias][$field]);
+				if ($locale !== $defaultLocale) {
+					unset($Model->data[$Model->alias][$field]);
+				}
 
 				$this->_pendingTranslations[$locale][$key] = $value;
 			}
