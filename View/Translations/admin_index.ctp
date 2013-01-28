@@ -14,7 +14,7 @@ $this->set('row_actions', $row_actions);
 
 echo $this->element('Shared.Crud/index', array(
 	'model' => 'Translation',
-	'title' => $locales[$locale],
+	'title' => sprintf('%s texts for %s domain', $locales[$locale], $domain),
 	'columns' => array(
 		'key',
 		'value' => array(

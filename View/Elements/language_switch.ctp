@@ -19,6 +19,7 @@ if (count($locales) > 1) {
 
 if ($this->name === 'Translations' && in_array($this->action, array('admin_edit_domain', 'admin_index'))) {
 	$domains = Translation::domains();
+	unset($domains['data']);
 	if (count($domains) > 1) {
 		$url = Router::url(array($locale, '_domain_'));
 		echo $this->Form->select('domain', $domains, array(
