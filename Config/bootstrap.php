@@ -54,7 +54,7 @@ CakeEventManager::instance()->attach(
 				}
 
 				$content = preg_replace(
-					'@(<div class="content">\s*<div class="btn-toolbar pull-right">\s*<div class="btn-group single">)@',
+					'@(<div class="btn-toolbar pull-right">\s*<div class="btn-group single">)@',
 					'\1' . $languageSwitch,
 					$content
 				);
