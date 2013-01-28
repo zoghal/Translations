@@ -1,4 +1,5 @@
 <?php
+$this->element('top_actions');
 $locale = !empty($locale) ? $locale : Configure::read('Config.defaultLanguage');
 $row_actions = array(
 	'10_view' => false,
@@ -13,7 +14,7 @@ $this->set('row_actions', $row_actions);
 
 echo $this->element('Shared.Crud/index', array(
 	'model' => 'Translation',
-	'title' => $locales[$locale],
+	'title' => sprintf('%s texts for %s domain', $locales[$locale], $domain),
 	'columns' => array(
 		'key',
 		'value' => array(
@@ -23,13 +24,4 @@ echo $this->element('Shared.Crud/index', array(
 			}
 		)
 	),
-	'top_actions' => array(
-		'99_locales' => function($View, $model, $url) {
-			return $View->Html->link(
-				'Add Localization',
-				array('action' => 'add_locale'),
-				array('class' => 'btn')
-			);
-		}
-	)
 ));

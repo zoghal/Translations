@@ -1,4 +1,5 @@
 <?php
+$this->element('top_actions');
 echo $this->element('Shared.Crud/form', array(
 	'model' => 'Translation',
 	'title' => 'Choose locale',
