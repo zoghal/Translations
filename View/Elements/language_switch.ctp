@@ -2,7 +2,23 @@
 $locale = Configure::read('Config.language');
 $locales = Translation::locales();
 
-if (count($locales) > 1) {
+$domains = Translation::domains();
+
+/**
+ * For all admin views, if there's a data domain (the translate behavior is being used) and more than
+ * one locale - enable the language switch.
+ * Enable for All translation plugin views
+ */
+$showLanguageSwitch = (
+	(!empty($domains['data']) && count($locales) > 1) ||
+	($this->name === 'Translations')
+);
+/**
+ * Only for edit domain and the index, add a domain switch
+ */
+$showDomainSwitch = ($this->name === 'Translations' && in_array($this->action, array('admin_edit_domain', 'admin_index')));
+
+if ($showLanguageSwitch) {
 	$url = null;
 	if ($this->name === 'Translations' && in_array($this->action, array('admin_edit_locale', 'admin_index'))) {
 		$url = Router::url(array('_locale_', $domain));
@@ -17,8 +33,7 @@ if (count($locales) > 1) {
 	));
 }
 
-if ($this->name === 'Translations' && in_array($this->action, array('admin_edit_domain', 'admin_index'))) {
-	$domains = Translation::domains();
+if ($showDomainSwitch) {
 	unset($domains['data']);
 	if (count($domains) > 1) {
 		$url = Router::url(array($locale, '_domain_'));
