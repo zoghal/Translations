@@ -21,14 +21,23 @@ Configure::write('ApplicationConfigurationExtras.translations', array(
 ));
 
 /**
- * Automatically change the langauge (backend only) if the langauge switch is used
- * Automatically add the language switch to all admin views that have a menu
+ * Define javascript translations automatically for public requests.
+ * Add a language switch to the admin menu, if there's more than one language in use
+ * Add a domain switch to the menu for translate plugin views, if there's more than one domain in use
  */
 App::uses('CakeEventManager', 'Event');
 CakeEventManager::instance()->attach(
 	function ($event) {
 		$currentRoute = Router::currentRoute();
 		if (empty($currentRoute->defaults['prefix']) || $currentRoute->defaults['prefix'] !== 'admin') {
+			CakeEventManager::instance()->attach(
+				function ($event) {
+					$translations = Translation::forLocale(null, array('domain' => 'javascript'));
+					Configure::write('Javascript.L10n', $translations);
+				},
+				'Controller.beforeRender',
+				array('priority' => 100)
+			);
 			return;
 		}
 
