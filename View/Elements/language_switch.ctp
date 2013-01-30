@@ -5,13 +5,18 @@ $locales = Translation::locales();
 $domains = Translation::domains();
 
 /**
- * For all admin views, if there's a data domain (the translate behavior is being used) and more than
- * one locale - enable the language switch.
- * Enable for All translation plugin views
+ * If there are multiple domains and either:
+ * 	It's a trnslations view
+ * 	It's not a translations view, but the data domain is used
+ *
+ * Then show the langauge switch
  */
 $showLanguageSwitch = (
-	(!empty($domains['data']) && count($locales) > 1) ||
-	($this->name === 'Translations')
+	count($locales) > 1 &&
+	(
+		($this->name === 'Translations') ||
+		($this->name !== 'Translations' && !empty($domains['data']))
+	)
 );
 /**
  * Only for edit domain and the index, add a domain switch
