@@ -1,5 +1,7 @@
 <?php
-$locale = Configure::read('Config.language');
+if (empty($locale)) {
+	$locale = Configure::read('Config.language');
+}
 $locales = Translation::locales();
 
 $domains = Translation::domains();
