@@ -141,7 +141,7 @@ class TranslateBehaviorTest extends CakeTestCase {
 /**
  * testSaveAll
  *
- * Updating a translated field should now update the db record
+ * Updating a translated field should now update the db record - if it's for the default language
  *
  * @return void
  */

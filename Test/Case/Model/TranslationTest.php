@@ -255,7 +255,7 @@ class TranslationTest extends CakeTestCase {
 		));
 
 		$all = $this->Translation->find('all', array(
-			'conditions' => array('is_active' => 1),
+			'conditions' => array(),
 			'fields' => array('locale', 'domain', 'category', 'key', 'value'),
 		));
 

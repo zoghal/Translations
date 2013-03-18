@@ -585,7 +585,7 @@ class Translation extends TranslationsAppModel {
 				continue;
 			}
 			static::$_model->id = static::$_model->field('id', $conditions + array('key' => $id));
-			static::$_model->saveField('is_active', false);
+			static::$_model->delete();
 		}
 
 		return array_keys($toRemove);
