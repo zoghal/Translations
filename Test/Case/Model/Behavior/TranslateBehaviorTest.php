@@ -87,13 +87,13 @@ class TranslateBehaviorTest extends CakeTestCase {
 /**
  * testUpdateTranslation
  *
- * Updating a translated field should not update the db record - but instead update the translation record
+ * Updating a translated field now should update the db record
  *
  * @return void
  */
 	public function testUpdateTranslation() {
 		$expected = array(
-			1 => 'tag1',
+			1 => 'Updated',
 			'tag2',
 			'tag3'
 		);
@@ -127,13 +127,13 @@ class TranslateBehaviorTest extends CakeTestCase {
 /**
  * testSaveAll
  *
- * Updating a translated field should not update the db record - but instead update the translation record
+ * Updating a translated field should now update the db record
  *
  * @return void
  */
 	public function testSaveAll() {
 		$expected = array(
-			1 => 'tag1',
+			1 => 'Updated',
 			'tag2',
 			'tag3'
 		);
