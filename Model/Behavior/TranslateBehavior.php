@@ -116,7 +116,9 @@ class TranslateBehavior extends ModelBehavior {
 /**
  * beforeSave callback.
  *
- * Prevent updating the actual db value for translated fields
+ * Prevent updating the actual db value for translated fields. _Unless_ the
+ * record doesn't exist yet; in this case use the not-default value and populate
+ * the default langauge with it.
  * Stash updates to a property on this behavior for retrieval in after save
  *
  * @param Model $Model Model save was called on.
@@ -133,7 +135,11 @@ class TranslateBehavior extends ModelBehavior {
 				$key = sprintf('%s.%s.%s', $Model->name, ($Model->id ?: '{id}'), $field);
 				$value = $Model->data[$Model->alias][$field];
 				if ($locale !== $defaultLocale) {
-					unset($Model->data[$Model->alias][$field]);
+					if ($Model->id) {
+						unset($Model->data[$Model->alias][$field]);
+					} else {
+						$this->_pendingTranslations[$defaultLocale][$key] = $value;
+					}
 				}
 
 				$this->_pendingTranslations[$locale][$key] = $value;

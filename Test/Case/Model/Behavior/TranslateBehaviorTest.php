@@ -23,6 +23,14 @@ class TranslateBehaviorTest extends CakeTestCase {
 	public function setUp() {
 		parent::setUp();
 
+		$this->config = array(
+			'Config.defaultLanguage' => Configure::read('Config.defaultLanguage'),
+			'Config.language' => Configure::read('Config.language'),
+			'Cache.disable' => Configure::read('Cache.disable')
+		);
+		Configure::write('Config.defaultLanguage', 'en');
+		Configure::write('Config.language', 'en');
+
 		Translation::reset();
 		$this->Tag = ClassRegistry::init('Tag');
 		$this->Tag->displayField = 'tag';
@@ -32,10 +40,16 @@ class TranslateBehaviorTest extends CakeTestCase {
 /**
  * tearDown method
  *
+ * Reapply original config
+ *
  * @return void
  */
 	public function tearDown() {
 		parent::tearDown();
+
+		foreach ($this->config as $key => $value) {
+			Configure::write($key, $value);
+		}
 
 		Translation::reset();
 		unset($this->Tag);
@@ -278,5 +292,97 @@ class TranslateBehaviorTest extends CakeTestCase {
 		);
 		$result = $this->Tag->find('list', array('fields' => array('id', 'description')));
 		$this->assertSame($expected, $result);
+	}
+
+/**
+ * testCreate
+ *
+ * Add a test for simple create
+ *
+ * @return void
+ */
+	public function testCreate() {
+		$this->Tag->create();
+		$this->Tag->save(array(
+			'tag' => 'new'
+		));
+
+		$expected = array(
+			1 => 'tag1',
+			'tag2',
+			'tag3',
+			'new'
+		);
+
+		$this->Tag->Behaviors->disable('Translate');
+		$result = $this->Tag->find('list');
+		$this->assertSame($expected, $result);
+
+		$this->Tag->Behaviors->enable('Translate');
+		$result = $this->Tag->find('list');
+		$this->assertSame($expected, $result);
+
+		$expected = array(
+			'Tag.1.tag' => 'tag1',
+			'Tag.2.tag' => 'tag2',
+			'Tag.3.tag' => 'tag3',
+			'Tag.4.tag' => 'new',
+		);
+		$translations = Translation::forLocale(null, array(
+			'domain' => 'data',
+			'section' => 'Tag',
+			'nested' => false
+		));
+		ksort($translations);
+		$this->assertSame($expected, $translations);
+	}
+
+/**
+ * testCreateNotDefaultLanguage
+ *
+ * If a record is created in a not-default language, it should still store
+ * in the original field the translated value. While this isn't particularly
+ * correct - it's better than the original translated field being blank in the
+ * default language - and therefore in all other langauges.
+ *
+ * @return void
+ */
+	public function testCreateNotDefaultLanguage() {
+		Configure::write('Config.defaultLanguage', 'en');
+		Configure::write('Config.language', 'es');
+
+		$this->Tag->create();
+		$this->Tag->save(array(
+			'tag' => 'nuevo'
+		));
+
+		$expected = array(
+			1 => 'tag1',
+			'tag2',
+			'tag3',
+			'nuevo'
+		);
+
+		$this->Tag->Behaviors->disable('Translate');
+		$result = $this->Tag->find('list');
+		$this->assertSame($expected, $result);
+
+		$this->Tag->Behaviors->enable('Translate');
+		$result = $this->Tag->find('list');
+		$this->assertSame($expected, $result);
+
+		$expected = array(
+			'Tag.1.tag' => 'tag1',
+			'Tag.2.tag' => 'tag2',
+			'Tag.3.tag' => 'tag3',
+			'Tag.4.tag' => 'nuevo',
+		);
+		$translations = Translation::forLocale('en', array(
+			'domain' => 'data',
+			'section' => 'Tag',
+			'nested' => false
+		));
+		ksort($translations);
+		$this->assertSame($expected, $translations);
 	}
 }
