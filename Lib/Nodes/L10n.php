@@ -11,13 +11,30 @@ namespace Nodes;
  */
 class L10n extends \L10n {
 
+	protected $_catalog;
+
 /**
  * Get a list of available locales.
+ *
+ * Strip out single-character langauge domains. These are duplicatad with iso standard
+ * domain names:
+ * 	e: Greek
+ * 	n: Dutch
+ * 	p: Polish
  *
  * @return array
  */
 	public function getLocales() {
-		return $this->_l10nCatalog;
+		if (!$this->_catalog) {
+			$this->_catalog = $this->_l10nCatalog;
+			foreach (array_keys($this->_catalog) as $key) {
+				if (strlen($key) === 1) {
+					unset($this->_catalog[$key]);
+				}
+			}
+		}
+
+		return $this->_catalog;
 	}
 
 }
