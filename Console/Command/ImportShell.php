@@ -14,7 +14,7 @@ class ImportShell extends AppShell {
  */
 	protected $_settings = array(
 		'domain' => 'default',
-		'locale' => 'en',
+		'locale' => null,
 		'category' => 'LC_MESSAGES'
 	);
 

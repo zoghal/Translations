@@ -253,6 +253,10 @@ class Translation extends TranslationsAppModel {
 			Configure::write('Config.defaultLanguage', Configure::read('Config.language'));
 		}
 
+		$settings += array(
+			'locale' => Configure::read('Config.language')
+		);
+
 		if (defined('CORE_TEST_CASES')) {
 			static::$_defaultConfig['useTable'] = false;
 			static::$_defaultConfig['autoPopulate'] = false;
