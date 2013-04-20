@@ -139,19 +139,9 @@ function __dn($domain, $singular, $plural, $count, $args = null) {
  * The category argument allows a specific category of the locale settings to be used for fetching a message.
  * Valid categories are: LC_CTYPE, LC_NUMERIC, LC_TIME, LC_COLLATE, LC_MONETARY, LC_MESSAGES and LC_ALL.
  *
- * Note that the category must be specified with a numeric value, instead of the constant name.  The values are:
- *
- * - LC_ALL       0
- * - LC_COLLATE   1
- * - LC_CTYPE     2
- * - LC_MONETARY  3
- * - LC_NUMERIC   4
- * - LC_TIME      5
- * - LC_MESSAGES  6
- *
  * @param string $domain Domain
  * @param string $msg Message to translate
- * @param integer $category Category
+ * @param integer|string $category Category
  * @param mixed $args Array with arguments or multiple arguments in function
  * @return translated string
  * @link http://book.cakephp.org/2.0/en/core-libraries/global-constants-and-functions.html#__dc
@@ -176,21 +166,11 @@ function __dc($domain, $msg, $category, $args = null) {
  * The category argument allows a specific category of the locale settings to be used for fetching a message.
  * Valid categories are: LC_CTYPE, LC_NUMERIC, LC_TIME, LC_COLLATE, LC_MONETARY, LC_MESSAGES and LC_ALL.
  *
- * Note that the category must be specified with a numeric value, instead of the constant name.  The values are:
- *
- * - LC_ALL       0
- * - LC_COLLATE   1
- * - LC_CTYPE     2
- * - LC_MONETARY  3
- * - LC_NUMERIC   4
- * - LC_TIME      5
- * - LC_MESSAGES  6
- *
  * @param string $domain Domain
  * @param string $singular Singular string to translate
  * @param string $plural Plural
  * @param integer $count Count
- * @param integer $category Category
+ * @param integer|string $category Category
  * @param mixed $args Array with arguments or multiple arguments in function
  * @return plural form of translated string
  * @link http://book.cakephp.org/2.0/en/core-libraries/global-constants-and-functions.html#__dcn
@@ -216,18 +196,8 @@ function __dcn($domain, $singular, $plural, $count, $category, $args = null) {
  * The category argument allows a specific category of the locale settings to be used for fetching a message.
  * Valid categories are: LC_CTYPE, LC_NUMERIC, LC_TIME, LC_COLLATE, LC_MONETARY, LC_MESSAGES and LC_ALL.
  *
- * Note that the category must be specified with a numeric value, instead of the constant name.  The values are:
- *
- * - LC_ALL       0
- * - LC_COLLATE   1
- * - LC_CTYPE     2
- * - LC_MONETARY  3
- * - LC_NUMERIC   4
- * - LC_TIME      5
- * - LC_MESSAGES  6
- *
  * @param string $msg String to translate
- * @param integer $category Category
+ * @param integer|string $category Category
  * @param mixed $args Array with arguments or multiple arguments in function
  * @return translated string
  * @link http://book.cakephp.org/2.0/en/core-libraries/global-constants-and-functions.html#__c
