@@ -25,7 +25,7 @@ function __replace($msg, $args) {
 		if (count($args) === 1 && isset($args[0])) {
 			$msg = preg_replace('@{\w+}@', $args[0], $msg, 1);
 		} else {
-			$msg = String::insert($msg, $args, array('before' => '{', 'after'  => '}'));
+			$msg = String::insert($msg, $args, array('before' => '{', 'after' => '}'));
 		}
 	} else {
 		$msg = vsprintf($msg, $args);
@@ -235,6 +235,6 @@ function __c($msg, $category, $args = null) {
 	if (!$msg || !class_exists('Translation')) {
 		return __replace($msg, $args);
 	}
-	$translated = Translation::translate($singular);
+	$translated = Translation::translate($singular, compact('category'));
 	return __replace($translated, $args);
 }
