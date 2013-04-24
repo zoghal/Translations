@@ -7,13 +7,13 @@ abstract class Parser {
 /**
  * parse
  *
- * @throws \Exception if the file cannot be loaded
+ * @throws \NotImplementedException if the file cannot be loaded
  * @param string $file
  * @param array $defaults
  * @return array
  */
 	public static function parse($file, $defaults = array()) {
-		throw new \NotImplementedException(__CLASS__ . "::parse");
+		throw new \NotImplementedException(__CLASS__ . "::parse is not been implemented");
 	}
 
 /**
@@ -24,7 +24,7 @@ abstract class Parser {
  * @return string
  */
 	public static function generate($array = array()) {
-		throw new \NotImplementedException(__CLASS__ . "::generate");
+		throw new \NotImplementedException(__CLASS__ . "::generate is not implemented");
 	}
 
 /**
