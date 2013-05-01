@@ -614,13 +614,13 @@ class TranslationTest extends CakeTestCase {
 	}
 
 	public function testCreateLocale() {
-		$result = $this->Translation->createLocale('dk');
+		$result = $this->Translation->createLocale('da');
 		$expected = Translation::forLocale();
 		$this->assertSame($expected, $result);
 	}
 
 	public function testCreateLocaleBasedOn() {
-		$result = $this->Translation->createLocale('dk', 'no');
+		$result = $this->Translation->createLocale('da', 'no');
 		$expected = Translation::forLocale('no');
 		$this->assertSame($expected, $result);
 	}
@@ -630,7 +630,7 @@ class TranslationTest extends CakeTestCase {
 			'basedOn' => 'no',
 			'nested' => false
 		);
-		$result = $this->Translation->createLocale('dk', $settings);
+		$result = $this->Translation->createLocale('da', $settings);
 		$expected = Translation::forLocale('no', $settings);
 		$this->assertSame($expected, $result);
 	}
@@ -983,32 +983,32 @@ class TranslationTest extends CakeTestCase {
 
 	public function testAutoLanguageNotDefault() {
 		$serverBackup = $_SERVER;
-		$_SERVER['HTTP_ACCEPT_LANGUAGE'] = 'dk,es,en';
+		$_SERVER['HTTP_ACCEPT_LANGUAGE'] = 'da,es,en';
 
 		$class = $this->getMockClass('Translation', array('locales'));
 
 		$class::staticExpects($this->once())
 			->method('locales')
-			->will($this->returnValue(array('en' => 'en', 'dk' => 'dk')));
+			->will($this->returnValue(array('en' => 'en', 'da' => 'da')));
 
 		$return = $class::autoDetectLocale();
-		$this->assertEquals('dk', $return);
+		$this->assertEquals('da', $return);
 
 		$_SERVER = $serverBackup;
 	}
 
 	public function testAutoLanguageNotDefaultLocale() {
 		$serverBackup = $_SERVER;
-		$_SERVER['HTTP_ACCEPT_LANGUAGE'] = 'dk_DK,es,en';
+		$_SERVER['HTTP_ACCEPT_LANGUAGE'] = 'da_DK,es,en';
 
 		$class = $this->getMockClass('Translation', array('locales'));
 
 		$class::staticExpects($this->once())
 			->method('locales')
-			->will($this->returnValue(array('en' => 'en', 'dk' => 'dk')));
+			->will($this->returnValue(array('en' => 'en', 'da' => 'da')));
 
 		$return = $class::autoDetectLocale();
-		$this->assertEquals('dk', $return);
+		$this->assertEquals('da', $return);
 
 		$_SERVER = $serverBackup;
 	}
