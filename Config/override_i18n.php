@@ -68,9 +68,8 @@ function __n($singular, $plural, $count, $args = null) {
 		$args = is_array($args) ? $args : array_slice(func_get_args(), 3);
 	}
 
-	if ((int)$count !== 1) {
-		$args = $args ?: array();
-		array_unshift($args, $count);
+	$args = $args ?: array();
+	if (!isset($args['number'])) {
 		$args['number'] = $count;
 	}
 
@@ -124,9 +123,8 @@ function __dn($domain, $singular, $plural, $count, $args = null) {
 		return __replace($singular, $args);
 	}
 
-	if ((int)$count !== 1) {
-		$args = $args ?: array();
-		array_unshift($args, $count);
+	$args = $args ?: array();
+	if (!isset($args['number'])) {
 		$args['number'] = $count;
 	}
 
@@ -204,6 +202,12 @@ function __dcn($domain, $singular, $plural, $count, $category, $args = null) {
 	if (!$singular || !class_exists('Translation')) {
 		return __replace($singular, $args);
 	}
+
+	$args = $args ?: array();
+	if (!isset($args['number'])) {
+		$args['number'] = $count;
+	}
+
 	$translated = Translation::translate($singular, compact('domain', 'plural', 'count', 'category'));
 	return __replace($translated, $args);
 }
