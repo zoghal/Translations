@@ -66,15 +66,6 @@ class OverrideI18nTest extends CakeTestCase {
 		$return = __n('single', 'plural {number}', 2);
 		$this->assertSame('plural 2', $return);
 
-		$return = __n('single %s', 'plural %d %s', 1, 'blue');
-		$this->assertSame('single blue', $return);
-
-		$return = __n('single %s', 'plural %d %s', 0, 'blue');
-		$this->assertSame('plural 0 blue', $return);
-
-		$return = __n('single %s', 'plural %d %s', 2, 'blue');
-		$this->assertSame('plural 2 blue', $return);
-
 		$return = __n('single {color}', 'plural {number} {color}', 1, array('color' => 'blue'));
 		$this->assertSame('single blue', $return);
 
@@ -130,15 +121,6 @@ class OverrideI18nTest extends CakeTestCase {
 
 		$return = __dn('testing', 'single', 'plural {number}', 2);
 		$this->assertSame('plural 2', $return);
-
-		$return = __dn('testing', 'single %s', 'plural %d %s', 1, 'blue');
-		$this->assertSame('single blue', $return);
-
-		$return = __dn('testing', 'single %s', 'plural %d %s', 0, 'blue');
-		$this->assertSame('plural 0 blue', $return);
-
-		$return = __dn('testing', 'single %s', 'plural %d %s', 2, 'blue');
-		$this->assertSame('plural 2 blue', $return);
 
 		$return = __dn('testing', 'single {color}', 'plural {number} {color}', 1, array('color' => 'blue'));
 		$this->assertSame('single blue', $return);
