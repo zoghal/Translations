@@ -159,6 +159,14 @@ class Translation extends TranslationsAppModel {
 		return $match;
 	}
 
+/**
+ * beforeSave
+ *
+ * Json encode any field which is an array
+ *
+ * @param array $options
+ * @return boolean
+ */
 	public function beforeSave($options = array()) {
 		$fields = array(
 			'references',
@@ -252,6 +260,10 @@ class Translation extends TranslationsAppModel {
 		if (!Configure::read('Config.defaultLanguage')) {
 			Configure::write('Config.defaultLanguage', Configure::read('Config.language'));
 		}
+
+		$settings += array(
+			'locale' => Configure::read('Config.language')
+		);
 
 		if (defined('CORE_TEST_CASES')) {
 			static::$_defaultConfig['useTable'] = false;
@@ -353,9 +365,32 @@ class Translation extends TranslationsAppModel {
 /**
  * forLocale
  *
+ * Return the translation definitions for the passed arguments. By default translations
+ * are returned as a nested array for the current domain-category-locale. To obtain a flat
+ * array - pass 'nested' => false in the settings. E.g. with the following code:
+ *
+ * $nested = Translation::forLocale();
+ * $flat = Translation::forLocale(null, array('nested' => false));
+ *
+ * Return values would be of the format:
+ *
+ * $nested = array(
+ * 		'key' => array(
+ * 			'one' => array(
+ *				'two' => 'value'
+ * 			),
+ * 			'three' => 'value'
+ * 		)
+ * );
+ *
+ * $flat = array(
+ * 		'key.one.two' => 'value',
+ * 		'key.three' => 'value'
+ * );
+ *
  * @param string $locale
- * @param mixed $addDefaults
- * @return
+ * @param array $settings
+ * @return array
  */
 	public static function forLocale($locale = null, $settings = array()) {
 		static::config();
@@ -581,7 +616,7 @@ class Translation extends TranslationsAppModel {
 				continue;
 			}
 			static::$_model->id = static::$_model->field('id', $conditions + array('key' => $id));
-			static::$_model->saveField('is_active', false);
+			static::$_model->delete();
 		}
 
 		return array_keys($toRemove);
@@ -789,9 +824,11 @@ class Translation extends TranslationsAppModel {
 /**
  * hasTranslation
  *
+ * Check if a translation exists for the given translation key.
+ *
  * @param mixed $key
  * @param array $options
- * @return bool
+ * @return boolean
  */
 	public static function hasTranslation($key, $options = array()) {
 		static::config();

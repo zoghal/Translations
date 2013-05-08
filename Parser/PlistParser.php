@@ -26,16 +26,6 @@ class PlistParser extends Parser{
 	}
 
 /**
- * generate
- *
- * @param array $array
- * @return string
- */
-	public static function generate($array = array()) {
-		throw new \Exception("Not implemented");
-	}
-
-/**
  * _flatten
  *
  * Turn a nested array into a flat array appropriate for the translations plugin

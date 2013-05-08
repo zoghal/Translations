@@ -14,7 +14,7 @@ class ImportShell extends AppShell {
  */
 	protected $_settings = array(
 		'domain' => 'default',
-		'locale' => 'en',
+		'locale' => null,
 		'category' => 'LC_MESSAGES'
 	);
 
@@ -114,7 +114,7 @@ class ImportShell extends AppShell {
 			}
 			$this->out("Deleting translation $id");
 			$this->Translation->id = $this->Translation->field('id', $conditions + array('key' => $id));
-			$this->Translation->saveField('is_active', false);
+			$this->Translation->delete();
 		}
 	}
 

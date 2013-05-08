@@ -66,7 +66,14 @@ class ExtractJsTask extends ExtractBaseTask {
  * @return void
  */
 	protected function _getPaths() {
-		if (isset($this->params['plugin'])) {
+		if ($this->args) {
+			$this->_paths = $this->args;
+			foreach ($this->_paths as &$path) {
+				if (is_dir($path . DS . 'webroot')) {
+					$path = rtrim($path, DS) . DS . 'webroot';
+				}
+			}
+		} elseif (isset($this->params['plugin'])) {
 			$this->_paths[] = CakePlugin::path($this->params['plugin']) . 'webroot';
 		} else {
 			$this->_paths[] = APP . 'webroot';

@@ -46,7 +46,7 @@ class ExtractBaseTask extends ExtractTask {
  * @return void
  */
 	protected function _buildFiles() {
-		foreach($this->_translations as &$translations) {
+		foreach ($this->_translations as &$translations) {
 			ksort($translations);
 		}
 
@@ -59,7 +59,9 @@ class ExtractBaseTask extends ExtractTask {
  * @return void
  */
 	protected function _getPaths() {
-		if (isset($this->params['plugin'])) {
+		if ($this->args) {
+			$this->_paths = $this->args;
+		} elseif (isset($this->params['plugin'])) {
 			$this->_paths[] = CakePlugin::path($this->params['plugin']);
 		} else {
 			$this->_paths[] = APP;
