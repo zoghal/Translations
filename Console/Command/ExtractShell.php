@@ -54,13 +54,15 @@ class ExtractShell extends AppShell {
 	public function getOptionParser() {
 		$parser = parent::getOptionParser();
 		$parser->description(
-			'Extract translations for your whole application'
+			'Extract translations from your application'
 		)->addSubcommand('php', array(
 			'help' => 'Extract translations from php source files',
 			'parser' => $this->ExtractPhp->getOptionParser()
 		))->addSubcommand('js', array(
 			'help' => 'Extract translations from js source files',
 			'parser' => $this->ExtractJs->getOptionParser()
+		))->addArgument('path', array(
+			'help' => 'The path to extract translations from'
 		));
 
 		return $parser;
