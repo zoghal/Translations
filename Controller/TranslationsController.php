@@ -140,7 +140,7 @@ class TranslationsController extends TranslationsAppController {
 					continue;
 				}
 
-				$key = str_replace('¿', '.', $key);
+				$key = base64_decode(str_replace('¿', '.', $key));
 
 				$conditions = $defaultConditions + compact('key');
 
