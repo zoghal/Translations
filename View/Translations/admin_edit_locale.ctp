@@ -5,10 +5,11 @@ if (count($this->request['pass']) < 4) {
 	$split = true;
 } else {
 	$split = false;
- 	$sections['all']['title'] = $this->Html->link(__("Back to all %s translations", $locale), array($locale));
+	$sections['all']['title'] = $this->Html->link(__("Back to all %s translations", $locale), array($locale));
 }
 
 foreach ($default as $key => $string) {
+	// $key = urlencode($key);
 	$input = array(
 		'label' => "dummy." . str_replace('.', ' ', strtolower($key)),
 		'placeholder' => $string,
@@ -31,12 +32,12 @@ foreach ($default as $key => $string) {
 			$rest = $key;
 		}
 		if (empty($sections[$section])) {
- 			$sections[$section]['title'] = Inflector::humanize(Inflector::underscore($section));
+			$sections[$section]['title'] = Inflector::humanize(Inflector::underscore($section));
 		}
 		$input['label'] = "dummy." . str_replace('.', ' ', strtolower($rest));
- 		$sections[$section]['columns'][str_replace('.', '¿', $key)] = $input;
+		$sections[$section]['columns'][base64_encode(str_replace('.', '¿', $key))] = $input;
 	} else {
- 		$sections['all']['columns'][str_replace('.', '¿', $key)] = $input;
+		$sections['all']['columns'][base64_encode(str_replace('.', '¿', $key))] = $input;
 	}
 }
 if (count($sections) > 1) {
