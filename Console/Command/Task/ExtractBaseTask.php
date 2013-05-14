@@ -35,7 +35,9 @@ class ExtractBaseTask extends ExtractTask {
 
 		$this->params['overwrite'] = true;
 
-		$this->params['paths'] = $this->_paths[0];
+		if (!isset($this->params['plugin'])) {
+			$this->params['paths'] = $this->_paths[0];
+		}
 
 		parent::execute();
 	}

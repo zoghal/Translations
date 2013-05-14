@@ -92,6 +92,11 @@ It's possible to restrict the plugin to a path by passing it as the first argume
 
 	Done.
 
+Another way to extract a single plugin is to set the plugin - parameter. The advatage on using these parameter is that also extract validation messages.
+
+	-> Console/cake Translations.extract --plugin Foo
+
+
 Note that used in this way - the output directory is set to the Locale folder of the Plugin
 if it exists.
 
